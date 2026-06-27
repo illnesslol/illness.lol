@@ -93,21 +93,33 @@ export default function SignupPage() {
     }}>
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }} />
 
+      {/* spotlight */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '600px',
+        height: '100vh',
+        background: 'conic-gradient(from 270deg at 50% 0%, transparent 70deg, rgba(255,255,255,0.045) 90deg, transparent 110deg)',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+
       <div style={{
         position: 'relative', zIndex: 1,
         background: 'rgba(12,12,22,0.82)',
         border: '0.5px solid rgba(255,255,255,0.1)',
         borderRadius: '20px', padding: '44px 40px', width: '420px',
         backdropFilter: 'blur(16px)',
+        boxShadow: '0 0 80px rgba(255,255,255,0.04)',
       }}>
         {!submitted ? (
           <>
-            {/* icon */}
-            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
               <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
             </div>
 
-            {/* heading */}
             <div style={{ textAlign: 'center', marginBottom: '6px', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.4px' }}>
               Create an account
             </div>
@@ -116,7 +128,6 @@ export default function SignupPage() {
               <a href="/login" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Log in</a>
             </div>
 
-            {/* username */}
             <div style={{ marginBottom: '12px' }}>
               <label style={labelStyle}>Username</label>
               <div style={{ position: 'relative' }}>
@@ -133,7 +144,6 @@ export default function SignupPage() {
               </div>
             </div>
 
-            {/* email */}
             <div style={{ marginBottom: '12px' }}>
               <label style={labelStyle}>Email</label>
               <input
@@ -144,7 +154,6 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* password */}
             <div style={{ marginBottom: '24px' }}>
               <label style={labelStyle}>Password</label>
               <div style={{ position: 'relative' }}>
@@ -175,7 +184,6 @@ export default function SignupPage() {
               </div>
             </div>
 
-            {/* submit */}
             <button
               onClick={handleSubmit}
               style={{
