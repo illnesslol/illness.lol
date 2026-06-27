@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'illness.lol',
   description: 'your corner of the internet.',
   icons: {
-    icon: '/icon.jpg',
+    icon: '/icon.png',
   },
 }
 
