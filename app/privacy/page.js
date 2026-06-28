@@ -71,21 +71,56 @@ export default function PrivacyPage() {
     }}>
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }} />
 
-      {/* spotlight */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '600px',
-        height: '100vh',
+        position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
+        width: '600px', height: '100vh',
         background: 'conic-gradient(from 270deg at 50% 0%, transparent 70deg, rgba(255,255,255,0.045) 90deg, transparent 110deg)',
-        pointerEvents: 'none',
-        zIndex: 0,
+        pointerEvents: 'none', zIndex: 0,
       }} />
 
+      {/* navbar */}
+      <nav style={{
+        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 10, display: 'flex', alignItems: 'center', gap: '2px',
+        background: 'rgba(15,15,25,0.85)',
+        border: '0.5px solid rgba(255,255,255,0.12)',
+        borderRadius: '100px', padding: '8px 8px 8px 20px',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 40px rgba(0,0,0,0.5)',
+        whiteSpace: 'nowrap',
+      }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px', textDecoration: 'none' }}>
+          <img src="/icon.png" alt="illness.lol" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', textShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
+            illness.lol
+          </span>
+        </a>
+        {[['Discord', 'https://discord.gg/illness'], ['Leaderboard', '/leaderboard'], ['Pricing', '/pricing']].map(([label, href]) => (
+          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} style={{
+            fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+            padding: '8px 16px', borderRadius: '100px', transition: 'color 0.15s, background 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
+          >{label}</a>
+        ))}
+        <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
+        <a href="/login" style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none', padding: '8px 16px', borderRadius: '100px', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+        >Log in</a>
+        <a href="/signup" style={{
+          fontSize: '13.5px', color: '#06060f', textDecoration: 'none', padding: '10px 22px',
+          borderRadius: '100px', background: '#fff', fontWeight: 600,
+          boxShadow: '0 0 20px rgba(255,255,255,0.25)', transition: 'box-shadow 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+        >Sign up</a>
+      </nav>
+
       <div style={{
-        position: 'relative', zIndex: 1,
+        position: 'relative', zIndex: 1, marginTop: '80px',
         background: 'rgba(12,12,22,0.82)',
         border: '0.5px solid rgba(255,255,255,0.1)',
         borderRadius: '20px', padding: '44px 40px', width: '720px', maxWidth: '100%',
@@ -104,38 +139,17 @@ export default function PrivacyPage() {
         </div>
 
         <p style={paragraphStyle}>
-          This Privacy Policy explains how illness.lol (&quot;illness.lol&quot;, &quot;we&quot;, &quot;us&quot;, or
-          &quot;our&quot;) collects, uses, and protects your information when you create a profile, link page, or
-          account on our service (the &quot;Service&quot;). illness.lol is a biolink service that lets you host a
-          single public page that points to your other links and content. By using the Service, you agree to the
-          practices described below.
+          This Privacy Policy explains how illness.lol collects, uses, and protects your information when you create a profile, link page, or account on our service. By using the Service, you agree to the practices described below.
         </p>
 
         <Section title="1. Information We Collect">
           <p style={paragraphStyle}>We collect the following categories of information:</p>
           <ul style={listStyle}>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Account information.</strong> Your username (e.g. illness.lol/yourname),
-              email address, and a securely hashed password. We never store your password in plain text.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Profile content.</strong> Anything you choose to add to your public page —
-              display name, bio, avatar or background images, links, embedded media, and social handles. This
-              information is public by design.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Usage and analytics data.</strong> Aggregate metrics such as page views,
-              link clicks, referring sites, approximate location (country/region), device type, and browser, used to
-              power your analytics dashboard and to improve the Service.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Technical data.</strong> IP address, log files, and timestamps collected
-              automatically to operate the Service securely and prevent abuse.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Cookies.</strong> Small files used to keep you logged in and remember your
-              preferences. See Section 6.
-            </li>
+            <li style={listItemStyle}><strong style={strongStyle}>Account information.</strong> Your username, email address, and a securely hashed password. We never store your password in plain text.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Profile content.</strong> Anything you choose to add to your public page — display name, bio, avatar, background images, links, and social handles. This information is public by design.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Usage and analytics data.</strong> Aggregate metrics such as page views, link clicks, referring sites, approximate location, device type, and browser.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Technical data.</strong> IP address, log files, and timestamps collected automatically to operate the Service securely and prevent abuse.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Cookies.</strong> Small files used to keep you logged in and remember your preferences. See Section 6.</li>
           </ul>
         </Section>
 
@@ -148,110 +162,77 @@ export default function PrivacyPage() {
             <li style={listItemStyle}>To detect, prevent, and respond to fraud, abuse, spam, and security issues.</li>
             <li style={listItemStyle}>To comply with legal obligations and enforce our Terms of Service.</li>
           </ul>
-          <p style={paragraphStyle}>
-            We do <strong style={strongStyle}>not</strong> sell your personal information.
-          </p>
+          <p style={paragraphStyle}>We do <strong style={strongStyle}>not</strong> sell your personal information.</p>
         </Section>
 
         <Section title="3. Public Nature of Your Page">
           <p style={paragraphStyle}>
-            Your biolink page and everything you publish on it are public and may be viewed, indexed by search
-            engines, and shared by anyone. Please do not put information on your public page that you want to keep
-            private. Your email address and password are never shown publicly.
+            Your biolink page and everything you publish on it are public and may be viewed, indexed by search engines, and shared by anyone. Please do not put information on your public page that you want to keep private. Your email address and password are never shown publicly.
           </p>
         </Section>
 
         <Section title="4. How We Share Information">
           <p style={paragraphStyle}>We share information only in these limited situations:</p>
           <ul style={listStyle}>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Service providers.</strong> Trusted vendors that host our servers, store
-              data, send email, and provide analytics, acting on our behalf under confidentiality obligations.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Legal reasons.</strong> When required by law, subpoena, or to protect the
-              rights, safety, and property of illness.lol, our users, or the public.
-            </li>
-            <li style={listItemStyle}>
-              <strong style={strongStyle}>Business transfers.</strong> In connection with a merger, acquisition, or
-              sale of assets, in which case we will notify you of any change.
-            </li>
+            <li style={listItemStyle}><strong style={strongStyle}>Service providers.</strong> Trusted vendors that host our servers, store data, send email, and provide analytics, acting on our behalf under confidentiality obligations.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Legal reasons.</strong> When required by law, subpoena, or to protect the rights, safety, and property of illness.lol, our users, or the public.</li>
+            <li style={listItemStyle}><strong style={strongStyle}>Business transfers.</strong> In connection with a merger, acquisition, or sale of assets, in which case we will notify you of any change.</li>
           </ul>
         </Section>
 
         <Section title="5. Third-Party Links and Embeds">
           <p style={paragraphStyle}>
-            The whole point of a biolink is to send visitors elsewhere. When you or your visitors click a link, or
-            when you embed third-party content (e.g. music, video, social posts), those third parties have their own
-            privacy policies and may collect data independently of us. We are not responsible for the practices of
-            sites you link to. Review their policies before sharing information with them.
+            When you or your visitors click a link, or when you embed third-party content, those third parties have their own privacy policies and may collect data independently of us. We are not responsible for the practices of sites you link to.
           </p>
         </Section>
 
         <Section title="6. Cookies and Tracking">
           <p style={paragraphStyle}>
-            We use strictly necessary cookies to keep you signed in and functional cookies to remember preferences.
-            We may use privacy-respecting analytics to understand aggregate traffic. You can control cookies through
-            your browser settings, though disabling them may break parts of the Service such as staying logged in.
+            We use strictly necessary cookies to keep you signed in and functional cookies to remember preferences. You can control cookies through your browser settings, though disabling them may break parts of the Service such as staying logged in.
           </p>
         </Section>
 
         <Section title="7. Data Retention">
           <p style={paragraphStyle}>
-            We keep your information for as long as your account is active. If you delete your account, we remove your
-            public page and personal data within a reasonable period, except where we must retain certain records to
-            comply with legal obligations, resolve disputes, or prevent abuse.
+            We keep your information for as long as your account is active. If you delete your account, we remove your public page and personal data within a reasonable period, except where we must retain certain records to comply with legal obligations.
           </p>
         </Section>
 
         <Section title="8. Security">
           <p style={paragraphStyle}>
-            We use industry-standard measures — encrypted connections (HTTPS), hashed passwords, and access controls —
-            to protect your data. No method of transmission or storage is ever completely secure, so we cannot
-            guarantee absolute security. Keep your password confidential and use a strong, unique one.
+            We use industry-standard measures — encrypted connections (HTTPS), hashed passwords, and access controls — to protect your data. Keep your password confidential and use a strong, unique one.
           </p>
         </Section>
 
         <Section title="9. Your Rights">
           <p style={paragraphStyle}>
-            Depending on where you live, you may have the right to access, correct, export, or delete your personal
-            data, and to object to or restrict certain processing. You can manage most of this from your account
-            settings, or contact us using the details below. We will respond within the time required by applicable
-            law.
+            Depending on where you live, you may have the right to access, correct, export, or delete your personal data. You can manage most of this from your account settings, or contact us using the details below.
           </p>
         </Section>
 
         <Section title="10. Children's Privacy">
           <p style={paragraphStyle}>
-            The Service is not directed to children under 13 (or the minimum age required in your country). We do not
-            knowingly collect personal information from children. If you believe a child has provided us with personal
-            data, contact us and we will delete it.
+            The Service is not directed to children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal data, contact us and we will delete it.
           </p>
         </Section>
 
         <Section title="11. International Users">
           <p style={paragraphStyle}>
-            We may process and store your information on servers located in countries other than your own. By using
-            the Service, you consent to the transfer of your information to those locations, which may have different
-            data protection laws than your jurisdiction.
+            We may process and store your information on servers located in countries other than your own. By using the Service, you consent to the transfer of your information to those locations.
           </p>
         </Section>
 
         <Section title="12. Changes to This Policy">
           <p style={paragraphStyle}>
-            We may update this Privacy Policy from time to time. When we make material changes, we will update the
-            &quot;Last updated&quot; date above and, where appropriate, notify you by email or through the Service.
-            Continued use of the Service after changes take effect constitutes acceptance of the updated policy.
+            We may update this Privacy Policy from time to time. When we make material changes, we will update the &quot;Last updated&quot; date above. Continued use of the Service after changes take effect constitutes acceptance of the updated policy.
           </p>
         </Section>
 
-        <div style={{
-          marginTop: '36px', paddingTop: '24px',
-          borderTop: '0.5px solid rgba(255,255,255,0.1)',
-          textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)',
-        }}>
-          <a href="/signup" style={linkStyle}>← Back to sign up</a>
-        </div>
+        <Section title="13. Contact">
+          <p style={paragraphStyle}>
+            Got a question or something to flag? Reach us on our Discord server at discord.gg/illness or through the platform.
+          </p>
+        </Section>
       </div>
     </div>
   )
@@ -271,26 +252,18 @@ const headingStyle = {
   letterSpacing: '0.08em', textTransform: 'uppercase',
   color: 'rgba(255,255,255,0.55)', margin: '0 0 12px',
 }
-
 const paragraphStyle = {
   fontSize: '14px', lineHeight: 1.7,
   color: 'rgba(255,255,255,0.7)', margin: '0 0 12px',
 }
-
 const listStyle = {
   margin: '0 0 12px', paddingLeft: '18px',
   display: 'flex', flexDirection: 'column', gap: '8px',
 }
-
 const listItemStyle = {
   fontSize: '14px', lineHeight: 1.6,
   color: 'rgba(255,255,255,0.7)',
 }
-
 const strongStyle = {
   color: 'rgba(255,255,255,0.92)', fontWeight: 600,
-}
-
-const linkStyle = {
-  color: 'rgba(255,255,255,0.75)', textDecoration: 'none',
 }
