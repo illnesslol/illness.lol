@@ -78,8 +78,49 @@ export default function TermsPage() {
         pointerEvents: 'none', zIndex: 0,
       }} />
 
+      {/* navbar */}
+      <nav style={{
+        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 10, display: 'flex', alignItems: 'center', gap: '2px',
+        background: 'rgba(15,15,25,0.85)',
+        border: '0.5px solid rgba(255,255,255,0.12)',
+        borderRadius: '100px', padding: '8px 8px 8px 20px',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 40px rgba(0,0,0,0.5)',
+        whiteSpace: 'nowrap',
+      }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px', textDecoration: 'none' }}>
+          <img src="/icon.png" alt="illness.lol" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', textShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
+            illness.lol
+          </span>
+        </a>
+        {[['Discord', 'https://discord.gg/illness'], ['Leaderboard', '/leaderboard'], ['Pricing', '/pricing']].map(([label, href]) => (
+          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} style={{
+            fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+            padding: '8px 16px', borderRadius: '100px', transition: 'color 0.15s, background 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
+          >{label}</a>
+        ))}
+        <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
+        <a href="/login" style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none', padding: '8px 16px', borderRadius: '100px', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+        >Log in</a>
+        <a href="/signup" style={{
+          fontSize: '13.5px', color: '#06060f', textDecoration: 'none', padding: '10px 22px',
+          borderRadius: '100px', background: '#fff', fontWeight: 600,
+          boxShadow: '0 0 20px rgba(255,255,255,0.25)', transition: 'box-shadow 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+        >Sign up</a>
+      </nav>
+
       <div style={{
-        position: 'relative', zIndex: 1,
+        position: 'relative', zIndex: 1, marginTop: '80px',
         background: 'rgba(12,12,22,0.82)',
         border: '0.5px solid rgba(255,255,255,0.1)',
         borderRadius: '20px', padding: '44px 40px', width: '720px', maxWidth: '100%',
@@ -106,13 +147,13 @@ export default function TermsPage() {
             illness.lol is a bio link platform — one shareable page where you collect your links, socials, and more. Pages can be public depending on your settings, so anything you put on yours might be visible to anyone. Only publish things you actually have the right to share.
           </p>
           <p style={paragraphStyle}>
-            These Terms apply whenever you visit, sign in, or otherwise use illness.lol. Sticking around after we update them counts as agreeing to the new version, alongside any laws that apply where you live.
+            These Terms apply whenever you visit, sign in, or otherwise use illness.lol. Sticking around after we update them counts as agreeing to the new version.
           </p>
         </Section>
 
         <Section title="2. Changes to These Terms">
           <p style={paragraphStyle}>
-            We can revise these Terms whenever it makes sense — to reflect new features, legal requirements, or how the Service works in practice. Updates go live when published here, and continuing to use illness.lol after that means you&apos;re on board with the new version.
+            We can revise these Terms whenever it makes sense — to reflect new features, legal requirements, or how the Service works in practice. Updates go live when published here, and continuing to use illness.lol after that means you&apos;re on board.
           </p>
           <p style={paragraphStyle}>
             When a change meaningfully affects a paid plan, we&apos;ll do our best to give you a heads-up before it takes effect.
@@ -121,9 +162,8 @@ export default function TermsPage() {
 
         <Section title="3. Use of the Service">
           <p style={paragraphStyle}>
-            illness.lol is here for you to use lawfully and within these Terms. Don&apos;t do anything that breaks, slows down, or destabilizes the Service, or makes it harder for others to enjoy their own page.
+            illness.lol is here for you to use lawfully and within these Terms. Don&apos;t do anything that breaks, slows down, or destabilizes the Service, or makes it harder for others to enjoy their own page. In particular:
           </p>
-          <p style={paragraphStyle}>Pick a username that&apos;s legal, honest, and isn&apos;t stepping on anyone&apos;s rights. In particular:</p>
           <ul style={listStyle}>
             <li style={listItemStyle}>Don&apos;t try to bypass our security, rate limits, or access controls.</li>
             <li style={listItemStyle}>Don&apos;t pretend to be someone else or imply we&apos;ve endorsed you when we haven&apos;t.</li>
@@ -184,7 +224,7 @@ export default function TermsPage() {
 
         <Section title="9. Privacy">
           <p style={paragraphStyle}>
-            Using illness.lol also means our Privacy Policy applies. It explains what we collect, why we collect it, and the choices you have. By using the Service, you&apos;re consenting to the practices described in that policy.
+            Using illness.lol also means our <a href="/privacy" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Privacy Policy</a> applies. It explains what we collect, why we collect it, and the choices you have.
           </p>
         </Section>
 
@@ -211,14 +251,6 @@ export default function TermsPage() {
             Got a question or something to flag? Reach us on our Discord server at discord.gg/illness or through the platform.
           </p>
         </Section>
-
-        <div style={{
-          marginTop: '36px', paddingTop: '24px',
-          borderTop: '0.5px solid rgba(255,255,255,0.1)',
-          textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)',
-        }}>
-          <a href="/signup" style={linkStyle}>← Back to sign up</a>
-        </div>
       </div>
     </div>
   )
@@ -249,7 +281,4 @@ const listStyle = {
 const listItemStyle = {
   fontSize: '14px', lineHeight: 1.6,
   color: 'rgba(255,255,255,0.7)',
-}
-const linkStyle = {
-  color: 'rgba(255,255,255,0.75)', textDecoration: 'none',
 }
