@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'illness.lol',
-  description: 'your corner of the internet.',
+  description: 'biolink site by @rottingcrime.',
   icons: {
     icon: '/icon.png',
   },
