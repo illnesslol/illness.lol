@@ -245,13 +245,6 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="13. Contact Us">
-          <p style={paragraphStyle}>
-            If you have questions about this Privacy Policy or how we handle your data, reach out to us at{' '}
-            <a href="mailto:privacy@illness.lol" style={linkStyle}>privacy@illness.lol</a>.
-          </p>
-        </Section>
-
         <div style={{
           marginTop: '36px', paddingTop: '24px',
           borderTop: '0.5px solid rgba(255,255,255,0.1)',
