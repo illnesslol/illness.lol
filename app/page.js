@@ -9,19 +9,16 @@ export default function HomePage() {
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 100)
-
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
     resize()
     window.addEventListener('resize', resize)
-
     const stars = Array.from({ length: 300 }, () => ({
       x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
       r: Math.random() * 1.5 + 0.2, a: Math.random(),
       speed: Math.random() * 0.003 + 0.0005, twinkle: Math.random() * Math.PI * 2,
     }))
-
     const shootingStars = []
     let frameCount = 0
     const spawnShooting = () => shootingStars.push({
@@ -29,7 +26,6 @@ export default function HomePage() {
       len: Math.random() * 120 + 60, speed: Math.random() * 8 + 6,
       angle: Math.PI / 5, alpha: 1, active: true,
     })
-
     let animId
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -68,6 +64,12 @@ export default function HomePage() {
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
   }, [])
 
+  const navLinks = [
+    ['Discord', 'https://discord.gg/illness'],
+    ['Leaderboard', '/leaderboard'],
+    ['Pricing', '/pricing'],
+  ]
+
   return (
     <div style={{
       minHeight: '100vh', background: '#06060f',
@@ -76,139 +78,131 @@ export default function HomePage() {
     }}>
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }} />
 
-      {/* spotlight */}
       <div style={{
         position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '100vh',
-        background: 'conic-gradient(from 270deg at 50% 0%, transparent 70deg, rgba(255,255,255,0.04) 90deg, transparent 110deg)',
+        width: '700px', height: '100vh',
+        background: 'conic-gradient(from 270deg at 50% 0%, transparent 68deg, rgba(180,140,255,0.07) 90deg, transparent 112deg)',
         pointerEvents: 'none', zIndex: 0,
       }} />
 
-      {/* navbar */}
       <nav style={{
         position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 10, display: 'flex', alignItems: 'center', gap: '4px',
-        background: 'rgba(15,15,25,0.8)',
-        border: '0.5px solid rgba(255,255,255,0.1)',
+        zIndex: 10, display: 'flex', alignItems: 'center', gap: '2px',
+        background: 'rgba(15,15,25,0.85)',
+        border: '0.5px solid rgba(255,255,255,0.12)',
         borderRadius: '100px',
-        padding: '6px 6px 6px 16px',
-        backdropFilter: 'blur(16px)',
-        boxShadow: '0 4px 40px rgba(0,0,0,0.4)',
+        padding: '8px 8px 8px 20px',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 40px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05) inset',
       }}>
-        {/* logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '8px' }}>
-          <img src="/icon.png" alt="illness.lol" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>illness.lol</span>
-        </div>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px', textDecoration: 'none' }}>
+          <img src="/icon.png" alt="illness.lol" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', whiteSpace: 'nowrap', textShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
+            illness.lol
+          </span>
+        </a>
 
-        {/* nav links */}
-        {['Discord', 'Leaderboard', 'Pricing'].map(item => (
-          <a key={item} href={`/${item.toLowerCase()}`} style={{
-            fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none',
-            padding: '7px 14px', borderRadius: '100px', whiteSpace: 'nowrap',
+        {navLinks.map(([label, href]) => (
+          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} style={{
+            fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+            padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
             transition: 'color 0.15s, background 0.15s',
           }}
             onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
           >
-            {item}
+            {label}
           </a>
         ))}
 
-        {/* divider */}
-        <div style={{ width: '0.5px', height: '18px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
+        <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
 
-        {/* auth buttons */}
         <a href="/login" style={{
-          fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none',
-          padding: '7px 14px', borderRadius: '100px', whiteSpace: 'nowrap',
+          fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+          padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
           transition: 'color 0.15s',
         }}
           onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
         >
           Log in
         </a>
         <a href="/signup" style={{
-          fontSize: '13px', color: '#06060f', textDecoration: 'none',
-          padding: '8px 18px', borderRadius: '100px', whiteSpace: 'nowrap',
-          background: 'rgba(255,255,255,0.92)',
-          fontWeight: 600,
-          transition: 'background 0.15s',
+          fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
+          padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
+          background: '#fff', fontWeight: 600,
+          boxShadow: '0 0 20px rgba(255,255,255,0.25)',
+          transition: 'box-shadow 0.15s',
         }}
-          onMouseEnter={e => e.currentTarget.style.background = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.92)'}
+          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
         >
           Sign up
         </a>
       </nav>
 
-      {/* hero */}
       <div style={{
         position: 'relative', zIndex: 1, textAlign: 'center',
-        maxWidth: '680px', padding: '0 24px',
+        maxWidth: '700px', padding: '0 24px',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(16px)',
         transition: 'opacity 0.8s ease, transform 0.8s ease',
       }}>
         <h1 style={{
-          fontSize: '68px', fontWeight: 800, color: '#fff',
+          fontSize: '70px', fontWeight: 800, color: '#fff',
           letterSpacing: '-3px', lineHeight: 1.05, marginBottom: '20px',
+          textShadow: '0 0 80px rgba(160,120,255,0.35), 0 0 160px rgba(100,80,200,0.2)',
         }}>
           Everything you want,{' '}
-          <span style={{ color: 'rgba(255,255,255,0.35)' }}>right here.</span>
+          <span style={{ color: 'rgba(255,255,255,0.3)', textShadow: '0 0 40px rgba(180,150,255,0.2)' }}>
+            right here.
+          </span>
         </h1>
 
         <p style={{
           fontSize: '16px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7,
-          marginBottom: '48px', maxWidth: '440px', margin: '0 auto 48px',
+          maxWidth: '440px', margin: '0 auto 48px',
+          textShadow: '0 0 30px rgba(255,255,255,0.1)',
         }}>
           illness.lol is your go-to modern, feature-rich bio link site for you.
         </p>
 
-        {/* claim box */}
         <div style={{
           display: 'flex', alignItems: 'center',
           background: 'rgba(15,15,25,0.85)',
           border: '0.5px solid rgba(255,255,255,0.12)',
-          borderRadius: '100px',
-          padding: '6px 6px 6px 20px',
-          backdropFilter: 'blur(16px)',
-          maxWidth: '460px', margin: '0 auto',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+          borderRadius: '100px', padding: '7px 7px 7px 22px',
+          backdropFilter: 'blur(16px)', maxWidth: '480px', margin: '0 auto',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05) inset',
         }}>
-          <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: 500, whiteSpace: 'nowrap' }}>
             illness.lol/
           </span>
           <input
-            type="text"
-            placeholder="yourname"
-            value={username}
+            type="text" placeholder="yourname" value={username}
             onChange={e => setUsername(e.target.value)}
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
-              fontSize: '14px', color: '#fff', fontFamily: 'inherit',
-              padding: '6px 8px',
+              fontSize: '14px', color: '#fff', fontFamily: 'inherit', padding: '6px 10px',
             }}
           />
           <a href="/signup" style={{
-            fontSize: '13px', fontWeight: 600, color: '#06060f',
-            textDecoration: 'none', padding: '10px 22px',
-            borderRadius: '100px', background: 'rgba(255,255,255,0.92)',
-            whiteSpace: 'nowrap', transition: 'background 0.15s',
+            fontSize: '13.5px', fontWeight: 600, color: '#06060f',
+            textDecoration: 'none', padding: '11px 24px',
+            borderRadius: '100px', background: '#fff', whiteSpace: 'nowrap',
+            boxShadow: '0 0 20px rgba(255,255,255,0.2)', transition: 'box-shadow 0.15s',
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.92)'}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.4)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.2)'}
           >
             Claim →
           </a>
         </div>
       </div>
 
-      {/* bottom watermark */}
       <div style={{
         position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 10, fontSize: '11px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.05em',
+        zIndex: 10, fontSize: '11px', color: 'rgba(255,255,255,0.12)', letterSpacing: '0.05em',
       }}>
         illness.lol
       </div>
