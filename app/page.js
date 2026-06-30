@@ -126,47 +126,43 @@ export default function HomePage() {
           </a>
         ))}
 
-        <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
-
-        {!authChecked ? null : loggedIn ? (
+        {authChecked && loggedIn && (
           <a href="/dashboard" style={{
-            fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
-            padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
-            background: '#fff', fontWeight: 600,
-            boxShadow: '0 0 20px rgba(255,255,255,0.25)',
-            transition: 'box-shadow 0.15s',
+            fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+            padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
+            transition: 'color 0.15s, background 0.15s',
           }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
           >
             Dashboard
           </a>
-        ) : (
-          <>
-            <a href="/login" style={{
-              fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
-              padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
-              transition: 'color 0.15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
-            >
-              Log in
-            </a>
-            <a href="/signup" style={{
-              fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
-              padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
-              background: '#fff', fontWeight: 600,
-              boxShadow: '0 0 20px rgba(255,255,255,0.25)',
-              transition: 'box-shadow 0.15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
-            >
-              Sign up
-            </a>
-          </>
         )}
+
+        <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
+
+        <a href="/login" style={{
+          fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+          padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
+          transition: 'color 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+        >
+          Log in
+        </a>
+        <a href="/signup" style={{
+          fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
+          padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
+          background: '#fff', fontWeight: 600,
+          boxShadow: '0 0 20px rgba(255,255,255,0.25)',
+          transition: 'box-shadow 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+        >
+          Sign up
+        </a>
       </nav>
 
       <div style={{
