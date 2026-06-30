@@ -1,14 +1,14 @@
 'use client'
- 
+
 import { useState, useEffect, createContext, useContext } from 'react'
 import { useRouter } from 'next/navigation'
- 
+
 const TransitionContext = createContext(null)
- 
+
 export function PageTransitionProvider({ children }) {
   const router = useRouter()
   const [active, setActive] = useState(false)
- 
+
   const navigate = (href) => {
     if (active) return
     setActive(true)
@@ -19,7 +19,7 @@ export function PageTransitionProvider({ children }) {
       setActive(false)
     }, 820)
   }
- 
+
   return (
     <TransitionContext.Provider value={{ navigate }}>
       {children}
@@ -28,10 +28,8 @@ export function PageTransitionProvider({ children }) {
         inset: 0,
         zIndex: 9999,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '18px',
         background: '#06060f',
         pointerEvents: active ? 'auto' : 'none',
         opacity: active ? 1 : 0,
@@ -46,24 +44,13 @@ export function PageTransitionProvider({ children }) {
             objectFit: 'contain',
             filter: 'brightness(0) invert(1)',
             opacity: 0,
-            animation: active ? 'illnessFlashIcon 0.82s ease forwards' : 'none',
+            animation: active ? 'illnessFlash 0.82s ease forwards' : 'none',
           }}
         />
-        <span style={{
-          fontSize: '20px',
-          fontWeight: 700,
-          color: '#fff',
-          letterSpacing: '-0.3px',
-          fontFamily: 'Inter, system-ui, sans-serif',
-          opacity: 0,
-          animation: active ? 'illnessFlashText 0.82s ease forwards' : 'none',
-        }}>
-          illness.lol
-        </span>
       </div>
- 
+
       <style jsx global>{`
-        @keyframes illnessFlashIcon {
+        @keyframes illnessFlash {
           0% {
             opacity: 0;
             transform: translateY(40px) scale(0.5);
@@ -95,44 +82,11 @@ export function PageTransitionProvider({ children }) {
             filter: brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0));
           }
         }
- 
-        @keyframes illnessFlashText {
-          0% {
-            opacity: 0;
-            transform: translateY(20px);
-            text-shadow: 0 0 0px rgba(255,255,255,0);
-          }
-          18% {
-            opacity: 1;
-            transform: translateY(0);
-            text-shadow: 0 0 16px rgba(255,255,255,1), 0 0 36px rgba(190,160,255,0.9), 0 0 60px rgba(150,110,255,0.6);
-          }
-          36% {
-            opacity: 1;
-            transform: translateY(0);
-            text-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 10px rgba(190,160,255,0.3);
-          }
-          54% {
-            opacity: 1;
-            transform: translateY(0);
-            text-shadow: 0 0 16px rgba(255,255,255,1), 0 0 36px rgba(190,160,255,0.9), 0 0 60px rgba(150,110,255,0.6);
-          }
-          80% {
-            opacity: 1;
-            transform: translateY(0);
-            text-shadow: 0 0 5px rgba(255,255,255,0.4), 0 0 12px rgba(190,160,255,0.3);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-            text-shadow: 0 0 0px rgba(255,255,255,0);
-          }
-        }
       `}</style>
     </TransitionContext.Provider>
   )
 }
- 
+
 export function useTransition() {
   const ctx = useContext(TransitionContext)
   if (!ctx) {
@@ -141,11 +95,11 @@ export function useTransition() {
   }
   return ctx
 }
- 
+
 // drop-in replacement for <a href="...">
 export function TransitionLink({ href, children, style, onMouseEnter, onMouseLeave, target, rel }) {
   const { navigate } = useTransition()
- 
+
   if (target === '_blank') {
     // external links skip the transition
     return (
@@ -154,7 +108,7 @@ export function TransitionLink({ href, children, style, onMouseEnter, onMouseLea
       </a>
     )
   }
- 
+
   return (
     <a
       href={href}
