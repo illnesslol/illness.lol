@@ -39,11 +39,11 @@ export function PageTransitionProvider({ children }) {
           src="/icon.png"
           alt=""
           style={{
-            width: '56px',
-            height: '56px',
+            width: '110px',
+            height: '110px',
             objectFit: 'contain',
             filter: active
-              ? 'brightness(0) invert(1) drop-shadow(0 0 24px rgba(255,255,255,0.9)) drop-shadow(0 0 50px rgba(180,150,255,0.6))'
+              ? 'brightness(0) invert(1) drop-shadow(0 0 30px rgba(255,255,255,1)) drop-shadow(0 0 70px rgba(190,160,255,0.9)) drop-shadow(0 0 120px rgba(150,110,255,0.6))'
               : 'brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0))',
             transform: active ? 'scale(1)' : 'scale(0.5)',
             opacity: active ? 1 : 0,
