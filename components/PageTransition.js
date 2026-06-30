@@ -14,10 +14,10 @@ export function PageTransitionProvider({ children }) {
     setActive(true)
     setTimeout(() => {
       router.push(href)
-    }, 380)
+    }, 420)
     setTimeout(() => {
       setActive(false)
-    }, 760)
+    }, 820)
   }
 
   return (
@@ -33,7 +33,7 @@ export function PageTransitionProvider({ children }) {
         background: '#06060f',
         pointerEvents: active ? 'auto' : 'none',
         opacity: active ? 1 : 0,
-        transition: 'opacity 0.28s ease',
+        transition: 'opacity 0.32s ease',
       }}>
         <img
           src="/icon.png"
@@ -42,10 +42,12 @@ export function PageTransitionProvider({ children }) {
             width: '56px',
             height: '56px',
             objectFit: 'contain',
-            filter: 'brightness(0) invert(1)',
+            filter: active
+              ? 'brightness(0) invert(1) drop-shadow(0 0 24px rgba(255,255,255,0.9)) drop-shadow(0 0 50px rgba(180,150,255,0.6))'
+              : 'brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0))',
             transform: active ? 'scale(1)' : 'scale(0.5)',
             opacity: active ? 1 : 0,
-            transition: 'transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.28s ease',
+            transition: 'transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.5s ease',
           }}
         />
       </div>
