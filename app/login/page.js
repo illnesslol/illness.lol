@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focused, setFocused] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -65,9 +69,31 @@ export default function LoginPage() {
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
   }, [])
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setError('')
     if (!identifier || !password) return
-    setSubmitted(true)
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong')
+        setLoading(false)
+        return
+      }
+
+      setSubmitted(true)
+      setTimeout(() => router.push('/dashboard'), 1000)
+    } catch (err) {
+      setError('Something went wrong')
+      setLoading(false)
+    }
   }
 
   const inputStyle = (name) => ({
@@ -93,15 +119,10 @@ export default function LoginPage() {
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }} />
 
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '600px',
-        height: '100vh',
+        position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
+        width: '600px', height: '100vh',
         background: 'conic-gradient(from 270deg at 50% 0%, transparent 70deg, rgba(255,255,255,0.045) 90deg, transparent 110deg)',
-        pointerEvents: 'none',
-        zIndex: 0,
+        pointerEvents: 'none', zIndex: 0,
       }} />
 
       <div style={{
@@ -136,7 +157,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: '10px' }}>
+            <div style={{ marginBottom: '8px' }}>
               <label style={labelStyle}>Password</label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -166,7 +187,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div style={{ textAlign: 'right', marginBottom: '24px' }}>
+            {error && (
+              <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '8px' }}>{error}</div>
+            )}
+
+            <div style={{ textAlign: 'right', marginBottom: '20px' }}>
               <a href="/forgot-password" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
                 Forgot password?
               </a>
@@ -174,18 +199,20 @@ export default function LoginPage() {
 
             <button
               onClick={handleSubmit}
+              disabled={loading}
               style={{
                 width: '100%', padding: '12px',
                 background: 'rgba(255,255,255,0.9)',
                 border: 'none', borderRadius: '8px',
                 color: '#06060f', fontSize: '14px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+                cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+                opacity: loading ? 0.7 : 1,
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.9)'}
+              onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
+              onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
             >
-              Log in
+              {loading ? 'Logging in...' : 'Log in'}
             </button>
           </>
         ) : (
