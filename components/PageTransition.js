@@ -43,10 +43,8 @@ export function PageTransitionProvider({ children }) {
             height: '110px',
             objectFit: 'contain',
             filter: 'brightness(0) invert(1)',
-            transform: active ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.5)',
-            opacity: active ? 1 : 0,
+            opacity: 0,
             animation: active ? 'illnessFlash 0.82s ease forwards' : 'none',
-            transition: 'transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease',
           }}
         />
       </div>
@@ -54,21 +52,33 @@ export function PageTransitionProvider({ children }) {
       <style jsx global>{`
         @keyframes illnessFlash {
           0% {
+            opacity: 0;
+            transform: translateY(40px) scale(0.5);
             filter: brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0));
           }
           18% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
             filter: brightness(0) invert(1) drop-shadow(0 0 34px rgba(255,255,255,1)) drop-shadow(0 0 80px rgba(190,160,255,0.95)) drop-shadow(0 0 130px rgba(150,110,255,0.7));
           }
           36% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
             filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 20px rgba(190,160,255,0.3));
           }
           54% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
             filter: brightness(0) invert(1) drop-shadow(0 0 34px rgba(255,255,255,1)) drop-shadow(0 0 80px rgba(190,160,255,0.95)) drop-shadow(0 0 130px rgba(150,110,255,0.7));
           }
           80% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
             filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255,255,255,0.4)) drop-shadow(0 0 24px rgba(190,160,255,0.3));
           }
           100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
             filter: brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0));
           }
         }
