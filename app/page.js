@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { TransitionLink } from '../components/PageTransition'
 
 export default function HomePage() {
   const canvasRef = useRef(null)
@@ -106,15 +107,15 @@ export default function HomePage() {
         backdropFilter: 'blur(20px)',
         boxShadow: '0 4px 40px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05) inset',
       }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px', textDecoration: 'none' }}>
+        <TransitionLink href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px', textDecoration: 'none' }}>
           <img src="/icon.png" alt="illness.lol" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
           <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', whiteSpace: 'nowrap', textShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
             illness.lol
           </span>
-        </a>
+        </TransitionLink>
 
         {navLinks.map(([label, href]) => (
-          <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} style={{
+          <TransitionLink key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined} style={{
             fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
             padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
             transition: 'color 0.15s, background 0.15s',
@@ -123,11 +124,11 @@ export default function HomePage() {
             onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
           >
             {label}
-          </a>
+          </TransitionLink>
         ))}
 
         {authChecked && loggedIn && (
-          <a href="/dashboard" style={{
+          <TransitionLink href="/dashboard" style={{
             fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
             padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
             transition: 'color 0.15s, background 0.15s',
@@ -136,12 +137,12 @@ export default function HomePage() {
             onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'transparent' }}
           >
             Dashboard
-          </a>
+          </TransitionLink>
         )}
 
         <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
 
-        <a href="/login" style={{
+        <TransitionLink href="/login" style={{
           fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
           padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
           transition: 'color 0.15s',
@@ -150,8 +151,8 @@ export default function HomePage() {
           onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
         >
           Log in
-        </a>
-        <a href="/signup" style={{
+        </TransitionLink>
+        <TransitionLink href="/signup" style={{
           fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
           padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
           background: '#fff', fontWeight: 600,
@@ -162,7 +163,7 @@ export default function HomePage() {
           onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
         >
           Sign up
-        </a>
+        </TransitionLink>
       </nav>
 
       <div style={{
@@ -210,7 +211,7 @@ export default function HomePage() {
               fontSize: '14px', color: '#fff', fontFamily: 'inherit', padding: '6px 10px',
             }}
           />
-          <a href="/signup" style={{
+          <TransitionLink href="/signup" style={{
             fontSize: '13.5px', fontWeight: 600, color: '#06060f',
             textDecoration: 'none', padding: '11px 24px',
             borderRadius: '100px', background: '#fff', whiteSpace: 'nowrap',
@@ -220,7 +221,7 @@ export default function HomePage() {
             onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.2)'}
           >
             Claim →
-          </a>
+          </TransitionLink>
         </div>
       </div>
 
