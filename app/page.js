@@ -6,9 +6,20 @@ export default function HomePage() {
   const canvasRef = useRef(null)
   const [visible, setVisible] = useState(false)
   const [username, setUsername] = useState('')
+  const [authChecked, setAuthChecked] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 100)
+
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => {
+        setLoggedIn(data.loggedIn)
+        setAuthChecked(true)
+      })
+      .catch(() => setAuthChecked(true))
+
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
@@ -117,28 +128,45 @@ export default function HomePage() {
 
         <div style={{ width: '0.5px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 6px' }} />
 
-        <a href="/login" style={{
-          fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
-          padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
-          transition: 'color 0.15s',
-        }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
-        >
-          Log in
-        </a>
-        <a href="/signup" style={{
-          fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
-          padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
-          background: '#fff', fontWeight: 600,
-          boxShadow: '0 0 20px rgba(255,255,255,0.25)',
-          transition: 'box-shadow 0.15s',
-        }}
-          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
-          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
-        >
-          Sign up
-        </a>
+        {!authChecked ? null : loggedIn ? (
+          <a href="/dashboard" style={{
+            fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
+            padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
+            background: '#fff', fontWeight: 600,
+            boxShadow: '0 0 20px rgba(255,255,255,0.25)',
+            transition: 'box-shadow 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+          >
+            Dashboard
+          </a>
+        ) : (
+          <>
+            <a href="/login" style={{
+              fontSize: '13.5px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+              padding: '8px 16px', borderRadius: '100px', whiteSpace: 'nowrap',
+              transition: 'color 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+            >
+              Log in
+            </a>
+            <a href="/signup" style={{
+              fontSize: '13.5px', color: '#06060f', textDecoration: 'none',
+              padding: '10px 22px', borderRadius: '100px', whiteSpace: 'nowrap',
+              background: '#fff', fontWeight: 600,
+              boxShadow: '0 0 20px rgba(255,255,255,0.25)',
+              transition: 'box-shadow 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.45)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.25)'}
+            >
+              Sign up
+            </a>
+          </>
+        )}
       </nav>
 
       <div style={{
