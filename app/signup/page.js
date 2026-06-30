@@ -1,14 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
+  const router = useRouter()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focused, setFocused] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -66,9 +70,31 @@ export default function SignupPage() {
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
   }, [])
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setError('')
     if (!username || !email || !password) return
-    setSubmitted(true)
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong')
+        setLoading(false)
+        return
+      }
+
+      setSubmitted(true)
+      setTimeout(() => router.push('/dashboard'), 1500)
+    } catch (err) {
+      setError('Something went wrong')
+      setLoading(false)
+    }
   }
 
   const inputStyle = (name) => ({
@@ -93,17 +119,11 @@ export default function SignupPage() {
     }}>
       <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }} />
 
-      {/* spotlight */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '600px',
-        height: '100vh',
+        position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
+        width: '600px', height: '100vh',
         background: 'conic-gradient(from 270deg at 50% 0%, transparent 70deg, rgba(255,255,255,0.045) 90deg, transparent 110deg)',
-        pointerEvents: 'none',
-        zIndex: 0,
+        pointerEvents: 'none', zIndex: 0,
       }} />
 
       <div style={{
@@ -154,7 +174,7 @@ export default function SignupPage() {
               />
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '8px' }}>
               <label style={labelStyle}>Password</label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -184,27 +204,35 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {error && (
+              <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '12px' }}>{error}</div>
+            )}
+
+            <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', margin: '20px 0' }} />
+
             <button
               onClick={handleSubmit}
+              disabled={loading}
               style={{
                 width: '100%', padding: '12px',
                 background: 'rgba(255,255,255,0.9)',
                 border: 'none', borderRadius: '8px',
                 color: '#06060f', fontSize: '14px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+                cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+                opacity: loading ? 0.7 : 1,
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.9)'}
+              onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
+              onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
             >
-              Create account
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '20px 0 4px' }}>
             <div style={{ fontSize: '28px', color: 'rgba(255,255,255,0.6)', marginBottom: '12px' }}>✦</div>
             <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: 500, marginBottom: '6px' }}>you're in</h3>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>welcome to illness.lol</p>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>taking you to your dashboard...</p>
           </div>
         )}
       </div>
