@@ -54,7 +54,7 @@ export default function DashboardPage() {
           Just kidding were free
         </h1>
         <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.4)', marginBottom: '32px' }}>
-          >_< -rottincrime
+          hi rottingcrime was here
         </p>
         <a href="/" style={{
           display: 'inline-block', fontSize: '14px', fontWeight: 600, color: '#06060f',
