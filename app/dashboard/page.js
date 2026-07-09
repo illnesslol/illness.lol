@@ -253,14 +253,16 @@ export default function DashboardPage() {
             {section === 'customize' && 'Personalize how your illness.lol page looks and feels.'}
             {section === 'analytics' && 'How your page has been performing this week.'}
             {section === 'links' && 'Manage the links visitors see on your page.'}
-            {!['customize', 'analytics', 'links'].includes(section) && 'Coming soon.'}
+            {section === 'badges' && "Browse all badges available on illness.lol and claim the ones you've earned."}
+            {!['customize', 'analytics', 'links', 'badges'].includes(section) && 'Coming soon.'}
           </p>
 
           <div key={section} className="section-enter">
             {section === 'customize' && <CustomizePanel cfg={cfg} set={set} toggleEffect={toggleEffect} addSocial={addSocial} updSocial={updSocial} rmSocial={rmSocial} />}
             {section === 'analytics' && <AnalyticsPanel cfg={cfg} mounted={mounted} />}
             {section === 'links' && <LinksPanel cfg={cfg} updSocial={updSocial} rmSocial={rmSocial} addSocial={addSocial} />}
-            {!['customize', 'analytics', 'links'].includes(section) && (
+            {section === 'badges' && <BadgesPanel cfg={cfg} set={set} />}
+            {!['customize', 'analytics', 'links', 'badges'].includes(section) && (
               <Card title={`${section} — coming soon`} desc="This panel is a placeholder.">
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
                   The <b style={{ color: '#fff' }}>{section}</b> section isn't built out yet. Try <b style={{ color: '#fff' }}>Customize</b> and <b style={{ color: '#fff' }}>Analytics</b>.
@@ -559,6 +561,82 @@ function LinksPanel({ cfg, updSocial, rmSocial, addSocial }) {
 }
 
 /* ================================================================== */
+/*  Badges panel                                                      */
+/* ================================================================== */
+const BADGE_LIST = [
+  { key: 'staff', name: 'Staff', desc: 'Part of the illness.lol team.', action: 'Equip' },
+  { key: 'verified', name: 'Verified', desc: 'Have 5k+ followers on a social media platform.', action: 'Claim' },
+  { key: 'premium', name: 'Premium', desc: 'Have access to premium features.', action: 'Claim' },
+  { key: 'og', name: 'OG', desc: 'Joined illness.lol before 1,000 users.', action: 'Equip' },
+  { key: 'gifter', name: 'Gifter', desc: 'Gift an illness.lol product to another user.', action: 'Claim' },
+  { key: 'helper', name: 'Helper', desc: 'Help other users in the Discord server.', action: 'Claim' },
+  { key: 'donor', name: 'Donor', desc: 'Donate to help support the development of illness.lol.', action: 'Claim' },
+  { key: 'first', name: '#1 Ranked', desc: 'Ranked #1 on the illness.lol leaderboard.', action: 'Get to #1' },
+  { key: 'second', name: '#2 Ranked', desc: 'Ranked #2 on the illness.lol leaderboard.', action: 'Get to #2' },
+  { key: 'third', name: '#3 Ranked', desc: 'Ranked #3 on the illness.lol leaderboard.', action: 'Get to #3' },
+  { key: 'booster', name: 'Booster', desc: 'Actively boost our Discord server.', action: 'Claim' },
+]
+
+function BadgesPanel({ cfg, set }) {
+  const badgeSettings = cfg.badgeSettings || {
+    showBadges: true,
+    badgesNextToName: true,
+    glowBadges: false,
+    badgeColor: '#ffffff',
+    monochrome: true,
+    glowStrength: 77,
+  }
+  const setBadgeSetting = (k, v) => set('badgeSettings', { ...badgeSettings, [k]: v })
+
+  return (
+    <>
+      <Card title="All Badges" desc={`${BADGE_LIST.length} total`}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+          {BADGE_LIST.map(b => (
+            <div key={b.key} className="badge-row">
+              <div className="badge-icon" style={{
+                background: badgeSettings.monochrome ? 'rgba(255,255,255,0.08)' : `${cfg.accent}22`,
+                boxShadow: badgeSettings.glowBadges ? `0 0 ${badgeSettings.glowStrength / 5}px ${cfg.accent}88` : 'none',
+              }}>
+                <img
+                  src={`/badges/${b.key}.png`}
+                  alt={b.name}
+                  style={{
+                    width: '20px', height: '20px', objectFit: 'contain',
+                    filter: badgeSettings.monochrome ? `brightness(0) invert(1)` : 'none',
+                  }}
+                  onError={e => { e.currentTarget.style.display = 'none' }}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.desc}</div>
+              </div>
+              <button className="badge-action">{b.action}</button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Badge Settings">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
+          <Toggle label="Show Badges" checked={badgeSettings.showBadges} onChange={() => setBadgeSetting('showBadges', !badgeSettings.showBadges)} accent={cfg.accent} />
+          <Toggle label="Badges Next To Name" checked={badgeSettings.badgesNextToName} onChange={() => setBadgeSetting('badgesNextToName', !badgeSettings.badgesNextToName)} accent={cfg.accent} />
+          <Toggle label="Glow Badges" checked={badgeSettings.glowBadges} onChange={() => setBadgeSetting('glowBadges', !badgeSettings.glowBadges)} accent={cfg.accent} />
+        </div>
+
+        <Row>
+          <Field label="Badge Color"><ColorInput value={badgeSettings.badgeColor} onChange={v => setBadgeSetting('badgeColor', v)} /></Field>
+          <Toggle label="Monochrome — all badges use Badge Color" checked={badgeSettings.monochrome} onChange={() => setBadgeSetting('monochrome', !badgeSettings.monochrome)} accent={cfg.accent} />
+        </Row>
+
+        <Slider label="Badge Glow Strength" value={badgeSettings.glowStrength} min={0} max={100} suffix="%" accent={cfg.accent} onChange={v => setBadgeSetting('glowStrength', v)} />
+      </Card>
+    </>
+  )
+}
+
+/* ================================================================== */
 /*  Tilt preview wrapper + animated effects canvas                    */
 /* ================================================================== */
 function TiltPreview({ cfg }) {
@@ -842,6 +920,12 @@ function GlobalStyles({ accent }) {
       .color-swatch::-webkit-color-swatch-wrapper { padding: 3px; }
 
       .social-row { display: flex; gap: 8px; animation: rise 0.3s ease both; }
+
+      .badge-row { display: flex; align-items: center; gap: 10px; padding: 11px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); transition: border-color 0.15s, transform 0.15s; }
+      .badge-row:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
+      .badge-icon { width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+      .badge-action { flex-shrink: 0; padding: 5px 10px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+      .badge-action:hover { background: rgba(255,255,255,0.1); }
 
       .stat-tile { background: rgba(12,12,22,0.7); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; backdrop-filter: blur(16px); animation: rise 0.5s cubic-bezier(.2,.8,.2,1) both; transition: transform 0.2s, border-color 0.2s; }
       .stat-tile:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
