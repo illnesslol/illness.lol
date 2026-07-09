@@ -6,13 +6,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 /*  illness.lol — advanced customization dashboard                    */
 /* ================================================================== */
 
+const ACCOUNT_GROUP = [
+  { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  { id: 'analytics', label: 'Analytics', icon: 'M3 3v18h18M7 15l3-4 4 3 5-7' },
+  { id: 'badges', label: 'Badges', icon: 'M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z' },
+  { id: 'settings', label: 'Settings', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1L14.5 3h-4L10 5.5a7 7 0 00-1.7 1l-2.4-1-2 3.4L4 10.9a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1L10 21h4l.5-2.5a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z' },
+]
+
 const NAV = [
   { id: 'customize', label: 'Customize', icon: 'M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.6 5.7 21l2.3-7.1-6-4.5h7.6z' },
   { id: 'links', label: 'Links', icon: 'M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1' },
-  { id: 'analytics', label: 'Analytics', icon: 'M3 3v18h18M7 15l3-4 4 3 5-7' },
-  { id: 'badges', label: 'Badges', icon: 'M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z' },
   { id: 'premium', label: 'Premium', icon: 'M3 7l4 5 5-7 5 7 4-5v11H3z' },
-  { id: 'settings', label: 'Settings', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1L14.5 3h-4L10 5.5a7 7 0 00-1.7 1l-2.4-1-2 3.4L4 10.9a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1L10 21h4l.5-2.5a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z' },
+  { id: 'buttons', label: 'Buttons', icon: 'M4 8a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V8zM4 16a2 2 0 012-2h5a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z' },
 ]
 
 const EFFECTS = [
@@ -134,6 +139,8 @@ export default function DashboardPage() {
   }, [])
 
   const activeIdx = NAV.findIndex(n => n.id === section)
+  const accountActive = ACCOUNT_GROUP.some(n => n.id === section)
+  const [accountOpen, setAccountOpenState] = useState(true)
 
   return (
     <div style={{ minHeight: '100vh', background: '#06060f', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', display: 'flex' }}>
@@ -157,13 +164,38 @@ export default function DashboardPage() {
 
       {/* ---------------- Sidebar ---------------- */}
       <aside className="sidebar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 8px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 8px 18px' }}>
           <img src="/icon.png" alt="" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
           <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.3px' }}>illness.lol</span>
         </div>
 
+        <div className="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input placeholder="Search features..." />
+          <span className="kbd">Ctrl K</span>
+        </div>
+
+        {/* Account collapsible group */}
+        <button className={`nav-group-header ${accountActive ? 'active' : ''}`} onClick={() => setAccountOpenState(o => !o)}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            Account
+          </span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: accountOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s' }}><path d="M18 15l-6-6-6 6"/></svg>
+        </button>
+        {accountOpen && (
+          <div className="nav-group-body">
+            {ACCOUNT_GROUP.map(n => (
+              <button key={n.id} onClick={() => setSection(n.id)} className={`nav-subitem ${section === n.id ? 'active' : ''}`}>
+                {n.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div style={{ height: '10px' }} />
+
         <div style={{ position: 'relative' }}>
-          {/* animated active indicator */}
           <div className="nav-indicator" style={{ transform: `translateY(${activeIdx * 44}px)`, boxShadow: `0 0 24px ${cfg.accent}66`, background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})` }} />
           {NAV.map(n => (
             <button key={n.id} onClick={() => setSection(n.id)} className={`nav-item ${section === n.id ? 'active' : ''}`}>
@@ -173,8 +205,28 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        <div style={{ flex: 1 }} />
+
+        <div className="help-card">
+          <div style={{ fontSize: '12.5px', fontWeight: 600, marginBottom: '10px', lineHeight: 1.4 }}>Have a question or need support?</div>
+          <a href="/support" className="help-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+            Help Center
+          </a>
+          <div style={{ fontSize: '12.5px', fontWeight: 600, margin: '12px 0 10px' }}>Check out your page</div>
+          <a href={`/${cfg.username}`} target="_blank" rel="noopener noreferrer" className="help-btn" style={{ background: `${cfg.accent}22`, color: cfg.accent }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+            My Page
+          </a>
+        </div>
+
+        <button className="share-btn" style={{ background: `linear-gradient(135deg, ${cfg.accent}33, ${cfg.accent2}33)`, borderColor: `${cfg.accent}55` }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+          Share Your Profile
+        </button>
+
         <div className="user-chip">
-          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700 }}>
+          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
             {cfg.displayName.charAt(0).toUpperCase() || 'U'}
           </div>
           <div style={{ overflow: 'hidden' }}>
@@ -183,6 +235,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </aside>
+
 
       {/* ---------------- Main ---------------- */}
       <main style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', minWidth: 0 }}>
@@ -632,7 +685,27 @@ function GlobalStyles({ accent }) {
       .nav-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 11px; padding: 10px 12px; margin-bottom: 4px; height: 40px; border-radius: 10px; cursor: pointer; border: none; text-align: left; width: 100%; font-family: inherit; font-size: 13.5px; font-weight: 500; background: transparent; color: rgba(255,255,255,0.5); transition: color 0.2s; }
       .nav-item:hover { color: rgba(255,255,255,0.85); }
       .nav-item.active { color: #fff; font-weight: 600; }
-      .user-chip { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 8px; border-top: 0.5px solid rgba(255,255,255,0.08); }
+      .user-chip { display: flex; align-items: center; gap: 10px; padding: 12px 8px 2px; border-top: 0.5px solid rgba(255,255,255,0.08); margin-top: 10px; }
+
+      .search-box { display: flex; align-items: center; gap: 8px; padding: 9px 10px; margin-bottom: 14px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); }
+      .search-box input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: inherit; font-size: 12.5px; min-width: 0; }
+      .search-box input::placeholder { color: rgba(255,255,255,0.3); }
+      .kbd { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); flex-shrink: 0; }
+
+      .nav-group-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.6); margin-bottom: 4px; transition: background 0.15s, color 0.15s; }
+      .nav-group-header:hover { background: rgba(255,255,255,0.06); color: #fff; }
+      .nav-group-header.active { color: #fff; }
+      .nav-group-body { display: flex; flex-direction: column; margin-bottom: 6px; }
+      .nav-subitem { text-align: left; padding: 7px 10px 7px 38px; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 12.5px; color: rgba(255,255,255,0.4); border-radius: 7px; transition: color 0.15s, background 0.15s; }
+      .nav-subitem:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.03); }
+      .nav-subitem.active { color: #fff; font-weight: 600; }
+
+      .help-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+      .help-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; border-radius: 8px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12.5px; font-weight: 600; box-sizing: border-box; transition: transform 0.15s, background 0.15s; }
+      .help-btn:hover { transform: translateY(-1px); }
+
+      .share-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; border-radius: 10px; border: 0.5px solid; color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: transform 0.15s; }
+      .share-btn:hover { transform: translateY(-1px); }
 
       .editor-col { flex: 1; min-width: 0; padding: 32px 36px; overflow-y: auto; max-height: 100vh; }
       .preview-col { width: 400px; flex-shrink: 0; padding: 32px 28px; border-left: 0.5px solid rgba(255,255,255,0.08); background: rgba(8,8,14,0.4); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
