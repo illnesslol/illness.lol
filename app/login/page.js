@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focused, setFocused] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [flash, setFlash] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const canvasRef = useRef(null)
@@ -88,8 +88,9 @@ export default function LoginPage() {
         return
       }
 
-      setSubmitted(true)
-      setTimeout(() => router.push('/dashboard'), 1000)
+      // quick flash transition instead of a confirmation card
+      setFlash(true)
+      setTimeout(() => router.push('/dashboard'), 260)
     } catch (err) {
       setError('Something went wrong')
       setLoading(false)
@@ -125,6 +126,15 @@ export default function LoginPage() {
         pointerEvents: 'none', zIndex: 0,
       }} />
 
+      {/* flash overlay — brief white flash on successful login instead of a confirmation card */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: '#fff',
+        opacity: flash ? 1 : 0,
+        pointerEvents: 'none',
+        transition: 'opacity 0.22s ease',
+      }} />
+
       <div style={{
         position: 'relative', zIndex: 1,
         background: 'rgba(12,12,22,0.82)',
@@ -132,96 +142,88 @@ export default function LoginPage() {
         borderRadius: '20px', padding: '44px 40px', width: '420px',
         backdropFilter: 'blur(16px)',
         boxShadow: '0 0 80px rgba(255,255,255,0.04)',
+        opacity: flash ? 0 : 1,
+        transition: 'opacity 0.18s ease',
       }}>
-        {!submitted ? (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
-              <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
+          <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+        </div>
 
-            <div style={{ textAlign: 'center', marginBottom: '6px', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.4px' }}>
-              Welcome back
-            </div>
-            <div style={{ textAlign: 'center', marginBottom: '28px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-              Don't have an account?{' '}
-              <a href="/signup" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Sign up</a>
-            </div>
+        <div style={{ textAlign: 'center', marginBottom: '6px', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.4px' }}>
+          Welcome back
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: '28px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+          Don't have an account?{' '}
+          <a href="/signup" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Sign up</a>
+        </div>
 
-            <div style={{ marginBottom: '12px' }}>
-              <label style={labelStyle}>Username or Email</label>
-              <input
-                type="text" placeholder="yourname or you@example.com" value={identifier}
-                onChange={e => setIdentifier(e.target.value)}
-                onFocus={() => setFocused('identifier')} onBlur={() => setFocused('')}
-                style={inputStyle('identifier')}
-              />
-            </div>
+        <div style={{ marginBottom: '12px' }}>
+          <label style={labelStyle}>Username or Email</label>
+          <input
+            type="text" placeholder="yourname or you@example.com" value={identifier}
+            onChange={e => setIdentifier(e.target.value)}
+            onFocus={() => setFocused('identifier')} onBlur={() => setFocused('')}
+            style={inputStyle('identifier')}
+          />
+        </div>
 
-            <div style={{ marginBottom: '8px' }}>
-              <label style={labelStyle}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
-                  style={{ ...inputStyle('password'), paddingRight: '42px' }}
-                />
-                <button
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                    color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center',
-                  }}
-                >
-                  {showPassword ? (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
-                    </svg>
-                  ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '8px' }}>{error}</div>
-            )}
-
-            <div style={{ textAlign: 'right', marginBottom: '20px' }}>
-              <a href="/forgot-password" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
-                Forgot password?
-              </a>
-            </div>
-
+        <div style={{ marginBottom: '8px' }}>
+          <label style={labelStyle}>Password</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+              onChange={e => setPassword(e.target.value)}
+              onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
+              style={{ ...inputStyle('password'), paddingRight: '42px' }}
+            />
             <button
-              onClick={handleSubmit}
-              disabled={loading}
+              onClick={() => setShowPassword(!showPassword)}
               style={{
-                width: '100%', padding: '12px',
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none', borderRadius: '8px',
-                color: '#06060f', fontSize: '14px', fontWeight: 600,
-                cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
-                opacity: loading ? 0.7 : 1,
-                transition: 'background 0.15s',
+                position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center',
               }}
-              onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
-              onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
             >
-              {loading ? 'Logging in...' : 'Log in'}
+              {showPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
             </button>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px 0 4px' }}>
-            <div style={{ fontSize: '28px', color: 'rgba(255,255,255,0.6)', marginBottom: '12px' }}>✦</div>
-            <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: 500, marginBottom: '6px' }}>you're in</h3>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>welcome back to illness.lol</p>
           </div>
+        </div>
+
+        {error && (
+          <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '8px' }}>{error}</div>
         )}
+
+        <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+          <a href="/forgot-password" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+            Forgot password?
+          </a>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            width: '100%', padding: '12px',
+            background: 'rgba(255,255,255,0.9)',
+            border: 'none', borderRadius: '8px',
+            color: '#06060f', fontSize: '14px', fontWeight: 600,
+            cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+            opacity: loading ? 0.7 : 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
+          onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
+        >
+          {loading ? 'Logging in...' : 'Log in'}
+        </button>
       </div>
     </div>
   )
