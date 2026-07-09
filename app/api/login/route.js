@@ -34,12 +34,12 @@ export async function POST(request) {
     // set a simple session cookie with the username
     const response = NextResponse.json({ success: true, username: user.username })
     response.cookies.set('session_user', user.username, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    })
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+ })
 
     return response
   } catch (err) {
