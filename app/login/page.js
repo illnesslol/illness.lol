@@ -88,9 +88,9 @@ export default function LoginPage() {
         return
       }
 
-      // quick flash transition instead of a confirmation card
+      // smooth fade/slide transition instead of a confirmation card
       setFlash(true)
-      setTimeout(() => router.push('/dashboard'), 260)
+      setTimeout(() => router.push('/dashboard'), 320)
     } catch (err) {
       setError('Something went wrong')
       setLoading(false)
@@ -126,14 +126,7 @@ export default function LoginPage() {
         pointerEvents: 'none', zIndex: 0,
       }} />
 
-      {/* flash overlay — brief white flash on successful login instead of a confirmation card */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        background: '#fff',
-        opacity: flash ? 1 : 0,
-        pointerEvents: 'none',
-        transition: 'opacity 0.22s ease',
-      }} />
+
 
       <div style={{
         position: 'relative', zIndex: 1,
@@ -143,7 +136,8 @@ export default function LoginPage() {
         backdropFilter: 'blur(16px)',
         boxShadow: '0 0 80px rgba(255,255,255,0.04)',
         opacity: flash ? 0 : 1,
-        transition: 'opacity 0.18s ease',
+        transform: flash ? 'translateY(-10px)' : 'translateY(0)',
+        transition: 'opacity 0.3s cubic-bezier(.2,.8,.2,1), transform 0.3s cubic-bezier(.2,.8,.2,1)',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
           <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
