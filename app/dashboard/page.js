@@ -134,6 +134,22 @@ export default function DashboardPage() {
 
   const activeIdx = NAV.findIndex(n => n.id === section)
 
+  // block render until we know the real config — avoids flashing "yourname" defaults
+  if (!mounted) {
+    return (
+      <div style={{
+        minHeight: '100vh', background: '#06060f',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <img
+          src="/icon.png"
+          alt=""
+          style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.6 }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#06060f', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', display: 'flex' }}>
       <GlobalStyles accent={cfg.accent} />
