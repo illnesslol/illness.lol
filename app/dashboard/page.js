@@ -564,17 +564,18 @@ function LinksPanel({ cfg, updSocial, rmSocial, addSocial }) {
 /*  Badges panel                                                      */
 /* ================================================================== */
 const BADGE_LIST = [
-  { key: 'staff', name: 'Staff', desc: 'Part of the illness.lol team.', action: 'Equip' },
-  { key: 'verified', name: 'Verified', desc: 'Have 5k+ followers on a social media platform.', action: 'Claim' },
-  { key: 'premium', name: 'Premium', desc: 'Have access to premium features.', action: 'Claim' },
-  { key: 'og', name: 'OG', desc: 'Joined illness.lol before 1,000 users.', action: 'Equip' },
-  { key: 'gifter', name: 'Gifter', desc: 'Gift an illness.lol product to another user.', action: 'Claim' },
-  { key: 'helper', name: 'Helper', desc: 'Help other users in the Discord server.', action: 'Claim' },
-  { key: 'donor', name: 'Donor', desc: 'Donate to help support the development of illness.lol.', action: 'Claim' },
-  { key: 'first', name: '#1 Ranked', desc: 'Ranked #1 on the illness.lol leaderboard.', action: 'Get to #1' },
-  { key: 'second', name: '#2 Ranked', desc: 'Ranked #2 on the illness.lol leaderboard.', action: 'Get to #2' },
-  { key: 'third', name: '#3 Ranked', desc: 'Ranked #3 on the illness.lol leaderboard.', action: 'Get to #3' },
-  { key: 'booster', name: 'Booster', desc: 'Actively boost our Discord server.', action: 'Claim' },
+  { key: 'staff', name: 'Staff', desc: 'Part of the illness.lol team.', action: 'Equip', color: '#8b8bff' },
+  { key: 'verified', name: 'Verified', desc: 'Have 5k+ followers on a social media platform.', action: 'Claim', color: '#3ba7ff' },
+  { key: 'premium', name: 'Premium', desc: 'Have access to premium features.', action: 'Claim', color: '#a855f7' },
+  { key: 'og', name: 'OG', desc: 'Joined illness.lol before 1,000 users.', action: 'Equip', color: '#f5c542' },
+  { key: 'gifter', name: 'Gifter', desc: 'Gift an illness.lol product to another user.', action: 'Claim', color: '#f5a742' },
+  { key: 'helper', name: 'Helper', desc: 'Help other users in the Discord server.', action: 'Claim', color: '#f5c542' },
+  { key: 'donor', name: 'Donor', desc: 'Donate to help support the development of illness.lol.', action: 'Claim', color: '#3ddc84' },
+  { key: 'friends', name: 'Friends', desc: 'Be friends with the owner.', action: 'Claim', color: '#ff6fb5' },
+  { key: 'first', name: '#1 Ranked', desc: 'Ranked #1 on the illness.lol leaderboard.', action: 'Get to #1', color: '#f5c542' },
+  { key: 'second', name: '#2 Ranked', desc: 'Ranked #2 on the illness.lol leaderboard.', action: 'Get to #2', color: '#c0c0c0' },
+  { key: 'third', name: '#3 Ranked', desc: 'Ranked #3 on the illness.lol leaderboard.', action: 'Get to #3', color: '#cd7f32' },
+  { key: 'booster', name: 'Booster', desc: 'Actively boost our Discord server.', action: 'Claim', color: '#ff5e8a' },
 ]
 
 function BadgesPanel({ cfg, set }) {
@@ -595,15 +596,17 @@ function BadgesPanel({ cfg, set }) {
           {BADGE_LIST.map(b => (
             <div key={b.key} className="badge-row">
               <div className="badge-icon" style={{
-                background: badgeSettings.monochrome ? 'rgba(255,255,255,0.08)' : `${cfg.accent}22`,
-                boxShadow: badgeSettings.glowBadges ? `0 0 ${badgeSettings.glowStrength / 5}px ${cfg.accent}88` : 'none',
+                background: badgeSettings.monochrome ? `${badgeSettings.badgeColor}22` : `${b.color}22`,
+                boxShadow: badgeSettings.glowBadges
+                  ? `0 0 ${4 + badgeSettings.glowStrength / 6}px ${badgeSettings.monochrome ? badgeSettings.badgeColor : b.color}aa`
+                  : 'none',
               }}>
                 <img
-                  src={`/badges/${b.key}.png`}
+                  src={`/badges/${b.key}.svg`}
                   alt={b.name}
                   style={{
                     width: '20px', height: '20px', objectFit: 'contain',
-                    filter: badgeSettings.monochrome ? `brightness(0) invert(1)` : 'none',
+                    filter: badgeSettings.monochrome ? 'brightness(0) invert(1)' : 'none',
                   }}
                   onError={e => { e.currentTarget.style.display = 'none' }}
                 />
@@ -612,7 +615,7 @@ function BadgesPanel({ cfg, set }) {
                 <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.desc}</div>
               </div>
-              <button className="badge-action">{b.action}</button>
+              <button className="badge-action" style={{ borderColor: `${badgeSettings.monochrome ? badgeSettings.badgeColor : b.color}44` }}>{b.action}</button>
             </div>
           ))}
         </div>
