@@ -1,15 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTransition } from '@/components/PageTransition'
 
 export default function LoginPage() {
-  const router = useRouter()
+  const { navigate } = useTransition()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focused, setFocused] = useState('')
-  const [flash, setFlash] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const canvasRef = useRef(null)
@@ -88,9 +87,8 @@ export default function LoginPage() {
         return
       }
 
-      // smooth fade/slide transition instead of a confirmation card
-      setFlash(true)
-      setTimeout(() => router.push('/dashboard'), 320)
+      // hand off to the site's existing page transition
+      navigate('/dashboard')
     } catch (err) {
       setError('Something went wrong')
       setLoading(false)
@@ -135,9 +133,6 @@ export default function LoginPage() {
         borderRadius: '20px', padding: '44px 40px', width: '420px',
         backdropFilter: 'blur(16px)',
         boxShadow: '0 0 80px rgba(255,255,255,0.04)',
-        opacity: flash ? 0 : 1,
-        transform: flash ? 'translateY(-10px)' : 'translateY(0)',
-        transition: 'opacity 0.3s cubic-bezier(.2,.8,.2,1), transform 0.3s cubic-bezier(.2,.8,.2,1)',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
           <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
