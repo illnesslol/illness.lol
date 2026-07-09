@@ -99,6 +99,7 @@ export default function DashboardPage() {
   // ---- ambient site background canvas ----
   useEffect(() => {
     const canvas = bgCanvasRef.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
     resize()
@@ -134,26 +135,25 @@ export default function DashboardPage() {
 
   const activeIdx = NAV.findIndex(n => n.id === section)
 
-  // block render until we know the real config — avoids flashing "yourname" defaults
-  if (!mounted) {
-    return (
-      <div style={{
-        minHeight: '100vh', background: '#06060f',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <img
-          src="/icon.png"
-          alt=""
-          style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.6 }}
-        />
-      </div>
-    )
-  }
-
   return (
     <div style={{ minHeight: '100vh', background: '#06060f', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', display: 'flex' }}>
       <GlobalStyles accent={cfg.accent} />
       <canvas ref={bgCanvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 0 }} />
+
+      {/* loading overlay — hides default config flash until real data arrives, without unmounting the canvas */}
+      {!mounted && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: '#06060f',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <img
+            src="/icon.png"
+            alt=""
+            style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.6 }}
+          />
+        </div>
+      )}
 
       {/* ---------------- Sidebar ---------------- */}
       <aside className="sidebar">
