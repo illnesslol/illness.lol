@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useTransition } from './components/PageTransition'
+import { useTransition } from '@/components/PageTransition'
 
 export default function SignupPage() {
   const { navigate } = useTransition()
@@ -88,6 +88,7 @@ export default function SignupPage() {
         return
       }
 
+      // hand off to the site's existing page transition
       navigate('/dashboard')
     } catch (err) {
       setError('Something went wrong')
