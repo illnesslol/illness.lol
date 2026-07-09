@@ -1,16 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTransition } from './components/PageTransition'
 
 export default function SignupPage() {
-  const router = useRouter()
+  const { navigate } = useTransition()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focused, setFocused] = useState('')
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const canvasRef = useRef(null)
@@ -89,8 +88,8 @@ export default function SignupPage() {
         return
       }
 
-      setSubmitted(true)
-      setTimeout(() => router.push('/dashboard'), 1500)
+      // Trigger the page transition animation instead of showing success message
+      navigate('/dashboard')
     } catch (err) {
       setError('Something went wrong')
       setLoading(false)
@@ -134,107 +133,97 @@ export default function SignupPage() {
         backdropFilter: 'blur(16px)',
         boxShadow: '0 0 80px rgba(255,255,255,0.04)',
       }}>
-        {!submitted ? (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
-              <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
+          <img src="/icon.png" alt="illness.lol" style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+        </div>
 
-            <div style={{ textAlign: 'center', marginBottom: '6px', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.4px' }}>
-              Create an account
-            </div>
-            <div style={{ textAlign: 'center', marginBottom: '28px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-              Already have an account?{' '}
-              <a href="/login" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Log in</a>
-            </div>
+        <div style={{ textAlign: 'center', marginBottom: '6px', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.4px' }}>
+          Create an account
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: '28px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+          Already have an account?{' '}
+          <a href="/login" style={{ color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>Log in</a>
+        </div>
 
-            <div style={{ marginBottom: '12px' }}>
-              <label style={labelStyle}>Username</label>
-              <div style={{ position: 'relative' }}>
-                <span style={{
-                  position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-                  fontSize: '13px', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontWeight: 500,
-                }}>illness.lol/</span>
-                <input
-                  type="text" placeholder="yourname" value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  onFocus={() => setFocused('username')} onBlur={() => setFocused('')}
-                  style={{ ...inputStyle('username'), paddingLeft: '88px' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '12px' }}>
-              <label style={labelStyle}>Email</label>
-              <input
-                type="email" placeholder="you@example.com" value={email}
-                onChange={e => setEmail(e.target.value)}
-                onFocus={() => setFocused('email')} onBlur={() => setFocused('')}
-                style={inputStyle('email')}
-              />
-            </div>
-
-            <div style={{ marginBottom: '8px' }}>
-              <label style={labelStyle}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
-                  style={{ ...inputStyle('password'), paddingRight: '42px' }}
-                />
-                <button
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                    color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center',
-                  }}
-                >
-                  {showPassword ? (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
-                    </svg>
-                  ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '12px' }}>{error}</div>
-            )}
-
-            <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', margin: '20px 0' }} />
-
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{
-                width: '100%', padding: '12px',
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none', borderRadius: '8px',
-                color: '#06060f', fontSize: '14px', fontWeight: 600,
-                cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
-                opacity: loading ? 0.7 : 1,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
-              onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
-            >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px 0 4px' }}>
-            <div style={{ fontSize: '28px', color: 'rgba(255,255,255,0.6)', marginBottom: '12px' }}>✦</div>
-            <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: 500, marginBottom: '6px' }}>you're in</h3>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>taking you to your dashboard...</p>
+        <div style={{ marginBottom: '12px' }}>
+          <label style={labelStyle}>Username</label>
+          <div style={{ position: 'relative' }}>
+            <span style={{
+              position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+              fontSize: '13px', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontWeight: 500,
+            }}>illness.lol/</span>
+            <input
+              type="text" placeholder="yourname" value={username}
+              onChange={e => setUsername(e.target.value)}
+              onFocus={() => setFocused('username')} onBlur={() => setFocused('')}
+              style={{ ...inputStyle('username'), paddingLeft: '88px' }}
+            />
           </div>
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label style={labelStyle}>Email</label>
+          <input
+            type="email" placeholder="you@example.com" value={email}
+            onChange={e => setEmail(e.target.value)}
+            onFocus={() => setFocused('email')} onBlur={() => setFocused('')}
+            style={inputStyle('email')}
+          />
+        </div>
+
+        <div style={{ marginBottom: '8px' }}>
+          <label style={labelStyle}>Password</label>
+          <div style={{ relative: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+              onChange={e => setPassword(e.target.value)}
+              onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
+              style={{ ...inputStyle('password'), paddingRight: '42px' }}
+            />
+            <button
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center',
+              }}
+            >
+              {showPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div style={{ fontSize: '13px', color: '#ff6b6b', marginBottom: '12px' }}>{error}</div>
         )}
+
+        <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', margin: '20px 0' }} />
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            width: '100%', padding: '12px',
+            background: 'rgba(255,255,255,0.9)',
+            border: 'none', borderRadius: '8px',
+            color: '#06060f', fontSize: '14px', fontWeight: 600,
+            cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '0.01em',
+            opacity: loading ? 0.7 : 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => !loading && (e.currentTarget.style.background = '#fff')}
+          onMouseLeave={e => !loading && (e.currentTarget.style.background = 'rgba(255,255,255,0.9)')}
+        >
+          {loading ? 'Creating account...' : 'Create account'}
+        </button>
       </div>
     </div>
   )
