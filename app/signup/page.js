@@ -88,7 +88,6 @@ export default function SignupPage() {
         return
       }
 
-      // Trigger the page transition animation instead of showing success message
       navigate('/dashboard')
     } catch (err) {
       setError('Something went wrong')
@@ -173,7 +172,7 @@ export default function SignupPage() {
 
         <div style={{ marginBottom: '8px' }}>
           <label style={labelStyle}>Password</label>
-          <div style={{ relative: 'relative' }}>
+          <div style={{ position: 'relative' }}>
             <input
               type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
               onChange={e => setPassword(e.target.value)}
