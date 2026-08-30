@@ -4,76 +4,487 @@ import { useEffect, useRef, useState } from 'react'
 import { TransitionLink } from '../components/PageTransition'
 
 const COLORS = {
-  bg: '#08080d',
-  panel: 'rgba(16,16,23,.78)',
-  panel2: 'rgba(255,255,255,.035)',
-  border: 'rgba(255,255,255,.075)',
-  purple: '#765cff',
-  purple2: '#927dff',
-  purpleSoft: 'rgba(118,92,255,.13)',
-  white: '#fff',
-  muted: 'rgba(255,255,255,.52)',
-  faint: 'rgba(255,255,255,.28)',
+  bg: '#17101a',
+  bgDark: '#0d0b10',
+  purple: '#9b4dcc',
+  purpleBright: '#b75be8',
+  purpleSoft: 'rgba(155,77,204,.18)',
+  purpleBorder: 'rgba(181,91,232,.55)',
+  white: '#ffffff',
+  muted: 'rgba(255,255,255,.72)',
+  faint: 'rgba(255,255,255,.4)',
 }
 
-function Capsule({ size = 1, style }) {
+function PlaceholderAvatar({ small = false }) {
   return (
-    <svg
-      width={64 * size}
-      height={26 * size}
-      viewBox="0 0 64 26"
-      style={style}
-      aria-hidden="true"
-    >
-      <defs>
-        <clipPath id="pillClip">
-          <rect x="1" y="1" width="62" height="24" rx="12" />
-        </clipPath>
-      </defs>
-
-      <g clipPath="url(#pillClip)">
-        <rect x="1" y="1" width="31" height="24" fill={COLORS.purple} />
-        <rect x="32" y="1" width="31" height="24" fill="#fff" />
-      </g>
-
-      <rect
-        x="1"
-        y="1"
-        width="62"
-        height="24"
-        rx="12"
-        fill="none"
-        stroke="rgba(255,255,255,.22)"
-      />
-
-      <ellipse
-        cx="16"
-        cy="7.5"
-        rx="8"
-        ry="2.3"
-        fill="rgba(255,255,255,.3)"
-      />
-    </svg>
+    <div
+      style={{
+        width: small ? 32 : 48,
+        height: small ? 32 : 48,
+        borderRadius: '50%',
+        background:
+          'linear-gradient(135deg, #8f48bc, #c27ae8)',
+        boxShadow: '0 0 20px rgba(155,77,204,.3)',
+        flexShrink: 0,
+      }}
+    />
   )
 }
 
-function Arrow() {
-  return <span style={{ fontSize: 15 }}>→</span>
+function FakeIcon() {
+  return (
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        background: 'rgba(181,91,232,.22)',
+        border: '1px solid rgba(181,91,232,.18)',
+      }}
+    />
+  )
+}
+
+function DashboardPlaceholder() {
+  return (
+    <div
+      className="dashboard-placeholder"
+      style={{
+        width: 790,
+        height: 465,
+        background: '#09090b',
+        border: `2px solid ${COLORS.purpleBorder}`,
+        borderRadius: 26,
+        boxShadow:
+          '0 0 35px rgba(155,77,204,.14), 0 30px 100px rgba(0,0,0,.75)',
+        overflow: 'hidden',
+        display: 'flex',
+        transform: 'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+        transformOrigin: 'center center',
+      }}
+    >
+      {/* SIDEBAR */}
+      <div
+        style={{
+          width: 170,
+          background: '#0d0d0f',
+          borderRight: '1px solid rgba(255,255,255,.07)',
+          padding: 16,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 9,
+            marginBottom: 22,
+          }}
+        >
+          <PlaceholderAvatar small />
+
+          <div>
+            <div
+              style={{
+                fontSize: 9,
+                color: '#fff',
+                fontWeight: 600,
+              }}
+            >
+              Welcome back, $
+            </div>
+
+            <div
+              style={{
+                fontSize: 7,
+                color: COLORS.faint,
+              }}
+            >
+              illness.lol
+            </div>
+          </div>
+        </div>
+
+        {[
+          'account',
+          'customize',
+          'links',
+          'premium',
+          'image host',
+        ].map((item, i) => (
+          <div
+            key={item}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 9,
+              padding: '8px 9px',
+              borderRadius: 8,
+              marginBottom: 4,
+              background:
+                i === 0
+                  ? 'rgba(155,77,204,.22)'
+                  : 'transparent',
+              color:
+                i === 0
+                  ? '#fff'
+                  : 'rgba(255,255,255,.72)',
+              fontSize: 9,
+            }}
+          >
+            <FakeIcon />
+            {item}
+          </div>
+        ))}
+
+        <div
+          style={{
+            marginTop: 70,
+            padding: 10,
+            borderRadius: 10,
+            background: 'rgba(255,255,255,.025)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 8,
+              color: COLORS.muted,
+              marginBottom: 8,
+            }}
+          >
+            Have a question or need support?
+          </div>
+
+          <div
+            style={{
+              height: 27,
+              borderRadius: 7,
+              background:
+                'linear-gradient(90deg,#7652d9,#9b4dcc)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 8,
+            }}
+          >
+            Join Discord
+          </div>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div
+        style={{
+          flex: 1,
+          padding: 22,
+          minWidth: 0,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            color: '#fff',
+            marginBottom: 15,
+          }}
+        >
+          Account Overview
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns:
+              '1.2fr 1fr 1fr 1fr',
+            gap: 9,
+            marginBottom: 20,
+          }}
+        >
+          {[
+            ['Username', '$'],
+            ['Alias', 'hirs'],
+            ['UID', '1'],
+            ['Profile Views', '4,801'],
+          ].map(([title, value]) => (
+            <div
+              key={title}
+              style={{
+                background: 'rgba(155,77,204,.16)',
+                borderRadius: 9,
+                padding: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  marginBottom: 8,
+                }}
+              >
+                <FakeIcon />
+
+                <span
+                  style={{
+                    fontSize: 7,
+                    color: COLORS.muted,
+                  }}
+                >
+                  {title}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 10,
+                  color: '#fff',
+                }}
+              >
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            fontSize: 9,
+            color: '#fff',
+            marginBottom: 9,
+          }}
+        >
+          Account Statistics
+        </div>
+
+        <div
+          style={{
+            height: 205,
+            borderRadius: 13,
+            background: '#0b0b0d',
+            border: '1px solid rgba(255,255,255,.035)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: 18,
+              top: 16,
+              color: COLORS.faint,
+              fontSize: 7,
+            }}
+          >
+            Profile Views in the last 12 hours
+          </div>
+
+          <svg
+            viewBox="0 0 600 180"
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              left: 15,
+              right: 15,
+              bottom: 10,
+              width: 'calc(100% - 30px)',
+              height: 155,
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="chartGradient"
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#a453cb"
+                  stopOpacity=".45"
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#a453cb"
+                  stopOpacity=".03"
+                />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="
+                M0 150
+                L45 150
+                C70 150 75 120 100 120
+                C125 120 125 150 150 150
+                C175 150 180 50 200 50
+                C220 50 235 150 255 150
+                C275 150 280 60 305 60
+                C330 60 345 150 365 150
+                C385 150 390 110 410 110
+                C430 110 440 150 460 150
+                C480 150 490 75 510 75
+                C530 75 545 150 565 150
+                L600 150
+                L600 180
+                L0 180
+                Z
+              "
+              fill="url(#chartGradient)"
+            />
+
+            <path
+              d="
+                M0 150
+                L45 150
+                C70 150 75 120 100 120
+                C125 120 125 150 150 150
+                C175 150 180 50 200 50
+                C220 50 235 150 255 150
+                C275 150 280 60 305 60
+                C330 60 345 150 365 150
+                C385 150 390 110 410 110
+                C430 110 440 150 460 150
+                C480 150 490 75 510 75
+                C530 75 545 150 565 150
+                L600 150
+              "
+              fill="none"
+              stroke="#a453cb"
+              strokeWidth="2"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfilePlaceholder({
+  className = '',
+  style = {},
+  username = 'username',
+  image = 1,
+}) {
+  const backgrounds = [
+    'linear-gradient(135deg,#111827,#26354a)',
+    'linear-gradient(135deg,#15202b,#314e63)',
+    'linear-gradient(135deg,#15110b,#51421e)',
+  ]
+
+  return (
+    <div
+      className={`profile-placeholder ${className}`}
+      style={{
+        position: 'absolute',
+        width: 390,
+        height: 410,
+        borderRadius: 24,
+        overflow: 'hidden',
+        border: `2px solid ${COLORS.purpleBorder}`,
+        background: '#0b0b0d',
+        boxShadow:
+          '0 20px 70px rgba(0,0,0,.7), 0 0 30px rgba(155,77,204,.1)',
+        ...style,
+      }}
+    >
+      {/* IMAGE PLACEHOLDER */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: backgrounds[image - 1],
+        }}
+      />
+
+      {/* DARK OVERLAY */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(to bottom,rgba(0,0,0,.05) 20%,rgba(0,0,0,.85) 90%)',
+        }}
+      />
+
+      {/* CONTENT */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 22,
+          right: 22,
+          bottom: 20,
+        }}
+      >
+        <PlaceholderAvatar />
+
+        <div
+          style={{
+            marginTop: 12,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 19,
+            fontWeight: 700,
+          }}
+        >
+          {username}
+        </div>
+
+        <div
+          style={{
+            marginTop: 5,
+            color: COLORS.faint,
+            fontSize: 9,
+          }}
+        >
+          Welcome to my profile!
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 7,
+            marginTop: 15,
+          }}
+        >
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              style={{
+                width: 31,
+                height: 31,
+                borderRadius: 8,
+                background: 'rgba(255,255,255,.1)',
+                border:
+                  '1px solid rgba(255,255,255,.12)',
+              }}
+            />
+          ))}
+        </div>
+
+        <div
+          style={{
+            height: 39,
+            marginTop: 14,
+            borderRadius: 10,
+            background: 'rgba(255,255,255,.09)',
+            border:
+              '1px solid rgba(255,255,255,.1)',
+          }}
+        />
+      </div>
+    </div>
+  )
 }
 
 export default function HomePage() {
   const canvasRef = useRef(null)
-
   const [visible, setVisible] = useState(false)
-  const [username, setUsername] = useState('')
   const [authChecked, setAuthChecked] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
-  const [openFaq, setOpenFaq] = useState(0)
-
-  const [liveCount, setLiveCount] = useState(148204)
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 100)
+    const timer = setTimeout(() => {
+      setVisible(true)
+    }, 100)
 
     fetch('/api/me')
       .then(res => res.json())
@@ -81,11 +492,9 @@ export default function HomePage() {
         setLoggedIn(Boolean(data.loggedIn))
         setAuthChecked(true)
       })
-      .catch(() => setAuthChecked(true))
-
-    const countTimer = setInterval(() => {
-      setLiveCount(prev => prev + Math.floor(Math.random() * 2))
-    }, 3000)
+      .catch(() => {
+        setAuthChecked(true)
+      })
 
     const canvas = canvasRef.current
     if (!canvas) return
@@ -98,117 +507,58 @@ export default function HomePage() {
     }
 
     resize()
+
     window.addEventListener('resize', resize)
 
-    const particles = Array.from({ length: 24 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      size: Math.random() * 2 + 1,
-      speed: Math.random() * 0.15 + 0.04,
-      opacity: Math.random() * 0.25 + 0.04,
-    }))
+    const particles = Array.from(
+      { length: 28 },
+      () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 2 + .5,
+        opacity: Math.random() * .18 + .025,
+      })
+    )
 
     let animationFrame
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
 
       particles.forEach(p => {
-        p.y -= p.speed
-
-        if (p.y < -10) {
-          p.y = canvas.height + 10
-          p.x = Math.random() * canvas.width
-        }
-
         ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(146,125,255,${p.opacity})`
+        ctx.arc(
+          p.x,
+          p.y,
+          p.size,
+          0,
+          Math.PI * 2
+        )
+
+        ctx.fillStyle = `rgba(180,100,235,${p.opacity})`
         ctx.fill()
       })
 
-      animationFrame = requestAnimationFrame(draw)
+      animationFrame =
+        requestAnimationFrame(draw)
     }
 
     draw()
 
     return () => {
       clearTimeout(timer)
-      clearInterval(countTimer)
       cancelAnimationFrame(animationFrame)
-      window.removeEventListener('resize', resize)
+      window.removeEventListener(
+        'resize',
+        resize
+      )
     }
   }, [])
-
-  const navLinks = [
-    ['Leaderboard', '/leaderboard'],
-    ['Pricing', '/pricing'],
-    ['Discord', 'https://discord.gg/illness'],
-  ]
-
-  const stats = [
-    ['148K+', 'profiles'],
-    ['2.1M+', 'clicks'],
-    ['40+', 'countries'],
-  ]
-
-  const features = [
-    {
-      number: '01',
-      title: 'Custom profiles',
-      description:
-        'Build a profile that actually looks like you. Customize your colors, background, links and more.',
-    },
-    {
-      number: '02',
-      title: 'Custom cursors',
-      description:
-        'Give your profile another layer of personality with custom cursor support.',
-    },
-    {
-      number: '03',
-      title: 'Audio player',
-      description:
-        'Add music to your profile and let visitors experience your page exactly how you want.',
-    },
-    {
-      number: '04',
-      title: 'Badges',
-      description:
-        'Show off your premium status, achievements and other profile badges.',
-    },
-    {
-      number: '05',
-      title: 'Analytics',
-      description:
-        'Track profile views, link clicks and other useful statistics in real time.',
-    },
-    {
-      number: '06',
-      title: 'Aliases',
-      description:
-        'Use additional profile names and make it easier for people to find you.',
-    },
-  ]
-
-  const faqs = [
-    [
-      'What is illness.lol?',
-      'illness.lol is a customizable profile platform that lets you put your links, socials, music and personality into one page.',
-    ],
-    [
-      'Is illness.lol free?',
-      'Yes. You can create a profile for free. Premium features are available for users who want additional customization.',
-    ],
-    [
-      'Can I customize my profile?',
-      'Absolutely. You can customize your theme, links, background, music, cursor and other profile elements.',
-    ],
-    [
-      'How long does setup take?',
-      'Only a few minutes. Create your account, claim your username and start customizing your profile.',
-    ],
-  ]
 
   return (
     <main
@@ -217,12 +567,12 @@ export default function HomePage() {
         background: COLORS.bg,
         color: '#fff',
         fontFamily: "'Inter', system-ui, sans-serif",
-        overflow: 'hidden',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
         * {
           box-sizing: border-box;
@@ -234,95 +584,96 @@ export default function HomePage() {
 
         body {
           margin: 0;
-          background: #08080d;
+          background: #17101a;
         }
 
         ::selection {
-          background: rgba(118,92,255,.35);
-          color: white;
+          background: rgba(181,91,232,.35);
+          color: #fff;
         }
 
-        input::placeholder {
-          color: rgba(255,255,255,.25);
+        .nav-link {
+          transition: .2s ease;
         }
 
-        @keyframes pulse {
-          0%, 100% {
-            opacity: .45;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.15);
-          }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-9px);
-          }
-        }
-
-        @keyframes marquee {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-50%);
-          }
-        }
-
-        .illness-link:hover {
+        .nav-link:hover {
           color: #fff !important;
-          background: rgba(118,92,255,.1) !important;
         }
 
-        .illness-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(118,92,255,.35) !important;
-          background: rgba(20,19,30,.9) !important;
+        .hero-button {
+          transition: .2s ease;
         }
 
-        .illness-button:hover {
+        .hero-button:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 35px rgba(118,92,255,.28) !important;
         }
 
-        @media (max-width: 700px) {
-          .desktop-nav {
+        .primary-button:hover {
+          box-shadow: 0 0 30px rgba(181,91,232,.45) !important;
+        }
+
+        @media (max-width: 1100px) {
+          .showcase {
+            transform: scale(.82);
+            transform-origin: top center;
+          }
+        }
+
+        @media (max-width: 800px) {
+          .desktop-links {
+            display: none !important;
+          }
+
+          .hero {
+            padding-top: 145px !important;
+          }
+
+          .hero-title {
+            font-size: 42px !important;
+          }
+
+          .hero-subtitle {
+            font-size: 15px !important;
+          }
+
+          .showcase {
+            transform: scale(.58);
+            height: 300px !important;
+            margin-top: 10px !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .nav {
+            width: calc(100% - 24px) !important;
+          }
+
+          .nav-brand {
+            font-size: 14px !important;
+          }
+
+          .nav-login {
             display: none !important;
           }
 
           .hero-title {
-            font-size: 46px !important;
-            letter-spacing: -2px !important;
+            font-size: 35px !important;
           }
 
-          .claim-box {
-            flex-direction: column !important;
-            border-radius: 18px !important;
-            padding: 10px !important;
+          .hero-subtitle {
+            max-width: 330px !important;
           }
 
-          .claim-input {
-            width: 100% !important;
-            padding: 15px 12px !important;
-          }
-
-          .claim-button {
-            width: 100% !important;
-          }
-
-          .stats-grid {
-            gap: 30px !important;
+          .showcase {
+            transform: scale(.42);
+            height: 220px !important;
+            margin-left: -180px !important;
+            margin-right: -180px !important;
           }
         }
       `}</style>
 
-      {/* BACKGROUND */}
+      {/* CANVAS PARTICLES */}
       <canvas
         ref={canvasRef}
         style={{
@@ -331,102 +682,164 @@ export default function HomePage() {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: .55,
           zIndex: 0,
+        }}
+      />
+
+      {/* PURPLE ATMOSPHERIC GLOW */}
+      <div
+        style={{
+          position: 'fixed',
+          top: -350,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 1000,
+          height: 700,
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle,rgba(120,54,150,.18),transparent 68%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* FAINT PLACEHOLDER SHAPES */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 30,
+          width: 80,
+          height: 190,
+          borderRadius: 18,
+          background: 'rgba(160,75,190,.07)',
+          transform: 'rotate(-12deg)',
+          zIndex: 0,
+          pointerEvents: 'none',
         }}
       />
 
       <div
         style={{
           position: 'fixed',
-          width: 700,
-          height: 700,
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(118,92,255,.08), transparent 68%)',
-          top: -350,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          pointerEvents: 'none',
+          top: -20,
+          right: 80,
+          width: 90,
+          height: 170,
+          borderRadius: 20,
+          background: 'rgba(160,75,190,.06)',
+          transform: 'rotate(35deg)',
           zIndex: 0,
+          pointerEvents: 'none',
         }}
       />
 
-      {/* NAVBAR */}
-      <nav
+      <div
         style={{
           position: 'fixed',
-          top: 18,
+          top: 95,
+          left: 145,
+          width: 70,
+          height: 55,
+          borderRadius: 12,
+          background: 'rgba(160,75,190,.055)',
+          transform: 'rotate(-28deg)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* NAV */}
+      <nav
+        className="nav"
+        style={{
+          position: 'absolute',
+          top: 21,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
-          maxWidth: 1040,
-          height: 62,
-          zIndex: 50,
+          width: 'min(1180px, calc(100% - 40px))',
+          height: 70,
+          borderRadius: 40,
+          background: 'rgba(12,10,13,.92)',
+          border:
+            '1px solid rgba(255,255,255,.035)',
+          boxShadow:
+            '0 15px 50px rgba(0,0,0,.3)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '7px 8px 7px 20px',
-          borderRadius: 18,
-          background: 'rgba(10,10,15,.72)',
-          border: `1px solid ${COLORS.border}`,
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 15px 60px rgba(0,0,0,.45)',
+          padding: '0 22px 0 28px',
+          zIndex: 20,
         }}
       >
+        {/* BRAND */}
         <TransitionLink
           href="/"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 12,
             color: '#fff',
             textDecoration: 'none',
+            minWidth: 200,
           }}
         >
-          <Capsule size={.55} />
+          {/* PLACEHOLDER LOGO */}
+          <div
+            style={{
+              width: 29,
+              height: 29,
+              borderRadius: 8,
+              background:
+                'linear-gradient(135deg,#8d45b9,#c05de9)',
+              transform: 'rotate(-18deg)',
+              boxShadow:
+                '0 0 16px rgba(181,91,232,.25)',
+            }}
+          />
 
           <span
+            className="nav-brand"
             style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: '-.5px',
+              fontFamily:
+                "'Space Grotesk', sans-serif",
+              fontSize: 21,
+              fontWeight: 600,
+              letterSpacing: '-.7px',
             }}
           >
             illness.lol
           </span>
         </TransitionLink>
 
+        {/* CENTER LINKS */}
         <div
-          className="desktop-nav"
+          className="desktop-links"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}
         >
-          {navLinks.map(([label, href]) => (
+          {[
+            ['Help Center', '/help'],
+            ['Discord', 'https://discord.gg/illness'],
+            ['Compare', '/compare'],
+            ['Leaderboard', '/leaderboard'],
+            ['Pricing', '/pricing'],
+          ].map(([label, href]) => (
             <TransitionLink
               key={label}
               href={href}
-              target={href.startsWith('http') ? '_blank' : undefined}
-              rel={
-                href.startsWith('http')
-                  ? 'noopener noreferrer'
-                  : undefined
-              }
-              className="illness-link"
+              className="nav-link"
               style={{
                 color: COLORS.muted,
                 textDecoration: 'none',
-                fontSize: 13,
-                padding: '10px 14px',
-                borderRadius: 10,
-                transition: '.2s',
+                fontSize: 14,
+                padding: '10px 12px',
+                whiteSpace: 'nowrap',
               }}
             >
               {label}
@@ -434,952 +847,271 @@ export default function HomePage() {
           ))}
         </div>
 
+        {/* RIGHT */}
         <div
           style={{
+            marginLeft: 'auto',
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
+            gap: 8,
           }}
         >
-          {authChecked && loggedIn && (
+          {!loggedIn && (
             <TransitionLink
-              href="/dashboard"
+              href="/login"
+              className="nav-login"
               style={{
                 color: COLORS.muted,
                 textDecoration: 'none',
-                fontSize: 13,
-                padding: '10px 13px',
+                fontSize: 14,
+                padding: '11px 14px',
+              }}
+            >
+              Log in
+            </TransitionLink>
+          )}
+
+          {authChecked && loggedIn ? (
+            <TransitionLink
+              href="/dashboard"
+              className="hero-button"
+              style={{
+                color: '#fff',
+                background:
+                  'linear-gradient(135deg,rgba(155,77,204,.32),rgba(110,54,140,.22))',
+                border:
+                  '1px solid rgba(181,91,232,.5)',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 500,
+                padding: '11px 17px',
+                borderRadius: 25,
               }}
             >
               Dashboard
             </TransitionLink>
+          ) : (
+            <TransitionLink
+              href="/signup"
+              className="hero-button"
+              style={{
+                color: '#fff',
+                background:
+                  'linear-gradient(135deg,#7b3d9c,#9b4dcc)',
+                border:
+                  '1px solid rgba(210,140,239,.25)',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                padding: '12px 19px',
+                borderRadius: 25,
+                boxShadow:
+                  '0 0 18px rgba(155,77,204,.2)',
+              }}
+            >
+              Sign up
+            </TransitionLink>
           )}
-
-          <TransitionLink
-            href="/login"
-            style={{
-              color: COLORS.muted,
-              textDecoration: 'none',
-              fontSize: 13,
-              padding: '10px 14px',
-            }}
-          >
-            Log in
-          </TransitionLink>
-
-          <TransitionLink
-            href="/signup"
-            className="illness-button"
-            style={{
-              color: '#09090e',
-              background: '#fff',
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: 13,
-              padding: '11px 18px',
-              borderRadius: 11,
-              transition: '.2s',
-            }}
-          >
-            Sign up
-          </TransitionLink>
         </div>
       </nav>
 
       {/* HERO */}
       <section
+        className="hero"
         style={{
-          minHeight: '100vh',
           position: 'relative',
-          zIndex: 1,
+          zIndex: 2,
+          minHeight: 650,
+          paddingTop: 185,
+          textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '150px 20px 100px',
-          textAlign: 'center',
+          opacity: visible ? 1 : 0,
+          transform: visible
+            ? 'translateY(0)'
+            : 'translateY(14px)',
+          transition:
+            'opacity .7s ease, transform .7s ease',
         }}
       >
-        <div
+        <h1
+          className="hero-title"
           style={{
-            maxWidth: 800,
-            width: '100%',
-            opacity: visible ? 1 : 0,
-            transform: visible
-              ? 'translateY(0)'
-              : 'translateY(20px)',
-            transition: 'opacity .8s ease, transform .8s ease',
+            fontFamily:
+              "'Space Grotesk', sans-serif",
+            fontSize: 46,
+            lineHeight: 1.15,
+            letterSpacing: '-1.5px',
+            fontWeight: 600,
+            margin: 0,
+            color: '#fff',
           }}
         >
-          <div
+          Everything you want, right here.
+        </h1>
+
+        <p
+          className="hero-subtitle"
+          style={{
+            maxWidth: 720,
+            margin: '17px auto 25px',
+            fontSize: 17,
+            lineHeight: 1.6,
+            color: COLORS.muted,
+          }}
+        >
+          illness.lol is your go-to for modern,
+          feature-rich link-in-bio pages and fast,
+          secure file hosting
+        </p>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <TransitionLink
+            href="/signup"
+            className="hero-button primary-button"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '7px 12px',
-              borderRadius: 100,
-              border: `1px solid rgba(118,92,255,.22)`,
-              background: 'rgba(118,92,255,.07)',
-              marginBottom: 25,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 11,
-              color: 'rgba(190,180,255,.8)',
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: COLORS.purple,
-                boxShadow: `0 0 12px ${COLORS.purple}`,
-                animation: 'pulse 1.5s infinite',
-              }}
-            />
-
-            {liveCount.toLocaleString()} profiles claimed
-          </div>
-
-          <div
-            style={{
-              animation: 'float 4s ease-in-out infinite',
-              marginBottom: 25,
-            }}
-          >
-            <Capsule
-              size={1.45}
-              style={{
-                filter:
-                  'drop-shadow(0 12px 45px rgba(118,92,255,.38))',
-              }}
-            />
-          </div>
-
-          <h1
-            className="hero-title"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 66,
-              lineHeight: 1.02,
-              letterSpacing: '-3px',
-              margin: '0 auto 22px',
-              fontWeight: 700,
-              maxWidth: 750,
-            }}
-          >
-            Your profile.
-            <br />
-            <span
-              style={{
-                background:
-                  'linear-gradient(90deg,#fff,#9c8dff)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              Your identity.
-            </span>
-          </h1>
-
-          <p
-            style={{
-              maxWidth: 510,
-              margin: '0 auto 35px',
-              color: COLORS.muted,
-              fontSize: 15,
-              lineHeight: 1.75,
-            }}
-          >
-            Everything you are, in one place. Create a profile
-            that represents you, share your links and make your
-            corner of the internet yours.
-          </p>
-
-          {/* CLAIM */}
-          <div
-            className="claim-box"
-            style={{
-              width: '100%',
-              maxWidth: 590,
-              margin: '0 auto',
-              padding: 7,
-              display: 'flex',
-              alignItems: 'center',
-              background: 'rgba(15,15,22,.82)',
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 15,
-              backdropFilter: 'blur(20px)',
-              boxShadow:
-                '0 25px 80px rgba(0,0,0,.45), 0 0 50px rgba(118,92,255,.05)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: 15,
-                color: 'rgba(146,125,255,.65)',
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 13,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              illness.lol/
-            </div>
-
-            <input
-              className="claim-input"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="username"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                border: 0,
-                outline: 0,
-                background: 'transparent',
-                color: '#fff',
-                padding: '13px 10px',
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 13,
-              }}
-            />
-
-            <TransitionLink
-              href="/signup"
-              className="claim-button illness-button"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
-                padding: '13px 20px',
-                borderRadius: 11,
-                background: '#fff',
-                color: '#08080d',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: 13,
-                transition: '.2s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Claim username <Arrow />
-            </TransitionLink>
-          </div>
-
-          <div
-            style={{
-              marginTop: 18,
-              color: COLORS.faint,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-            }}
-          >
-            free forever · no credit card required
-          </div>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          borderTop: `1px solid ${COLORS.border}`,
-          borderBottom: `1px solid ${COLORS.border}`,
-          background: 'rgba(255,255,255,.012)',
-        }}
-      >
-        <div
-          className="stats-grid"
-          style={{
-            maxWidth: 900,
-            margin: '0 auto',
-            padding: '55px 25px',
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 50,
-          }}
-        >
-          {stats.map(([number, label]) => (
-            <div key={label} style={{ textAlign: 'center' }}>
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 32,
-                  fontWeight: 700,
-                  letterSpacing: '-1px',
-                }}
-              >
-                {number}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 5,
-                  color: COLORS.faint,
-                  fontSize: 12,
-                  textTransform: 'uppercase',
-                  letterSpacing: '.08em',
-                }}
-              >
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          maxWidth: 1040,
-          margin: '0 auto',
-          padding: '125px 25px',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: 60 }}>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: COLORS.purple2,
-              letterSpacing: '.15em',
-              textTransform: 'uppercase',
-              marginBottom: 13,
-            }}
-          >
-            everything you need
-          </div>
-
-          <h2
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 38,
-              letterSpacing: '-1.5px',
-              margin: '0 0 12px',
-            }}
-          >
-            Built for your identity.
-          </h2>
-
-          <p
-            style={{
-              color: COLORS.muted,
-              fontSize: 14,
-              margin: 0,
-            }}
-          >
-            Powerful customization without the unnecessary clutter.
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 12,
-          }}
-        >
-          {features.map(feature => (
-            <div
-              key={feature.number}
-              className="illness-card"
-              style={{
-                padding: 28,
-                minHeight: 190,
-                borderRadius: 16,
-                border: `1px solid ${COLORS.border}`,
-                background: COLORS.panel,
-                transition: '.25s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 10,
-                  color: COLORS.purple2,
-                  marginBottom: 30,
-                }}
-              >
-                {feature.number}
-              </div>
-
-              <h3
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 17,
-                  margin: '0 0 9px',
-                }}
-              >
-                {feature.title}
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: COLORS.muted,
-                  fontSize: 13,
-                  lineHeight: 1.65,
-                }}
-              >
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* PROFILE PREVIEW */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          maxWidth: 1040,
-          margin: '0 auto',
-          padding: '0 25px 130px',
-        }}
-      >
-        <div
-          style={{
-            border: `1px solid ${COLORS.border}`,
-            background:
-              'linear-gradient(145deg,rgba(118,92,255,.08),rgba(255,255,255,.015))',
-            borderRadius: 24,
-            padding: '70px 35px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 60,
-            flexWrap: 'wrap',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              width: 400,
-              height: 400,
+              justifyContent: 'center',
+              padding: '12px 18px',
+              borderRadius: 14,
+              color: '#fff',
               background:
-                'radial-gradient(circle,rgba(118,92,255,.12),transparent 70%)',
-              right: -180,
-              top: -180,
-              pointerEvents: 'none',
+                'linear-gradient(135deg,#74409a,#9b4dcc)',
+              border:
+                '1px solid rgba(194,122,232,.4)',
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 600,
+              boxShadow:
+                '0 0 20px rgba(155,77,204,.25)',
+            }}
+          >
+            Sign Up for Free
+          </TransitionLink>
+
+          <TransitionLink
+            href="/pricing"
+            className="hero-button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px 18px',
+              borderRadius: 14,
+              color: '#fff',
+              background: 'rgba(20,18,21,.8)',
+              border:
+                '1px solid rgba(255,255,255,.08)',
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            View Pricing
+          </TransitionLink>
+        </div>
+      </section>
+
+      {/* SHOWCASE */}
+      <section
+        className="showcase"
+        style={{
+          position: 'relative',
+          zIndex: 3,
+          width: 1500,
+          height: 500,
+          margin: '-160px auto 0',
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        {/* DASHBOARD */}
+        <DashboardPlaceholder
+        />
+
+        {/* RIGHT PROFILE STACK */}
+        <div
+          style={{
+            position: 'absolute',
+            right: 45,
+            top: 70,
+            width: 700,
+            height: 450,
+          }}
+        >
+          <ProfilePlaceholder
+            username="Azure"
+            image={1}
+            style={{
+              left: 0,
+              top: 0,
+              transform:
+                'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+              opacity: .65,
             }}
           />
 
-          <div style={{ maxWidth: 460 }}>
-            <div
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
-                color: COLORS.purple2,
-                textTransform: 'uppercase',
-                letterSpacing: '.12em',
-                marginBottom: 14,
-              }}
-            >
-              profile system
-            </div>
-
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 34,
-                letterSpacing: '-1.5px',
-                margin: '0 0 15px',
-              }}
-            >
-              One link.
-              <br />
-              Infinite possibilities.
-            </h2>
-
-            <p
-              style={{
-                color: COLORS.muted,
-                fontSize: 14,
-                lineHeight: 1.75,
-                marginBottom: 25,
-              }}
-            >
-              Your profile is more than a collection of links.
-              Make it yours with custom themes, music, effects,
-              badges and everything in between.
-            </p>
-
-            <TransitionLink
-              href="/signup"
-              className="illness-button"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '12px 18px',
-                background: '#fff',
-                color: '#08080d',
-                borderRadius: 10,
-                textDecoration: 'none',
-                fontSize: 13,
-                fontWeight: 600,
-                transition: '.2s',
-              }}
-            >
-              Create your profile <Arrow />
-            </TransitionLink>
-          </div>
-
-          {/* MOCK PROFILE */}
-          <div
+          <ProfilePlaceholder
+            username="vue"
+            image={2}
             style={{
-              width: 290,
-              borderRadius: 20,
-              border: `1px solid ${COLORS.border}`,
-              background: 'rgba(8,8,13,.78)',
-              padding: 25,
-              textAlign: 'center',
-              boxShadow: '0 25px 70px rgba(0,0,0,.45)',
-              position: 'relative',
+              left: 140,
+              top: 35,
+              transform:
+                'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
+              zIndex: 2,
             }}
-          >
-            <div
-              style={{
-                width: 62,
-                height: 62,
-                borderRadius: '50%',
-                margin: '0 auto 13px',
-                background:
-                  'linear-gradient(135deg,#765cff,#fff)',
-                boxShadow:
-                  '0 8px 35px rgba(118,92,255,.25)',
-              }}
-            />
+          />
 
-            <div
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: 700,
-                fontSize: 15,
-              }}
-            >
-              yourname
-            </div>
-
-            <div
-              style={{
-                color: COLORS.faint,
-                fontSize: 10,
-                fontFamily: "'JetBrains Mono', monospace",
-                marginTop: 5,
-                marginBottom: 20,
-              }}
-            >
-              illness.lol/yourname
-            </div>
-
-            {['Discord', 'YouTube', 'Twitch'].map(link => (
-              <div
-                key={link}
-                style={{
-                  padding: 11,
-                  marginBottom: 7,
-                  borderRadius: 9,
-                  border: `1px solid ${COLORS.border}`,
-                  background: 'rgba(255,255,255,.025)',
-                  color: 'rgba(255,255,255,.65)',
-                  fontSize: 12,
-                }}
-              >
-                {link}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          maxWidth: 900,
-          margin: '0 auto',
-          padding: '0 25px 130px',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: 55 }}>
-          <h2
+          <ProfilePlaceholder
+            username="yourname"
+            image={3}
             style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 36,
-              letterSpacing: '-1.5px',
-              margin: '0 0 10px',
+              left: 305,
+              top: 75,
+              transform:
+                'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+              zIndex: 3,
             }}
-          >
-            Choose your plan.
-          </h2>
-
-          <p
-            style={{
-              color: COLORS.muted,
-              fontSize: 14,
-            }}
-          >
-            Start free. Upgrade whenever you want.
-          </p>
+          />
         </div>
 
+        {/* BOTTOM FADE */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit,minmax(280px,1fr))',
-            gap: 14,
-          }}
-        >
-          {/* FREE */}
-          <div
-            className="illness-card"
-            style={{
-              border: `1px solid ${COLORS.border}`,
-              background: COLORS.panel,
-              borderRadius: 18,
-              padding: 30,
-              transition: '.25s',
-            }}
-          >
-            <div
-              style={{
-                color: COLORS.muted,
-                fontSize: 12,
-                marginBottom: 9,
-              }}
-            >
-              Free
-            </div>
-
-            <div
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 40,
-                fontWeight: 700,
-                letterSpacing: '-2px',
-                marginBottom: 20,
-              }}
-            >
-              $0
-            </div>
-
-            <div
-              style={{
-                color: COLORS.muted,
-                fontSize: 13,
-                lineHeight: 2,
-              }}
-            >
-              ✓ Custom profile
-              <br />
-              ✓ Links & socials
-              <br />
-              ✓ Basic customization
-              <br />
-              ✓ Profile analytics
-            </div>
-          </div>
-
-          {/* PREMIUM */}
-          <div
-            className="illness-card"
-            style={{
-              border: '1px solid rgba(118,92,255,.35)',
-              background:
-                'linear-gradient(145deg,rgba(118,92,255,.13),rgba(16,16,23,.8))',
-              borderRadius: 18,
-              padding: 30,
-              transition: '.25s',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                padding: '6px 10px',
-                background: 'rgba(118,92,255,.16)',
-                borderBottomLeftRadius: 10,
-                color: '#b3a8ff',
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-              }}
-            >
-              PREMIUM
-            </div>
-
-            <div
-              style={{
-                color: '#a99cff',
-                fontSize: 12,
-                marginBottom: 9,
-              }}
-            >
-              Premium
-            </div>
-
-            <div
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 30,
-                fontWeight: 700,
-                letterSpacing: '-1px',
-                marginBottom: 20,
-              }}
-            >
-              More customization
-            </div>
-
-            <div
-              style={{
-                color: COLORS.muted,
-                fontSize: 13,
-                lineHeight: 2,
-              }}
-            >
-              ✓ Everything in Free
-              <br />
-              ✓ Custom cursors
-              <br />
-              ✓ Audio player
-              <br />
-              ✓ Premium badges & aliases
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          maxWidth: 700,
-          margin: '0 auto',
-          padding: '0 25px 140px',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: 45 }}>
-          <h2
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 34,
-              letterSpacing: '-1.5px',
-              margin: 0,
-            }}
-          >
-            Frequently asked.
-          </h2>
-        </div>
-
-        {faqs.map(([question, answer], index) => {
-          const open = openFaq === index
-
-          return (
-            <div
-              key={question}
-              style={{
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
-            >
-              <button
-                onClick={() =>
-                  setOpenFaq(open ? -1 : index)
-                }
-                style={{
-                  width: '100%',
-                  border: 0,
-                  background: 'none',
-                  color: '#fff',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '21px 3px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: 14,
-                  textAlign: 'left',
-                }}
-              >
-                {question}
-
-                <span
-                  style={{
-                    color: COLORS.faint,
-                    fontSize: 20,
-                    fontWeight: 300,
-                  }}
-                >
-                  {open ? '−' : '+'}
-                </span>
-              </button>
-
-              <div
-                style={{
-                  maxHeight: open ? 150 : 0,
-                  overflow: 'hidden',
-                  transition: 'max-height .25s ease',
-                }}
-              >
-                <p
-                  style={{
-                    color: COLORS.muted,
-                    fontSize: 13,
-                    lineHeight: 1.7,
-                    margin: '0 3px 20px',
-                  }}
-                >
-                  {answer}
-                </p>
-              </div>
-            </div>
-          )
-        })}
-      </section>
-
-      {/* FINAL CTA */}
-      <section
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          textAlign: 'center',
-          padding: '0 25px 130px',
-        }}
-      >
-        <Capsule
-          size={1}
-          style={{
-            marginBottom: 25,
-            filter:
-              'drop-shadow(0 10px 35px rgba(118,92,255,.3))',
+            position: 'absolute',
+            left: -100,
+            right: -100,
+            bottom: -80,
+            height: 180,
+            background:
+              'linear-gradient(to bottom,transparent,#17101a 72%)',
+            pointerEvents: 'none',
+            zIndex: 10,
           }}
         />
-
-        <h2
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 40,
-            letterSpacing: '-1.8px',
-            margin: '0 0 14px',
-          }}
-        >
-          Ready to make it yours?
-        </h2>
-
-        <p
-          style={{
-            color: COLORS.muted,
-            fontSize: 14,
-            marginBottom: 25,
-          }}
-        >
-          Claim your username and create your profile today.
-        </p>
-
-        <TransitionLink
-          href="/signup"
-          className="illness-button"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '13px 21px',
-            background: '#fff',
-            color: '#08080d',
-            borderRadius: 11,
-            textDecoration: 'none',
-            fontWeight: 600,
-            fontSize: 13,
-            transition: '.2s',
-          }}
-        >
-          Get started <Arrow />
-        </TransitionLink>
       </section>
 
-      {/* FOOTER */}
-      <footer
+      {/* SMALL BOTTOM FADE */}
+      <div
         style={{
+          height: 160,
+          marginTop: -100,
           position: 'relative',
-          zIndex: 1,
-          borderTop: `1px solid ${COLORS.border}`,
-          maxWidth: 1040,
-          margin: '0 auto',
-          padding: '30px 25px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 20,
+          zIndex: 5,
+          background:
+            'linear-gradient(to bottom,transparent,#17101a)',
         }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 9,
-          }}
-        >
-          <Capsule size={.45} />
-
-          <span
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            illness.lol
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            gap: 20,
-          }}
-        >
-          {navLinks.map(([label, href]) => (
-            <TransitionLink
-              key={label}
-              href={href}
-              style={{
-                color: COLORS.faint,
-                fontSize: 12,
-                textDecoration: 'none',
-              }}
-            >
-              {label}
-            </TransitionLink>
-          ))}
-        </div>
-
-        <div
-          style={{
-            color: COLORS.faint,
-            fontSize: 10,
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-        >
-          © {new Date().getFullYear()} illness.lol
-        </div>
-      </footer>
+      />
     </main>
   )
 }
