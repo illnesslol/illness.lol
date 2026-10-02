@@ -644,6 +644,24 @@ export default function HomePage() {
         }}
       />
 
+      {/* DOT GRID */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          maskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
+          WebkitMaskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
+        }}
+      />
+
       {/* ORANGE GLOW */}
       <div
         style={{
@@ -693,15 +711,14 @@ export default function HomePage() {
             minWidth: 200,
           }}
         >
-          {/* PLACEHOLDER LOGO */}
-          <div
+          <img
+            src="/logo.png"
+            alt=""
+            width={30}
+            height={30}
             style={{
-              width: 29,
-              height: 29,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg,#ff6a1a,#ff9a4d)',
-              transform: 'rotate(-18deg)',
-              boxShadow: '0 0 16px rgba(255,106,26,.3)',
+              display: 'block',
+              filter: 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
           />
 
