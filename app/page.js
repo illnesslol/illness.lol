@@ -4,15 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import { TransitionLink } from '../components/PageTransition'
 
 const COLORS = {
-  bg: '#17101a',
-  bgDark: '#0d0b10',
-  purple: '#9b4dcc',
-  purpleBright: '#b75be8',
-  purpleSoft: 'rgba(155,77,204,.18)',
-  purpleBorder: 'rgba(181,91,232,.55)',
+  bg: '#000000',
+  surface: '#0c0c0c',
+  surfaceAlt: '#141414',
+  orange: '#ff6a1a',
+  orangeBright: '#ff8a3d',
+  orangeSoft: 'rgba(255,106,26,.16)',
+  orangeBorder: 'rgba(255,106,26,.5)',
   white: '#ffffff',
   muted: 'rgba(255,255,255,.72)',
   faint: 'rgba(255,255,255,.4)',
+  line: 'rgba(255,255,255,.08)',
 }
 
 function PlaceholderAvatar({ small = false }) {
@@ -22,9 +24,8 @@ function PlaceholderAvatar({ small = false }) {
         width: small ? 32 : 48,
         height: small ? 32 : 48,
         borderRadius: '50%',
-        background:
-          'linear-gradient(135deg, #8f48bc, #c27ae8)',
-        boxShadow: '0 0 20px rgba(155,77,204,.3)',
+        background: 'linear-gradient(135deg, #ff6a1a, #ffa561)',
+        boxShadow: '0 0 20px rgba(255,106,26,.3)',
         flexShrink: 0,
       }}
     />
@@ -38,8 +39,8 @@ function FakeIcon() {
         width: 22,
         height: 22,
         borderRadius: 6,
-        background: 'rgba(181,91,232,.22)',
-        border: '1px solid rgba(181,91,232,.18)',
+        background: 'rgba(255,106,26,.22)',
+        border: '1px solid rgba(255,106,26,.25)',
       }}
     />
   )
@@ -52,11 +53,11 @@ function DashboardPlaceholder() {
       style={{
         width: 790,
         height: 465,
-        background: '#09090b',
-        border: `2px solid ${COLORS.purpleBorder}`,
+        background: '#050505',
+        border: `2px solid ${COLORS.orangeBorder}`,
         borderRadius: 26,
         boxShadow:
-          '0 0 35px rgba(155,77,204,.14), 0 30px 100px rgba(0,0,0,.75)',
+          '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
         overflow: 'hidden',
         display: 'flex',
         transform: 'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
@@ -67,8 +68,8 @@ function DashboardPlaceholder() {
       <div
         style={{
           width: 170,
-          background: '#0d0d0f',
-          borderRight: '1px solid rgba(255,255,255,.07)',
+          background: COLORS.surface,
+          borderRight: `1px solid ${COLORS.line}`,
           padding: 16,
           flexShrink: 0,
         }}
@@ -84,74 +85,46 @@ function DashboardPlaceholder() {
           <PlaceholderAvatar small />
 
           <div>
-            <div
-              style={{
-                fontSize: 9,
-                color: '#fff',
-                fontWeight: 600,
-              }}
-            >
+            <div style={{ fontSize: 9, color: '#fff', fontWeight: 600 }}>
               Welcome back, $
             </div>
-
-            <div
-              style={{
-                fontSize: 7,
-                color: COLORS.faint,
-              }}
-            >
+            <div style={{ fontSize: 7, color: COLORS.faint }}>
               illness.lol
             </div>
           </div>
         </div>
 
-        {[
-          'account',
-          'customize',
-          'links',
-          'premium',
-          'image host',
-        ].map((item, i) => (
-          <div
-            key={item}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 9,
-              padding: '8px 9px',
-              borderRadius: 8,
-              marginBottom: 4,
-              background:
-                i === 0
-                  ? 'rgba(155,77,204,.22)'
-                  : 'transparent',
-              color:
-                i === 0
-                  ? '#fff'
-                  : 'rgba(255,255,255,.72)',
-              fontSize: 9,
-            }}
-          >
-            <FakeIcon />
-            {item}
-          </div>
-        ))}
+        {['account', 'customize', 'links', 'premium', 'image host'].map(
+          (item, i) => (
+            <div
+              key={item}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 9,
+                padding: '8px 9px',
+                borderRadius: 8,
+                marginBottom: 4,
+                background: i === 0 ? 'rgba(255,106,26,.22)' : 'transparent',
+                color: i === 0 ? '#fff' : 'rgba(255,255,255,.72)',
+                fontSize: 9,
+              }}
+            >
+              <FakeIcon />
+              {item}
+            </div>
+          )
+        )}
 
         <div
           style={{
             marginTop: 70,
             padding: 10,
             borderRadius: 10,
-            background: 'rgba(255,255,255,.025)',
+            background: 'rgba(255,255,255,.035)',
           }}
         >
-          <div
-            style={{
-              fontSize: 8,
-              color: COLORS.muted,
-              marginBottom: 8,
-            }}
-          >
+          <div style={{ fontSize: 8, color: COLORS.muted, marginBottom: 8 }}>
             Have a question or need support?
           </div>
 
@@ -159,8 +132,9 @@ function DashboardPlaceholder() {
             style={{
               height: 27,
               borderRadius: 7,
-              background:
-                'linear-gradient(90deg,#7652d9,#9b4dcc)',
+              background: 'linear-gradient(90deg,#ff6a1a,#ff8a3d)',
+              color: '#000',
+              fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -173,28 +147,15 @@ function DashboardPlaceholder() {
       </div>
 
       {/* CONTENT */}
-      <div
-        style={{
-          flex: 1,
-          padding: 22,
-          minWidth: 0,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10,
-            color: '#fff',
-            marginBottom: 15,
-          }}
-        >
+      <div style={{ flex: 1, padding: 22, minWidth: 0 }}>
+        <div style={{ fontSize: 10, color: '#fff', marginBottom: 15 }}>
           Account Overview
         </div>
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns:
-              '1.2fr 1fr 1fr 1fr',
+            gridTemplateColumns: '1.2fr 1fr 1fr 1fr',
             gap: 9,
             marginBottom: 20,
           }}
@@ -208,7 +169,7 @@ function DashboardPlaceholder() {
             <div
               key={title}
               style={{
-                background: 'rgba(155,77,204,.16)',
+                background: 'rgba(255,106,26,.12)',
                 borderRadius: 9,
                 padding: 12,
               }}
@@ -222,36 +183,17 @@ function DashboardPlaceholder() {
                 }}
               >
                 <FakeIcon />
-
-                <span
-                  style={{
-                    fontSize: 7,
-                    color: COLORS.muted,
-                  }}
-                >
+                <span style={{ fontSize: 7, color: COLORS.muted }}>
                   {title}
                 </span>
               </div>
 
-              <div
-                style={{
-                  fontSize: 10,
-                  color: '#fff',
-                }}
-              >
-                {value}
-              </div>
+              <div style={{ fontSize: 10, color: '#fff' }}>{value}</div>
             </div>
           ))}
         </div>
 
-        <div
-          style={{
-            fontSize: 9,
-            color: '#fff',
-            marginBottom: 9,
-          }}
-        >
+        <div style={{ fontSize: 9, color: '#fff', marginBottom: 9 }}>
           Account Statistics
         </div>
 
@@ -259,8 +201,8 @@ function DashboardPlaceholder() {
           style={{
             height: 205,
             borderRadius: 13,
-            background: '#0b0b0d',
-            border: '1px solid rgba(255,255,255,.035)',
+            background: '#080808',
+            border: '1px solid rgba(255,255,255,.05)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -297,16 +239,8 @@ function DashboardPlaceholder() {
                 y1="0"
                 y2="1"
               >
-                <stop
-                  offset="0%"
-                  stopColor="#a453cb"
-                  stopOpacity=".45"
-                />
-                <stop
-                  offset="100%"
-                  stopColor="#a453cb"
-                  stopOpacity=".03"
-                />
+                <stop offset="0%" stopColor="#ff6a1a" stopOpacity=".45" />
+                <stop offset="100%" stopColor="#ff6a1a" stopOpacity=".03" />
               </linearGradient>
             </defs>
 
@@ -349,7 +283,7 @@ function DashboardPlaceholder() {
                 L600 150
               "
               fill="none"
-              stroke="#a453cb"
+              stroke="#ff6a1a"
               strokeWidth="2"
             />
           </svg>
@@ -366,9 +300,9 @@ function ProfilePlaceholder({
   image = 1,
 }) {
   const backgrounds = [
-    'linear-gradient(135deg,#111827,#26354a)',
-    'linear-gradient(135deg,#15202b,#314e63)',
-    'linear-gradient(135deg,#15110b,#51421e)',
+    'linear-gradient(135deg,#0d0d0d,#241508)',
+    'linear-gradient(135deg,#111111,#3a1f0b)',
+    'linear-gradient(135deg,#141414,#5a2d0c)',
   ]
 
   return (
@@ -380,10 +314,10 @@ function ProfilePlaceholder({
         height: 410,
         borderRadius: 24,
         overflow: 'hidden',
-        border: `2px solid ${COLORS.purpleBorder}`,
-        background: '#0b0b0d',
+        border: `2px solid ${COLORS.orangeBorder}`,
+        background: '#050505',
         boxShadow:
-          '0 20px 70px rgba(0,0,0,.7), 0 0 30px rgba(155,77,204,.1)',
+          '0 20px 70px rgba(0,0,0,.8), 0 0 30px rgba(255,106,26,.1)',
         ...style,
       }}
     >
@@ -402,19 +336,12 @@ function ProfilePlaceholder({
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(to bottom,rgba(0,0,0,.05) 20%,rgba(0,0,0,.85) 90%)',
+            'linear-gradient(to bottom,rgba(0,0,0,.05) 20%,rgba(0,0,0,.9) 90%)',
         }}
       />
 
       {/* CONTENT */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 22,
-          right: 22,
-          bottom: 20,
-        }}
-      >
+      <div style={{ position: 'absolute', left: 22, right: 22, bottom: 20 }}>
         <PlaceholderAvatar />
 
         <div
@@ -428,23 +355,11 @@ function ProfilePlaceholder({
           {username}
         </div>
 
-        <div
-          style={{
-            marginTop: 5,
-            color: COLORS.faint,
-            fontSize: 9,
-          }}
-        >
+        <div style={{ marginTop: 5, color: COLORS.faint, fontSize: 9 }}>
           Welcome to my profile!
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 7,
-            marginTop: 15,
-          }}
-        >
+        <div style={{ display: 'flex', gap: 7, marginTop: 15 }}>
           {[1, 2, 3, 4].map(i => (
             <div
               key={i}
@@ -453,8 +368,7 @@ function ProfilePlaceholder({
                 height: 31,
                 borderRadius: 8,
                 background: 'rgba(255,255,255,.1)',
-                border:
-                  '1px solid rgba(255,255,255,.12)',
+                border: '1px solid rgba(255,255,255,.12)',
               }}
             />
           ))}
@@ -466,13 +380,35 @@ function ProfilePlaceholder({
             marginTop: 14,
             borderRadius: 10,
             background: 'rgba(255,255,255,.09)',
-            border:
-              '1px solid rgba(255,255,255,.1)',
+            border: '1px solid rgba(255,255,255,.1)',
           }}
         />
       </div>
     </div>
   )
+}
+
+// Draws a single leaf shape centered on (0, 0), pointing up.
+function drawLeaf(ctx, size, color, opacity) {
+  ctx.globalAlpha = opacity
+  ctx.fillStyle = color
+
+  ctx.beginPath()
+  ctx.moveTo(0, -size)
+  ctx.bezierCurveTo(size * 0.95, -size * 0.45, size * 0.7, size * 0.65, 0, size)
+  ctx.bezierCurveTo(-size * 0.7, size * 0.65, -size * 0.95, -size * 0.45, 0, -size)
+  ctx.fill()
+
+  // center vein
+  ctx.globalAlpha = opacity * 0.9
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(0, -size * 0.85)
+  ctx.lineTo(0, size * 1.15)
+  ctx.stroke()
+
+  ctx.globalAlpha = 1
 }
 
 export default function HomePage() {
@@ -497,9 +433,12 @@ export default function HomePage() {
       })
 
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) return () => clearTimeout(timer)
 
     const ctx = canvas.getContext('2d')
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
 
     const resize = () => {
       canvas.width = window.innerWidth
@@ -507,45 +446,63 @@ export default function HomePage() {
     }
 
     resize()
-
     window.addEventListener('resize', resize)
 
-    const particles = Array.from(
-      { length: 28 },
-      () => ({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        size: Math.random() * 2 + .5,
-        opacity: Math.random() * .18 + .025,
-      })
-    )
+    const leafColors = ['#ff6a1a', '#ff8a3d', '#e85a0c', '#ffffff']
+
+    const makeLeaf = (spreadY = false) => ({
+      x: Math.random() * window.innerWidth,
+      y: spreadY
+        ? Math.random() * window.innerHeight
+        : -30 - Math.random() * 120,
+      size: Math.random() * 6 + 9,
+      speed: Math.random() * 0.35 + 0.35,
+      swayAmp: Math.random() * 30 + 20,
+      swaySpeed: Math.random() * 0.012 + 0.006,
+      phase: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.012,
+      opacity: Math.random() * 0.2 + 0.22,
+      color: leafColors[Math.floor(Math.random() * leafColors.length)],
+      baseX: 0,
+    })
+
+    const leaves = Array.from({ length: 7 }, () => makeLeaf(true))
+    leaves.forEach(l => {
+      l.baseX = l.x
+    })
 
     let animationFrame
+    let tick = 0
 
     const draw = () => {
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      )
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      tick += 1
 
-      particles.forEach(p => {
-        ctx.beginPath()
-        ctx.arc(
-          p.x,
-          p.y,
-          p.size,
-          0,
-          Math.PI * 2
-        )
+      leaves.forEach(l => {
+        if (!reduceMotion) {
+          l.y += l.speed
+          l.rotation += l.spin
+        }
 
-        ctx.fillStyle = `rgba(180,100,235,${p.opacity})`
-        ctx.fill()
+        const sway = reduceMotion
+          ? 0
+          : Math.sin(tick * l.swaySpeed + l.phase) * l.swayAmp
+        const x = l.baseX + sway
+
+        if (l.y > canvas.height + 40) {
+          l.y = -30
+          l.baseX = Math.random() * canvas.width
+        }
+
+        ctx.save()
+        ctx.translate(x, l.y)
+        ctx.rotate(l.rotation + Math.sin(tick * l.swaySpeed + l.phase) * 0.5)
+        drawLeaf(ctx, l.size, l.color, l.opacity)
+        ctx.restore()
       })
 
-      animationFrame =
-        requestAnimationFrame(draw)
+      animationFrame = requestAnimationFrame(draw)
     }
 
     draw()
@@ -553,10 +510,7 @@ export default function HomePage() {
     return () => {
       clearTimeout(timer)
       cancelAnimationFrame(animationFrame)
-      window.removeEventListener(
-        'resize',
-        resize
-      )
+      window.removeEventListener('resize', resize)
     }
   }, [])
 
@@ -584,16 +538,21 @@ export default function HomePage() {
 
         body {
           margin: 0;
-          background: #17101a;
+          background: #000000;
         }
 
         ::selection {
-          background: rgba(181,91,232,.35);
+          background: rgba(255, 106, 26, 0.4);
           color: #fff;
         }
 
+        a:focus-visible {
+          outline: 2px solid #ff6a1a;
+          outline-offset: 3px;
+        }
+
         .nav-link {
-          transition: .2s ease;
+          transition: 0.2s ease;
         }
 
         .nav-link:hover {
@@ -601,7 +560,7 @@ export default function HomePage() {
         }
 
         .hero-button {
-          transition: .2s ease;
+          transition: 0.2s ease;
         }
 
         .hero-button:hover {
@@ -609,12 +568,12 @@ export default function HomePage() {
         }
 
         .primary-button:hover {
-          box-shadow: 0 0 30px rgba(181,91,232,.45) !important;
+          box-shadow: 0 0 30px rgba(255, 106, 26, 0.5) !important;
         }
 
         @media (max-width: 1100px) {
           .showcase {
-            transform: scale(.82);
+            transform: translateX(-50%) scale(0.82) !important;
             transform-origin: top center;
           }
         }
@@ -637,7 +596,7 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform: scale(.58);
+            transform: translateX(-50%) scale(0.58) !important;
             height: 300px !important;
             margin-top: 10px !important;
           }
@@ -665,87 +624,40 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform: scale(.42);
+            transform: translateX(-50%) scale(0.42) !important;
             height: 220px !important;
-            margin-left: -180px !important;
-            margin-right: -180px !important;
           }
         }
       `}</style>
 
-      {/* CANVAS PARTICLES */}
+      {/* FALLING LEAVES */}
       <canvas
         ref={canvasRef}
+        aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          zIndex: 0,
+          zIndex: 1,
         }}
       />
 
-      {/* PURPLE ATMOSPHERIC GLOW */}
+      {/* ORANGE GLOW */}
       <div
         style={{
           position: 'fixed',
-          top: -350,
+          top: -380,
           left: '50%',
           transform: 'translateX(-50%)',
           width: 1000,
           height: 700,
           borderRadius: '50%',
           background:
-            'radial-gradient(circle,rgba(120,54,150,.18),transparent 68%)',
+            'radial-gradient(circle,rgba(255,106,26,.16),transparent 68%)',
           pointerEvents: 'none',
           zIndex: 0,
-        }}
-      />
-
-      {/* FAINT PLACEHOLDER SHAPES */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 30,
-          width: 80,
-          height: 190,
-          borderRadius: 18,
-          background: 'rgba(160,75,190,.07)',
-          transform: 'rotate(-12deg)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-
-      <div
-        style={{
-          position: 'fixed',
-          top: -20,
-          right: 80,
-          width: 90,
-          height: 170,
-          borderRadius: 20,
-          background: 'rgba(160,75,190,.06)',
-          transform: 'rotate(35deg)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-
-      <div
-        style={{
-          position: 'fixed',
-          top: 95,
-          left: 145,
-          width: 70,
-          height: 55,
-          borderRadius: 12,
-          background: 'rgba(160,75,190,.055)',
-          transform: 'rotate(-28deg)',
-          zIndex: 0,
-          pointerEvents: 'none',
         }}
       />
 
@@ -760,11 +672,9 @@ export default function HomePage() {
           width: 'min(1180px, calc(100% - 40px))',
           height: 70,
           borderRadius: 40,
-          background: 'rgba(12,10,13,.92)',
-          border:
-            '1px solid rgba(255,255,255,.035)',
-          boxShadow:
-            '0 15px 50px rgba(0,0,0,.3)',
+          background: 'rgba(10,10,10,.92)',
+          border: '1px solid rgba(255,255,255,.06)',
+          boxShadow: '0 15px 50px rgba(0,0,0,.4)',
           display: 'flex',
           alignItems: 'center',
           padding: '0 22px 0 28px',
@@ -789,19 +699,16 @@ export default function HomePage() {
               width: 29,
               height: 29,
               borderRadius: 8,
-              background:
-                'linear-gradient(135deg,#8d45b9,#c05de9)',
+              background: 'linear-gradient(135deg,#ff6a1a,#ff9a4d)',
               transform: 'rotate(-18deg)',
-              boxShadow:
-                '0 0 16px rgba(181,91,232,.25)',
+              boxShadow: '0 0 16px rgba(255,106,26,.3)',
             }}
           />
 
           <span
             className="nav-brand"
             style={{
-              fontFamily:
-                "'Space Grotesk', sans-serif",
+              fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 21,
               fontWeight: 600,
               letterSpacing: '-.7px',
@@ -859,7 +766,7 @@ export default function HomePage() {
           {!loggedIn && (
             <TransitionLink
               href="/login"
-              className="nav-login"
+              className="nav-login nav-link"
               style={{
                 color: COLORS.muted,
                 textDecoration: 'none',
@@ -877,10 +784,8 @@ export default function HomePage() {
               className="hero-button"
               style={{
                 color: '#fff',
-                background:
-                  'linear-gradient(135deg,rgba(155,77,204,.32),rgba(110,54,140,.22))',
-                border:
-                  '1px solid rgba(181,91,232,.5)',
+                background: 'rgba(255,106,26,.16)',
+                border: '1px solid rgba(255,106,26,.55)',
                 textDecoration: 'none',
                 fontSize: 14,
                 fontWeight: 500,
@@ -895,18 +800,14 @@ export default function HomePage() {
               href="/signup"
               className="hero-button"
               style={{
-                color: '#fff',
-                background:
-                  'linear-gradient(135deg,#7b3d9c,#9b4dcc)',
-                border:
-                  '1px solid rgba(210,140,239,.25)',
+                color: '#000',
+                background: COLORS.orange,
                 textDecoration: 'none',
                 fontSize: 14,
                 fontWeight: 600,
                 padding: '12px 19px',
                 borderRadius: 25,
-                boxShadow:
-                  '0 0 18px rgba(155,77,204,.2)',
+                boxShadow: '0 0 18px rgba(255,106,26,.25)',
               }}
             >
               Sign up
@@ -928,18 +829,14 @@ export default function HomePage() {
           flexDirection: 'column',
           alignItems: 'center',
           opacity: visible ? 1 : 0,
-          transform: visible
-            ? 'translateY(0)'
-            : 'translateY(14px)',
-          transition:
-            'opacity .7s ease, transform .7s ease',
+          transform: visible ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity .7s ease, transform .7s ease',
         }}
       >
         <h1
           className="hero-title"
           style={{
-            fontFamily:
-              "'Space Grotesk', sans-serif",
+            fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 46,
             lineHeight: 1.15,
             letterSpacing: '-1.5px',
@@ -961,9 +858,8 @@ export default function HomePage() {
             color: COLORS.muted,
           }}
         >
-          illness.lol is your go-to for modern,
-          feature rich custom bio pages and fast,
-          secure file hosting
+          illness.lol is your go-to for modern, feature rich custom bio pages
+          and fast, secure file hosting
         </p>
 
         <div
@@ -983,16 +879,12 @@ export default function HomePage() {
               justifyContent: 'center',
               padding: '12px 18px',
               borderRadius: 14,
-              color: '#fff',
-              background:
-                'linear-gradient(135deg,#74409a,#9b4dcc)',
-              border:
-                '1px solid rgba(194,122,232,.4)',
+              color: '#000',
+              background: COLORS.orange,
               textDecoration: 'none',
               fontSize: 14,
               fontWeight: 600,
-              boxShadow:
-                '0 0 20px rgba(155,77,204,.25)',
+              boxShadow: '0 0 20px rgba(255,106,26,.3)',
             }}
           >
             Sign Up for Free
@@ -1008,9 +900,8 @@ export default function HomePage() {
               padding: '12px 18px',
               borderRadius: 14,
               color: '#fff',
-              background: 'rgba(20,18,21,.8)',
-              border:
-                '1px solid rgba(255,255,255,.08)',
+              background: 'rgba(255,255,255,.04)',
+              border: '1px solid rgba(255,255,255,.14)',
               textDecoration: 'none',
               fontSize: 14,
               fontWeight: 500,
@@ -1035,8 +926,7 @@ export default function HomePage() {
         }}
       >
         {/* DASHBOARD */}
-        <DashboardPlaceholder
-        />
+        <DashboardPlaceholder />
 
         {/* RIGHT PROFILE STACK */}
         <div
@@ -1054,9 +944,8 @@ export default function HomePage() {
             style={{
               left: 0,
               top: 0,
-              transform:
-                'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
-              opacity: .65,
+              transform: 'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+              opacity: 0.65,
             }}
           />
 
@@ -1066,8 +955,7 @@ export default function HomePage() {
             style={{
               left: 140,
               top: 35,
-              transform:
-                'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
+              transform: 'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
               zIndex: 2,
             }}
           />
@@ -1078,8 +966,7 @@ export default function HomePage() {
             style={{
               left: 305,
               top: 75,
-              transform:
-                'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+              transform: 'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
               zIndex: 3,
             }}
           />
@@ -1093,8 +980,7 @@ export default function HomePage() {
             right: -100,
             bottom: -80,
             height: 180,
-            background:
-              'linear-gradient(to bottom,transparent,#17101a 72%)',
+            background: 'linear-gradient(to bottom,transparent,#000000 72%)',
             pointerEvents: 'none',
             zIndex: 10,
           }}
@@ -1108,8 +994,7 @@ export default function HomePage() {
           marginTop: -100,
           position: 'relative',
           zIndex: 5,
-          background:
-            'linear-gradient(to bottom,transparent,#17101a)',
+          background: 'linear-gradient(to bottom,transparent,#000000)',
         }}
       />
     </main>
