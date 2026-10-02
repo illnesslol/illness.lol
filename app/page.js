@@ -862,7 +862,8 @@ export default function HomePage() {
             color: '#fff',
           }}
         >
-          Cool ass bio site.
+          Everything you want, right here.
+
         </h1>
 
         <p
@@ -876,7 +877,7 @@ export default function HomePage() {
           }}
         >
           illness.lol is your go-to for modern, feature rich custom bio pages
-          and good community.
+          and fast, secure file hosting
         </p>
 
         <div
