@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/app/lib/supabase-client'
 import { useTransition } from '@/components/PageTransition'
 
@@ -11,12 +11,15 @@ const COLORS = {
   orangeBright: '#ff8a3d',
   orangeSoft: 'rgba(255,106,26,.16)',
   orangeBorder: 'rgba(255,106,26,.5)',
+  white: '#ffffff',
   muted: 'rgba(255,255,255,.72)',
   faint: 'rgba(255,255,255,.4)',
+  line: 'rgba(255,255,255,.08)',
 }
 
 export default function SignupPage() {
   const { navigate } = useTransition()
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -32,6 +35,188 @@ export default function SignupPage() {
   const [oauthLoading, setOauthLoading] = useState('')
   const [agreed, setAgreed] = useState(false)
 
+  /* =========================================================
+     FALLING LEAVES — SAME STYLE AS HOMEPAGE
+  ========================================================= */
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) return
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    resize()
+
+    window.addEventListener('resize', resize)
+
+    const leafColors = [
+      '#ff6a1a',
+      '#ff8a3d',
+      '#e85a0c',
+      '#ffffff',
+    ]
+
+    const drawLeaf = (
+      size: number,
+      color: string,
+      opacity: number
+    ) => {
+      ctx.globalAlpha = opacity
+      ctx.fillStyle = color
+
+      ctx.beginPath()
+
+      ctx.moveTo(0, -size)
+
+      ctx.bezierCurveTo(
+        size * 0.95,
+        -size * 0.45,
+        size * 0.7,
+        size * 0.65,
+        0,
+        size
+      )
+
+      ctx.bezierCurveTo(
+        -size * 0.7,
+        size * 0.65,
+        -size * 0.95,
+        -size * 0.45,
+        0,
+        -size
+      )
+
+      ctx.fill()
+
+      ctx.globalAlpha = opacity * 0.9
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 1
+
+      ctx.beginPath()
+
+      ctx.moveTo(0, -size * 0.85)
+      ctx.lineTo(0, size * 1.15)
+
+      ctx.stroke()
+
+      ctx.globalAlpha = 1
+    }
+
+    const makeLeaf = (spreadY = false) => ({
+      x: Math.random() * window.innerWidth,
+      y: spreadY
+        ? Math.random() * window.innerHeight
+        : -30 - Math.random() * 120,
+      size: Math.random() * 6 + 9,
+      speed: Math.random() * 0.35 + 0.35,
+      swayAmp: Math.random() * 30 + 20,
+      swaySpeed: Math.random() * 0.012 + 0.006,
+      phase: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.012,
+      opacity: Math.random() * 0.2 + 0.22,
+      color:
+        leafColors[
+          Math.floor(Math.random() * leafColors.length)
+        ],
+      baseX: 0,
+    })
+
+    const leaves = Array.from(
+      { length: 9 },
+      () => makeLeaf(true)
+    )
+
+    leaves.forEach((leaf) => {
+      leaf.baseX = leaf.x
+    })
+
+    let animationFrame = 0
+    let tick = 0
+
+    const draw = () => {
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
+
+      tick += 1
+
+      leaves.forEach((leaf) => {
+        if (!reduceMotion) {
+          leaf.y += leaf.speed
+          leaf.rotation += leaf.spin
+        }
+
+        const sway = reduceMotion
+          ? 0
+          : Math.sin(
+              tick * leaf.swaySpeed + leaf.phase
+            ) * leaf.swayAmp
+
+        const x = leaf.baseX + sway
+
+        if (leaf.y > canvas.height + 40) {
+          leaf.y = -30
+          leaf.baseX =
+            Math.random() * canvas.width
+        }
+
+        ctx.save()
+
+        ctx.translate(x, leaf.y)
+
+        ctx.rotate(
+          leaf.rotation +
+            Math.sin(
+              tick * leaf.swaySpeed + leaf.phase
+            ) *
+              0.5
+        )
+
+        drawLeaf(
+          leaf.size,
+          leaf.color,
+          leaf.opacity
+        )
+
+        ctx.restore()
+      })
+
+      animationFrame =
+        requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+
+      window.removeEventListener(
+        'resize',
+        resize
+      )
+    }
+  }, [])
+
+  /* =========================================================
+     USERNAME CHECK
+  ========================================================= */
+
   useEffect(() => {
     const clean = username.trim().toLowerCase()
 
@@ -40,7 +225,13 @@ export default function SignupPage() {
       return
     }
 
-    if (clean.length < 3 || !/^[a-z0-9_]+$/.test(clean)) {
+    // Username is now 1–24 characters.
+    if (clean.length < 1 || clean.length > 24) {
+      setUsernameStatus('invalid')
+      return
+    }
+
+    if (!/^[a-z0-9_]+$/.test(clean)) {
       setUsernameStatus('invalid')
       return
     }
@@ -64,7 +255,9 @@ export default function SignupPage() {
         return
       }
 
-      setUsernameStatus(data ? 'taken' : 'available')
+      setUsernameStatus(
+        data ? 'taken' : 'available'
+      )
     }, 350)
 
     return () => {
@@ -73,35 +266,79 @@ export default function SignupPage() {
     }
   }, [username])
 
+  /* =========================================================
+     VALIDATION
+  ========================================================= */
+
   const passwordStrong =
     password.length >= 8 &&
     /[A-Z]/.test(password) &&
     /[a-z]/.test(password) &&
     /\d/.test(password)
 
-  const canSubmit =
-    username.trim().length >= 3 &&
-    usernameStatus === 'available' &&
-    email.trim() &&
-    passwordStrong &&
-    password === confirmPassword &&
-    agreed &&
-    !loading
+  const usernameValid =
+    username.trim().length >= 1 &&
+    username.trim().length <= 24 &&
+    /^[a-z0-9_]+$/i.test(username.trim())
 
-  const handleSubmit = async (e) => {
+  /*
+   * The signup button is clickable even before every field is
+   * valid so the user gets the appropriate validation message.
+   */
+  const canSubmit = !loading
+
+  /* =========================================================
+     SIGN UP
+  ========================================================= */
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault()
+
     setError('')
 
-    const cleanUsername = username.trim().toLowerCase()
-    const cleanEmail = email.trim().toLowerCase()
+    const cleanUsername =
+      username.trim().toLowerCase()
 
-    if (!agreed) {
-      setError('Please agree to the Terms of Service and Privacy Policy.')
+    const cleanEmail =
+      email.trim().toLowerCase()
+
+    if (!cleanUsername) {
+      setError('Please enter a username.')
       return
     }
 
-    if (usernameStatus !== 'available') {
+    if (cleanUsername.length > 24) {
+      setError(
+        'Username must be 24 characters or less.'
+      )
+      return
+    }
+
+    if (!usernameValid) {
+      setError(
+        'Username can only contain letters, numbers, and underscores.'
+      )
+      return
+    }
+
+    if (
+      usernameStatus === 'taken'
+    ) {
+      setError('That username is already taken.')
+      return
+    }
+
+    if (
+      usernameStatus !== 'available'
+    ) {
       setError('Please choose an available username.')
+      return
+    }
+
+    if (!cleanEmail) {
+      setError('Please enter your email address.')
       return
     }
 
@@ -117,18 +354,26 @@ export default function SignupPage() {
       return
     }
 
+    if (!agreed) {
+      setError(
+        'Please agree to the Terms of Service and Privacy Policy.'
+      )
+      return
+    }
+
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: {
-            username: cleanUsername,
+      const { data, error } =
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              username: cleanUsername,
+            },
           },
-        },
-      })
+        })
 
       if (error) {
         setError(error.message)
@@ -148,22 +393,34 @@ export default function SignupPage() {
       setLoading(false)
     } catch (err) {
       console.error(err)
-      setError('Something went wrong. Please try again.')
+
+      setError(
+        'Something went wrong. Please try again.'
+      )
+
       setLoading(false)
     }
   }
 
-  const handleOAuth = async (provider) => {
+  /* =========================================================
+     OAUTH
+  ========================================================= */
+
+  const handleOAuth = async (
+    provider: 'discord' | 'google'
+  ) => {
     setError('')
     setOauthLoading(provider)
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
+      const { error } =
+        await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo:
+              `${window.location.origin}/dashboard`,
+          },
+        })
 
       if (error) {
         setError(error.message)
@@ -171,10 +428,18 @@ export default function SignupPage() {
       }
     } catch (err) {
       console.error(err)
-      setError('Unable to continue with that provider.')
+
+      setError(
+        'Unable to continue with that provider.'
+      )
+
       setOauthLoading('')
     }
   }
+
+  /* =========================================================
+     PASSKEY
+  ========================================================= */
 
   const handlePasskey = async () => {
     setError('')
@@ -185,6 +450,7 @@ export default function SignupPage() {
         setError(
           'Passkeys are not available yet. Enable Passkeys in your Supabase project first.'
         )
+
         setOauthLoading('')
         return
       }
@@ -203,350 +469,530 @@ export default function SignupPage() {
       }
     } catch (err) {
       console.error(err)
-      setError('Passkey sign in was cancelled or failed.')
+
+      setError(
+        'Passkey sign in was cancelled or failed.'
+      )
+
       setOauthLoading('')
     }
   }
 
   return (
     <main className="signup-page">
-      <div className="orange-glow glow-one" />
-      <div className="orange-glow glow-two" />
-      <div className="dot-grid" />
 
-      <section className="signup-shell">
+      {/* =====================================================
+          HOMEPAGE-STYLE BACKGROUND
+      ===================================================== */}
+
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="falling-leaves"
+      />
+
+      <div
+        aria-hidden="true"
+        className="dot-grid"
+      />
+
+      <div
+        aria-hidden="true"
+        className="orange-glow"
+      />
+
+      {/* =====================================================
+          SIGNUP CARD
+      ===================================================== */}
+
+      <section className="signup-card">
+
+        {/* BRAND INSIDE CARD */}
         <div className="brand">
+
           <img
             src="/icon.png"
             alt=""
-            width="34"
-            height="34"
+            width={30}
+            height={30}
+            className="brand-icon"
           />
 
-          <span>illness.lol</span>
+          <span className="brand-name">
+            illness.lol
+          </span>
+
+          <span
+            className="brand-leaf"
+            aria-hidden="true"
+          >
+            🍂
+          </span>
+
         </div>
 
-        <div className="signup-card">
-          <div className="logo-wrap">
-            <img
-              src="/icon.png"
-              alt=""
-              width="42"
-              height="42"
-            />
-          </div>
+        <h1>Create account</h1>
 
-          <h1>Create your account</h1>
+        <p className="subtitle">
+          Join illness.lol and create your profile
+        </p>
 
-          <p className="subtitle">
-            Join illness.lol and build your profile.
-          </p>
+        {/* ===================================================
+            SOCIAL SIGN IN
+        =================================================== */}
 
-          {/* OAuth */}
-
-          <div className="social-row">
-            <button
-              type="button"
-              className="social-button"
-              onClick={() => handleOAuth('discord')}
-              disabled={!!oauthLoading}
-            >
-              <DiscordIcon />
-              <span>Discord</span>
-            </button>
-
-            <button
-              type="button"
-              className="social-button"
-              onClick={() => handleOAuth('google')}
-              disabled={!!oauthLoading}
-            >
-              <GoogleIcon />
-              <span>Google</span>
-            </button>
-          </div>
-
-          {/* Passkey */}
+        <div className="social-row">
 
           <button
             type="button"
-            className="passkey-button"
-            onClick={handlePasskey}
+            className="social-button"
+            onClick={() =>
+              handleOAuth('discord')
+            }
             disabled={!!oauthLoading}
           >
-            <span className="passkey-icon">🔐</span>
+            <DiscordIcon />
 
             <span>
-              {oauthLoading === 'passkey'
-                ? 'Opening passkey...'
-                : 'Continue with passkey'}
+              {oauthLoading === 'discord'
+                ? 'Opening...'
+                : 'Discord'}
             </span>
           </button>
 
-          <div className="divider">
-            <span />
-            <p>OR</p>
-            <span />
-          </div>
+          <button
+            type="button"
+            className="social-button"
+            onClick={() =>
+              handleOAuth('google')
+            }
+            disabled={!!oauthLoading}
+          >
+            <GoogleIcon />
 
-          <form onSubmit={handleSubmit}>
-            {/* Username */}
+            <span>
+              {oauthLoading === 'google'
+                ? 'Opening...'
+                : 'Google'}
+            </span>
+          </button>
 
-            <div className="field">
-              <label>Username</label>
+        </div>
 
-              <div
-                className={`input-wrap ${
-                  usernameStatus === 'available'
-                    ? 'success'
-                    : usernameStatus === 'taken' ||
-                        usernameStatus === 'invalid'
-                      ? 'danger'
-                      : ''
-                }`}
-              >
-                <span className="input-icon">@</span>
+        {/* ===================================================
+            PASSKEY
+        =================================================== */}
 
-                <input
-                  type="text"
-                  placeholder="your_username"
-                  value={username}
-                  maxLength={24}
-                  autoComplete="username"
-                  onChange={(e) =>
-                    setUsername(
-                      e.target.value
-                        .toLowerCase()
-                        .replace(/[^a-z0-9_]/g, '')
-                    )
-                  }
-                />
+        <button
+          type="button"
+          className="passkey-button"
+          onClick={handlePasskey}
+          disabled={!!oauthLoading}
+        >
+          <span>
+            {oauthLoading === 'passkey'
+              ? 'Opening passkey...'
+              : 'Continue with passkey'}
+          </span>
+        </button>
 
-                {usernameStatus === 'checking' && (
-                  <span className="status checking">
-                    Checking...
-                  </span>
-                )}
+        {/* ===================================================
+            DIVIDER
+        =================================================== */}
 
-                {usernameStatus === 'available' && (
-                  <span className="status available">
-                    ✓ Available
-                  </span>
-                )}
+        <div className="divider">
+          <span />
+          <p>OR</p>
+          <span />
+        </div>
 
-                {usernameStatus === 'taken' && (
-                  <span className="status taken">
-                    Taken
-                  </span>
-                )}
-              </div>
+        <form onSubmit={handleSubmit}>
 
-              {usernameStatus === 'invalid' &&
-                username.length > 0 && (
-                  <small className="hint">
-                    3–24 characters. Letters, numbers,
-                    and underscores only.
-                  </small>
-                )}
-            </div>
+          {/* =================================================
+              USERNAME
+          ================================================= */}
 
-            {/* Email */}
+          <div className="field">
 
-            <div className="field">
-              <label>Email</label>
+            <label htmlFor="username">
+              Username
+            </label>
 
-              <div className="input-wrap">
-                <span className="input-icon">✉</span>
+            <div
+              className={`input-wrap ${
+                usernameStatus === 'available'
+                  ? 'success'
+                  : usernameStatus === 'taken' ||
+                    usernameStatus === 'invalid'
+                  ? 'danger'
+                  : ''
+              }`}
+            >
 
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  autoComplete="email"
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
-                />
-              </div>
-            </div>
+              <span className="input-icon">
+                👤
+              </span>
 
-            {/* Password */}
-
-            <div className="field">
-              <label>Password</label>
-
-              <div className="input-wrap">
-                <span className="input-icon">●</span>
-
-                <input
-                  type={
-                    showPassword
-                      ? 'text'
-                      : 'password'
-                  }
-                  placeholder="Create a strong password"
-                  value={password}
-                  autoComplete="new-password"
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
-                />
-
-                <button
-                  type="button"
-                  className="eye-button"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
-                >
-                  {showPassword ? '🙈' : '👁'}
-                </button>
-              </div>
-
-              {password.length > 0 && (
-                <div className="password-hint">
-                  {passwordStrong ? (
-                    <span className="good">
-                      ✓ Strong password
-                    </span>
-                  ) : (
-                    <span>
-                      Use 8+ characters with
-                      uppercase, lowercase, and a
-                      number.
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Confirm password */}
-
-            <div className="field">
-              <label>Confirm password</label>
-
-              <div
-                className={`input-wrap ${
-                  confirmPassword.length > 0
-                    ? password === confirmPassword
-                      ? 'success'
-                      : 'danger'
-                    : ''
-                }`}
-              >
-                <span className="input-icon">●</span>
-
-                <input
-                  type={
-                    showConfirmPassword
-                      ? 'text'
-                      : 'password'
-                  }
-                  placeholder="Repeat your password"
-                  value={confirmPassword}
-                  autoComplete="new-password"
-                  onChange={(e) =>
-                    setConfirmPassword(e.target.value)
-                  }
-                />
-
-                <button
-                  type="button"
-                  className="eye-button"
-                  onClick={() =>
-                    setShowConfirmPassword(
-                      !showConfirmPassword
-                    )
-                  }
-                >
-                  {showConfirmPassword
-                    ? '🙈'
-                    : '👁'}
-                </button>
-              </div>
-
-              {confirmPassword.length > 0 && (
-                <div className="password-hint">
-                  {password === confirmPassword ? (
-                    <span className="good">
-                      ✓ Passwords match
-                    </span>
-                  ) : (
-                    <span className="bad">
-                      Passwords don't match
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Terms */}
-
-            <label className="terms">
               <input
-                type="checkbox"
-                checked={agreed}
+                id="username"
+                type="text"
+                placeholder="your_username"
+                value={username}
+                maxLength={24}
+                autoComplete="username"
                 onChange={(e) =>
-                  setAgreed(e.target.checked)
+                  setUsername(
+                    e.target.value
+                      .toLowerCase()
+                      .replace(
+                        /[^a-z0-9_]/g,
+                        ''
+                      )
+                  )
                 }
               />
 
-              <span className="custom-check">
-                {agreed ? '✓' : ''}
-              </span>
+              {usernameStatus ===
+                'checking' && (
+                <span className="status checking">
+                  Checking...
+                </span>
+              )}
 
-              <span className="terms-text">
-                I agree to the{' '}
-                <a
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Privacy Policy
-                </a>
-              </span>
+              {usernameStatus ===
+                'available' && (
+                <span className="status available">
+                  ✓ Available
+                </span>
+              )}
+
+              {usernameStatus ===
+                'taken' && (
+                <span className="status taken">
+                  Taken
+                </span>
+              )}
+
+            </div>
+
+            {usernameStatus ===
+              'invalid' &&
+              username.length > 0 && (
+                <small className="hint">
+                  1–24 characters. Letters,
+                  numbers, and underscores only.
+                </small>
+              )}
+
+          </div>
+
+          {/* =================================================
+              EMAIL
+          ================================================= */}
+
+          <div className="field">
+
+            <label htmlFor="email">
+              Email
             </label>
 
-            {error && (
-              <div className="error-box">
-                {error}
+            <div className="input-wrap">
+
+              <span className="input-icon">
+                ✉
+              </span>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                autoComplete="email"
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+              />
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              PASSWORD
+          ================================================= */}
+
+          <div className="field">
+
+            <label htmlFor="password">
+              Password
+            </label>
+
+            <div className="input-wrap">
+
+              {/* Little lock icon */}
+              <span
+                className="input-icon lock-icon"
+                aria-hidden="true"
+              >
+                🔒
+              </span>
+
+              <input
+                id="password"
+                type={
+                  showPassword
+                    ? 'text'
+                    : 'password'
+                }
+                placeholder="Create a strong password"
+                value={password}
+                autoComplete="new-password"
+                onChange={(e) =>
+                  setPassword(
+                    e.target.value
+                  )
+                }
+              />
+
+              <button
+                type="button"
+                className="eye-button"
+                aria-label={
+                  showPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
+                onClick={() =>
+                  setShowPassword(
+                    !showPassword
+                  )
+                }
+              >
+                {showPassword
+                  ? '🙈'
+                  : '👁'}
+              </button>
+
+            </div>
+
+            {password.length > 0 && (
+              <div className="password-hint">
+
+                {passwordStrong ? (
+                  <span className="good">
+                    ✓ Strong password
+                  </span>
+                ) : (
+                  <span>
+                    Use 8+ characters with
+                    uppercase, lowercase,
+                    and a number.
+                  </span>
+                )}
+
               </div>
             )}
 
-            <button
-              type="submit"
-              className="continue-button"
-              disabled={!canSubmit}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner" />
-                  Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
-          </form>
+          </div>
 
-          <p className="login-text">
-            Already have an account?{' '}
-            <a href="/login">Sign in</a>
-          </p>
-        </div>
+          {/* =================================================
+              CONFIRM PASSWORD
+          ================================================= */}
+
+          <div className="field">
+
+            <label htmlFor="confirm-password">
+              Confirm password
+            </label>
+
+            <div
+              className={`input-wrap ${
+                confirmPassword.length > 0
+                  ? password ===
+                    confirmPassword
+                    ? 'success'
+                    : 'danger'
+                  : ''
+              }`}
+            >
+
+              <span
+                className="input-icon lock-icon"
+                aria-hidden="true"
+              >
+                🔒
+              </span>
+
+              <input
+                id="confirm-password"
+                type={
+                  showConfirmPassword
+                    ? 'text'
+                    : 'password'
+                }
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                autoComplete="new-password"
+                onChange={(e) =>
+                  setConfirmPassword(
+                    e.target.value
+                  )
+                }
+              />
+
+              <button
+                type="button"
+                className="eye-button"
+                aria-label={
+                  showConfirmPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
+                onClick={() =>
+                  setShowConfirmPassword(
+                    !showConfirmPassword
+                  )
+                }
+              >
+                {showConfirmPassword
+                  ? '🙈'
+                  : '👁'}
+              </button>
+
+            </div>
+
+            {confirmPassword.length >
+              0 && (
+              <div className="password-hint">
+
+                {password ===
+                confirmPassword ? (
+                  <span className="good">
+                    ✓ Passwords match
+                  </span>
+                ) : (
+                  <span className="bad">
+                    Passwords don't match
+                  </span>
+                )}
+
+              </div>
+            )}
+
+          </div>
+
+          {/* =================================================
+              TERMS
+          ================================================= */}
+
+          <label className="terms">
+
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) =>
+                setAgreed(
+                  e.target.checked
+                )
+              }
+            />
+
+            <span className="custom-check">
+              {agreed ? '✓' : ''}
+            </span>
+
+            <span className="terms-text">
+              I agree to the{' '}
+
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Terms of Service
+              </a>
+
+              {' '}and{' '}
+
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </a>
+
+            </span>
+
+          </label>
+
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
+          {error && (
+            <div
+              className="error-box"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+
+          {/* =================================================
+              CREATE ACCOUNT
+          ================================================= */}
+
+          <button
+            type="submit"
+            className="continue-button"
+            disabled={!canSubmit}
+          >
+            {loading ? (
+              <>
+                <span className="spinner" />
+                Creating account...
+              </>
+            ) : (
+              'Create account'
+            )}
+          </button>
+
+        </form>
+
+        <p className="login-text">
+          Already have an account?{' '}
+
+          <a href="/login">
+            Sign in
+          </a>
+        </p>
+
       </section>
 
-      <style jsx>{`
+      {/* =====================================================
+          STYLES
+      ===================================================== */}
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
         * {
           box-sizing: border-box;
+        }
+
+        html {
+          background: #000;
+        }
+
+        body {
+          margin: 0;
+          background: #000;
+        }
+
+        ::selection {
+          background: rgba(255, 106, 26, .4);
+          color: #fff;
         }
 
         .signup-page {
@@ -554,108 +1000,154 @@ export default function SignupPage() {
           background: #000;
           color: #fff;
           display: flex;
-          align-items: center;
           justify-content: center;
-          padding: 105px 20px 50px;
+          align-items: center;
+          padding: 90px 20px 40px;
           position: relative;
           overflow: hidden;
           font-family:
-            Inter,
+            'Inter',
             system-ui,
             -apple-system,
             BlinkMacSystemFont,
-            "Segoe UI",
+            'Segoe UI',
             sans-serif;
         }
 
-        .signup-page::before {
-          content: '';
-          position: absolute;
+        /* =====================================================
+           HOMEPAGE BACKGROUND
+        ===================================================== */
+
+        .falling-leaves {
+          position: fixed;
           inset: 0;
-          background:
-            radial-gradient(
-              circle at 50% 0%,
-              rgba(255,106,26,.15),
-              transparent 40%
-            );
+          width: 100%;
+          height: 100%;
           pointer-events: none;
+          z-index: 1;
         }
 
-        .signup-shell {
+        .dot-grid {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+
+          background-image:
+            radial-gradient(
+              rgba(255,255,255,.1) 1px,
+              transparent 1px
+            );
+
+          background-size: 28px 28px;
+
+          mask-image:
+            radial-gradient(
+              ellipse 75% 65% at 50% 35%,
+              #000 20%,
+              transparent 78%
+            );
+
+          -webkit-mask-image:
+            radial-gradient(
+              ellipse 75% 65% at 50% 35%,
+              #000 20%,
+              transparent 78%
+            );
+        }
+
+        .orange-glow {
+          position: fixed;
+          top: -380px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 1000px;
+          height: 700px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(255,106,26,.16),
+              transparent 68%
+            );
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        /* =====================================================
+           CARD
+        ===================================================== */
+
+        .signup-card {
           width: 100%;
           max-width: 450px;
           position: relative;
-          z-index: 3;
+          z-index: 5;
+
+          background:
+            rgba(10,10,10,.94);
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          border-radius: 22px;
+
+          padding:
+            30px 32px 28px;
+
+          box-shadow:
+            0 30px 100px rgba(0,0,0,.85),
+            0 0 45px rgba(255,106,26,.08);
+
+          backdrop-filter: blur(22px);
         }
+
+        /* =====================================================
+           ILLNESS.LOL BRAND INSIDE BOX
+        ===================================================== */
 
         .brand {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          margin-bottom: 18px;
+          gap: 9px;
+          margin-bottom: 17px;
+        }
+
+        .brand-icon {
+          display: block;
+          width: 30px;
+          height: 30px;
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(255,106,26,.35)
+            );
+        }
+
+        .brand-name {
           font-family:
             'Space Grotesk',
             sans-serif;
-          font-size: 20px;
+
+          font-size: 21px;
           font-weight: 600;
-          letter-spacing: -.6px;
+          letter-spacing: -.7px;
         }
 
-        .brand img {
-          filter:
-            drop-shadow(
-              0 0 12px
-              rgba(255,106,26,.35)
-            );
-        }
-
-        .signup-card {
-          width: 100%;
-          background: rgba(10,10,10,.94);
-          border:
-            1px solid
-            rgba(255,255,255,.09);
-          border-radius: 22px;
-          padding: 30px 30px 26px;
-          box-shadow:
-            0 30px 100px rgba(0,0,0,.8),
-            0 0 45px rgba(255,106,26,.08);
-          backdrop-filter: blur(20px);
-        }
-
-        .logo-wrap {
-          width: 50px;
-          height: 50px;
-          margin: 0 auto 13px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 15px;
-          background:
-            rgba(255,106,26,.1);
-          border:
-            1px solid
-            rgba(255,106,26,.22);
-          box-shadow:
-            0 0 25px
-            rgba(255,106,26,.1);
-        }
-
-        .logo-wrap img {
-          filter:
-            drop-shadow(
-              0 0 9px
-              rgba(255,106,26,.35)
-            );
+        .brand-leaf {
+          font-size: 19px;
+          line-height: 1;
         }
 
         h1 {
           margin: 0;
           text-align: center;
+
           font-family:
             'Space Grotesk',
             sans-serif;
+
           font-size: 29px;
           line-height: 1.15;
           letter-spacing: -1px;
@@ -664,37 +1156,54 @@ export default function SignupPage() {
 
         .subtitle {
           text-align: center;
-          color: ${COLORS.muted};
-          font-size: 14px;
+          color: rgba(255,255,255,.5);
+          font-size: 13px;
           margin: 8px 0 25px;
         }
 
+        /* =====================================================
+           SOCIAL
+        ===================================================== */
+
         .social-row {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns:
+            1fr 1fr;
           gap: 10px;
         }
 
         .social-button,
         .passkey-button {
           border:
-            1px solid
-            rgba(255,255,255,.1);
+            1px solid rgba(255,255,255,.1);
+
           background:
             rgba(255,255,255,.035);
-          color: #fff;
+
+          color: white;
+
           border-radius: 11px;
+
           cursor: pointer;
+
           font-family: inherit;
-          transition: all .2s ease;
+
+          transition:
+            background .2s ease,
+            border-color .2s ease,
+            transform .2s ease,
+            box-shadow .2s ease;
         }
 
         .social-button {
           height: 46px;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           gap: 9px;
+
           font-size: 13px;
           font-weight: 500;
         }
@@ -703,12 +1212,16 @@ export default function SignupPage() {
         .passkey-button:hover {
           background:
             rgba(255,106,26,.08);
+
           border-color:
             rgba(255,106,26,.35);
+
           box-shadow:
             0 0 18px
-            rgba(255,106,26,.06);
-          transform: translateY(-1px);
+            rgba(255,106,26,.07);
+
+          transform:
+            translateY(-1px);
         }
 
         .social-button:disabled,
@@ -718,22 +1231,29 @@ export default function SignupPage() {
           transform: none;
         }
 
+        /* =====================================================
+           PASSKEY
+        ===================================================== */
+
         .passkey-button {
           width: 100%;
           height: 46px;
           margin-top: 10px;
+
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 9px;
+
           font-size: 13px;
           font-weight: 600;
-          color: #fff;
+
+          color:
+            rgba(255,255,255,.9);
         }
 
-        .passkey-icon {
-          font-size: 15px;
-        }
+        /* =====================================================
+           DIVIDER
+        ===================================================== */
 
         .divider {
           display: flex;
@@ -751,51 +1271,69 @@ export default function SignupPage() {
 
         .divider p {
           margin: 0;
+
           color:
             rgba(255,255,255,.35);
-          font-size: 11px;
+
+          font-size: 10px;
           font-weight: 600;
         }
+
+        /* =====================================================
+           FIELDS
+        ===================================================== */
 
         .field {
           margin-bottom: 16px;
         }
 
-        label {
+        .field label {
           display: block;
+
           color:
-            rgba(255,255,255,.75);
+            rgba(255,255,255,.72);
+
           font-size: 13px;
           font-weight: 600;
+
           margin-bottom: 7px;
         }
 
         .input-wrap {
           height: 46px;
+
           display: flex;
           align-items: center;
+
           border:
-            1px solid
-            rgba(255,255,255,.1);
-          background: #0c0c0c;
-          border-radius: 11px;
-          transition: all .2s ease;
+            1px solid rgba(255,255,255,.1);
+
+          background:
+            rgba(255,255,255,.035);
+
+          border-radius: 10px;
+
+          transition:
+            border-color .15s ease,
+            background .15s ease,
+            box-shadow .15s ease;
         }
 
         .input-wrap:focus-within {
           border-color:
             rgba(255,106,26,.65);
-          background: #101010;
+
+          background:
+            rgba(255,255,255,.05);
+
           box-shadow:
             0 0 0 3px
-            rgba(255,106,26,.08),
-            0 0 20px
-            rgba(255,106,26,.04);
+            rgba(255,106,26,.08);
         }
 
         .input-wrap.success {
           border-color:
-            rgba(70,190,110,.55);
+            rgba(75,190,115,.55);
         }
 
         .input-wrap.danger {
@@ -806,8 +1344,13 @@ export default function SignupPage() {
         .input-icon {
           width: 42px;
           text-align: center;
-          color:
-            rgba(255,255,255,.38);
+          opacity: .45;
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+
+        .lock-icon {
+          opacity: .55;
           font-size: 13px;
         }
 
@@ -815,68 +1358,89 @@ export default function SignupPage() {
           flex: 1;
           min-width: 0;
           height: 100%;
-          border: 0;
-          outline: 0;
+
+          border: none;
+          outline: none;
+
           background: transparent;
-          color: #fff;
+          color: white;
+
           font-family: inherit;
           font-size: 14px;
         }
 
         .input-wrap input::placeholder {
           color:
-            rgba(255,255,255,.32);
+            rgba(255,255,255,.35);
         }
 
         .status {
-          padding-right: 12px;
           font-size: 11px;
           font-weight: 600;
+          padding-right: 12px;
           white-space: nowrap;
         }
 
-        .status.available,
-        .good {
+        .status.available {
           color: #65c982;
         }
 
-        .status.taken,
-        .bad {
+        .status.taken {
           color: #ef726b;
         }
 
         .status.checking {
-          color: #ff9a63;
+          color: #ff9b63;
         }
 
         .eye-button {
-          border: 0;
+          border: none;
           background: transparent;
+
           color:
             rgba(255,255,255,.4);
+
           cursor: pointer;
+
           padding: 10px;
           font-size: 14px;
         }
 
         .eye-button:hover {
-          color: #fff;
+          color:
+            rgba(255,255,255,.8);
         }
 
         .hint,
         .password-hint {
           display: block;
           margin-top: 6px;
+
           font-size: 11px;
+
           color:
             rgba(255,255,255,.35);
         }
+
+        .good {
+          color: #65c982;
+        }
+
+        .bad {
+          color: #ef726b;
+        }
+
+        /* =====================================================
+           TERMS
+        ===================================================== */
 
         .terms {
           display: flex;
           align-items: flex-start;
           gap: 10px;
+
           cursor: pointer;
+
           margin: 20px 0 16px;
         }
 
@@ -890,35 +1454,56 @@ export default function SignupPage() {
           width: 17px;
           height: 17px;
           flex: 0 0 17px;
+
           border-radius: 4px;
+
           border:
             1px solid
             rgba(255,255,255,.28);
-          background: #0c0c0c;
+
+          background:
+            rgba(255,255,255,.03);
+
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #000;
+
+          color: #fff;
+
           font-size: 11px;
+
           margin-top: 1px;
-          transition: all .15s;
+
+          transition:
+            all .15s ease;
         }
 
-        .terms input:checked + .custom-check {
-          background: #ff6a1a;
-          border-color: #ff8a3d;
+        .terms input:checked
+          + .custom-check {
+          background:
+            #ff6a1a;
+
+          border-color:
+            #ff8a3d;
+
+          box-shadow:
+            0 0 12px
+            rgba(255,106,26,.2);
         }
 
         .terms-text {
           color:
             rgba(255,255,255,.55);
+
           font-size: 12px;
           line-height: 1.45;
           font-weight: 400;
         }
 
         .terms-text a {
-          color: #ff8a3d;
+          color:
+            #ff8a3d;
+
           text-decoration: none;
         }
 
@@ -927,68 +1512,111 @@ export default function SignupPage() {
           text-decoration: underline;
         }
 
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
         .error-box {
           border:
             1px solid
             rgba(225,80,70,.25);
+
           background:
             rgba(225,80,70,.08);
+
           color: #f18a83;
-          border-radius: 9px;
+
+          border-radius: 8px;
+
           padding: 10px 12px;
+
           font-size: 12px;
           line-height: 1.45;
+
           margin-bottom: 12px;
         }
 
+        /* =====================================================
+           CREATE ACCOUNT
+        ===================================================== */
+
         .continue-button {
           width: 100%;
-          height: 47px;
-          border: 0;
+          height: 46px;
+
+          border: none;
           border-radius: 11px;
+
           background:
             linear-gradient(
               135deg,
               #ff6a1a,
               #ff8a3d
             );
+
           color: #000;
+
           font-family: inherit;
+
           font-size: 14px;
           font-weight: 700;
+
           cursor: pointer;
+
           box-shadow:
             0 0 20px
-            rgba(255,106,26,.22);
-          transition: all .2s ease;
+            rgba(255,106,26,.25);
+
+          transition:
+            transform .2s ease,
+            filter .2s ease,
+            opacity .2s ease,
+            box-shadow .2s ease;
         }
 
         .continue-button:hover:not(:disabled) {
           filter: brightness(1.08);
-          transform: translateY(-1px);
+
+          transform:
+            translateY(-1px);
+
           box-shadow:
-            0 0 28px
-            rgba(255,106,26,.35);
+            0 0 25px
+            rgba(255,106,26,.35),
+            0 0 55px
+            rgba(255,106,26,.12);
         }
 
+        /*
+         * Intentionally stays clickable when the form is
+         * incomplete so validation can tell the user what
+         * needs fixing.
+         */
         .continue-button:disabled {
-          opacity: .35;
-          cursor: not-allowed;
-          box-shadow: none;
+          opacity: .55;
+          cursor: wait;
         }
 
         .spinner {
           display: inline-block;
+
           width: 13px;
           height: 13px;
+
           border-radius: 50%;
+
           border:
             2px solid
             rgba(0,0,0,.25);
-          border-top-color: #000;
+
+          border-top-color:
+            #000;
+
           animation:
             spin .7s linear infinite;
+
           margin-right: 7px;
+
           vertical-align: -2px;
         }
 
@@ -998,12 +1626,19 @@ export default function SignupPage() {
           }
         }
 
+        /* =====================================================
+           LOGIN
+        ===================================================== */
+
         .login-text {
           text-align: center;
+
           color:
             rgba(255,255,255,.4);
+
           font-size: 12px;
-          margin: 20px 0 0;
+
+          margin: 21px 0 0;
         }
 
         .login-text a {
@@ -1016,77 +1651,33 @@ export default function SignupPage() {
           color: #fff;
         }
 
-        .orange-glow {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(90px);
-          pointer-events: none;
-          z-index: 0;
-        }
-
-        .glow-one {
-          width: 420px;
-          height: 420px;
-          top: -240px;
-          left: calc(50% - 210px);
-          background:
-            rgba(255,106,26,.1);
-        }
-
-        .glow-two {
-          width: 300px;
-          height: 300px;
-          right: -160px;
-          bottom: -100px;
-          background:
-            rgba(255,106,26,.07);
-        }
-
-        .dot-grid {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: .55;
-          background-image:
-            radial-gradient(
-              rgba(255,255,255,.1) 1px,
-              transparent 1px
-            );
-          background-size: 28px 28px;
-          mask-image:
-            radial-gradient(
-              ellipse 70% 70% at 50% 45%,
-              #000 10%,
-              transparent 75%
-            );
-          -webkit-mask-image:
-            radial-gradient(
-              ellipse 70% 70% at 50% 45%,
-              #000 10%,
-              transparent 75%
-            );
-        }
+        /* =====================================================
+           MOBILE
+        ===================================================== */
 
         @media (max-width: 520px) {
           .signup-page {
-            padding: 30px 12px;
+            padding:
+              30px 12px;
             align-items: flex-start;
           }
 
-          .signup-shell {
-            margin-top: 10px;
-          }
-
           .signup-card {
-            padding: 27px 20px 24px;
+            margin-top: 10px;
+            padding:
+              27px 20px 24px;
           }
 
           h1 {
-            font-size: 25px;
+            font-size: 26px;
           }
 
           .social-button span {
             display: none;
+          }
+
+          .social-button {
+            gap: 0;
           }
         }
       `}</style>
@@ -1094,12 +1685,17 @@ export default function SignupPage() {
   )
 }
 
+/* =========================================================
+   GOOGLE ICON
+========================================================= */
+
 function GoogleIcon() {
   return (
     <svg
       width="17"
       height="17"
       viewBox="0 0 24 24"
+      aria-hidden="true"
     >
       <path
         fill="#4285F4"
@@ -1124,6 +1720,10 @@ function GoogleIcon() {
   )
 }
 
+/* =========================================================
+   DISCORD ICON
+========================================================= */
+
 function DiscordIcon() {
   return (
     <svg
@@ -1131,6 +1731,7 @@ function DiscordIcon() {
       height="18"
       viewBox="0 0 24 24"
       fill="none"
+      aria-hidden="true"
     >
       <path
         fill="#fff"
