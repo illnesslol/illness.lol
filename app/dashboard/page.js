@@ -212,7 +212,7 @@ export default function DashboardPage() {
 
         <div className="help-card">
           <div style={{ fontSize: '12.5px', fontWeight: 600, marginBottom: '10px', lineHeight: 1.4 }}>Have a question or need support?</div>
-          <a href="https://discord.gg/illness" target="_blank" rel="noopener noreferrer" className="help-btn">
+          <a href="https://discord.gg/YzCrP3ZZaD" target="_blank" rel="noopener noreferrer" className="help-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
             Help Center
           </a>
