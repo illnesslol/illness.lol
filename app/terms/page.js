@@ -7,18 +7,34 @@ const LAST_UPDATED = 'June 27, 2026'
 
 const COLORS = {
   bg: '#000000',
-  surface: '#0c0c0c',
-  surfaceAlt: '#141414',
+  surface: '#0b0b0b',
+  surfaceLight: '#101010',
   orange: '#ff6a1a',
   orangeBright: '#ff8a3d',
   orangeSoft: 'rgba(255,106,26,.12)',
   orangeHover: 'rgba(255,106,26,.18)',
-  orangeBorder: 'rgba(255,106,26,.5)',
+  orangeBorder: 'rgba(255,106,26,.45)',
   white: '#ffffff',
   muted: 'rgba(255,255,255,.72)',
   faint: 'rgba(255,255,255,.4)',
   line: 'rgba(255,255,255,.08)',
 }
+
+const sections = [
+  ['1', 'Welcome'],
+  ['2', 'Changes to These Terms'],
+  ['3', 'Use of the Service'],
+  ['4', 'Account Usage'],
+  ['5', 'User-Posted Content'],
+  ['6', 'Prohibited Content'],
+  ['7', 'Purchases & Billing'],
+  ['8', 'No Refund Policy'],
+  ['9', 'Privacy'],
+  ['10', 'Intellectual Property'],
+  ['11', 'Disclaimer of Warranties'],
+  ['12', 'Term & Termination'],
+  ['13', 'Contact'],
+]
 
 export default function TermsPage() {
   const canvasRef = useRef(null)
@@ -60,7 +76,7 @@ export default function TermsPage() {
 
     const makeLeaf = () => ({
       x: Math.random() * window.innerWidth,
-      y: -30 - Math.random() * window.innerHeight,
+      y: -40 - Math.random() * window.innerHeight,
       size: Math.random() * 5 + 7,
       speed: Math.random() * 0.35 + 0.35,
       swayAmp: Math.random() * 28 + 18,
@@ -68,10 +84,11 @@ export default function TermsPage() {
       phase: Math.random() * Math.PI * 2,
       rotation: Math.random() * Math.PI * 2,
       spin: (Math.random() - 0.5) * 0.012,
-      opacity: Math.random() * 0.2 + 0.18,
-      color: leafColors[
-        Math.floor(Math.random() * leafColors.length)
-      ],
+      opacity: Math.random() * 0.18 + 0.16,
+      color:
+        leafColors[
+          Math.floor(Math.random() * leafColors.length)
+        ],
       baseX: 0,
     })
 
@@ -81,7 +98,7 @@ export default function TermsPage() {
       leaf.baseX = leaf.x
     })
 
-    const drawLeaf = (leaf) => {
+    const drawLeaf = leaf => {
       ctx.globalAlpha = leaf.opacity
       ctx.fillStyle = leaf.color
 
@@ -109,7 +126,7 @@ export default function TermsPage() {
       ctx.fill()
 
       ctx.globalAlpha = leaf.opacity * 0.8
-      ctx.strokeStyle = '#000000'
+      ctx.strokeStyle = '#000'
       ctx.lineWidth = 1
 
       ctx.beginPath()
@@ -125,7 +142,7 @@ export default function TermsPage() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      tick += 1
+      tick++
 
       leaves.forEach(leaf => {
         if (!reduceMotion) {
@@ -199,57 +216,70 @@ export default function TermsPage() {
 
         body {
           margin: 0;
-          background: #000000;
+          background: #000;
         }
 
         ::selection {
-          background: rgba(255, 106, 26, 0.4);
+          background: rgba(255,106,26,.4);
           color: #fff;
         }
 
-        /* NAVBAR HOVER */
+        /*
+          NAVBAR HOVER
+          This is the actual orange box around each item.
+        */
 
         .nav-link {
+          display: inline-flex !important;
+          align-items: center;
+          justify-content: center;
           position: relative;
+          border-radius: 9px !important;
           transition:
-            color 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+            color .18s ease,
+            background .18s ease,
+            box-shadow .18s ease,
+            transform .18s ease !important;
         }
 
         .nav-link:hover {
           color: #fff !important;
-          background: rgba(255, 106, 26, 0.12);
+          background: rgba(255,106,26,.16) !important;
           box-shadow:
-            0 0 18px rgba(255, 106, 26, 0.12),
-            inset 0 0 12px rgba(255, 106, 26, 0.04);
+            inset 0 0 0 1px rgba(255,106,26,.42),
+            0 0 18px rgba(255,106,26,.16) !important;
         }
+
+        .nav-link:active {
+          transform: scale(.97);
+        }
+
+        /*
+          Tiny orange light inside the bottom of the hover box.
+        */
 
         .nav-link::after {
           content: '';
           position: absolute;
-          left: 12px;
-          right: 12px;
-          bottom: 5px;
+          left: 50%;
+          bottom: 3px;
+          width: 18px;
           height: 2px;
           border-radius: 999px;
           background: #ff6a1a;
-          box-shadow: 0 0 10px rgba(255, 106, 26, 0.8);
-          transform: scaleX(0);
-          transform-origin: center;
-          transition: transform 0.2s ease;
+          box-shadow: 0 0 9px rgba(255,106,26,.8);
+          transform: translateX(-50%) scaleX(0);
+          transition: transform .18s ease;
         }
 
         .nav-link:hover::after {
-          transform: scaleX(1);
+          transform: translateX(-50%) scaleX(1);
         }
 
         .hero-button {
           transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
+            transform .2s ease,
+            box-shadow .2s ease;
         }
 
         .hero-button:hover {
@@ -258,50 +288,73 @@ export default function TermsPage() {
 
         .primary-button:hover {
           box-shadow:
-            0 0 30px rgba(255, 106, 26, 0.5) !important;
+            0 0 30px rgba(255,106,26,.5) !important;
         }
 
-        /* TERMS CARDS */
+        /*
+          SIDEBAR LINKS
+        */
 
-        .terms-section {
+        .section-link {
           transition:
-            border-color 0.25s ease,
-            background 0.25s ease,
-            box-shadow 0.25s ease,
-            transform 0.25s ease;
+            color .2s ease,
+            background .2s ease,
+            border-color .2s ease;
         }
 
-        .terms-section:hover {
-          border-color: rgba(255, 106, 26, 0.28) !important;
-          background: rgba(14, 12, 12, 0.96) !important;
-          box-shadow:
-            0 18px 55px rgba(0, 0, 0, 0.45),
-            0 0 30px rgba(255, 106, 26, 0.045);
-          transform: translateY(-1px);
+        .section-link:hover {
+          color: #fff !important;
+          background: rgba(255,106,26,.09) !important;
+          border-color: rgba(255,106,26,.18) !important;
+        }
+
+        .section-link:hover .section-number {
+          color: #ff8a3d !important;
+        }
+
+        /*
+          CONTENT
+        */
+
+        .terms-content {
+          transition:
+            border-color .25s ease,
+            box-shadow .25s ease;
+        }
+
+        .terms-content:hover {
+          border-color: rgba(255,106,26,.18) !important;
         }
 
         .terms-link {
           transition:
-            color 0.2s ease,
-            border-color 0.2s ease;
+            color .2s ease,
+            border-color .2s ease;
         }
 
         .terms-link:hover {
           color: #ff8a3d !important;
-          border-color: rgba(255, 138, 61, 0.7) !important;
+          border-color: rgba(255,138,61,.7) !important;
+        }
+
+        @media (max-width: 900px) {
+          .terms-layout {
+            grid-template-columns: 1fr !important;
+          }
+
+          .section-index {
+            display: none !important;
+          }
+
+          .terms-content {
+            max-width: 760px !important;
+            margin: 0 auto !important;
+          }
         }
 
         @media (max-width: 800px) {
           .desktop-links {
             display: none !important;
-          }
-
-          .terms-section {
-            padding: 25px 22px !important;
-          }
-
-          .terms-header {
-            padding: 34px 24px !important;
           }
         }
 
@@ -318,16 +371,12 @@ export default function TermsPage() {
             display: none !important;
           }
 
-          .terms-section {
-            padding: 22px 18px !important;
-          }
-
-          .terms-header {
-            padding: 30px 18px !important;
+          .terms-content {
+            padding: 26px 20px !important;
           }
 
           .terms-title {
-            font-size: 25px !important;
+            font-size: 27px !important;
           }
         }
       `}</style>
@@ -355,7 +404,7 @@ export default function TermsPage() {
           zIndex: 0,
           pointerEvents: 'none',
           backgroundImage:
-            'radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px)',
+            'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
           backgroundSize: '28px 28px',
           maskImage:
             'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
@@ -375,7 +424,7 @@ export default function TermsPage() {
           height: 700,
           borderRadius: '50%',
           background:
-            'radial-gradient(circle,rgba(255,106,26,.15),transparent 68%)',
+            'radial-gradient(circle,rgba(255,106,26,.16),transparent 68%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -439,7 +488,7 @@ export default function TermsPage() {
           </span>
         </TransitionLink>
 
-        {/* CENTER LINKS */}
+        {/* NAV LINKS */}
         <div
           className="desktop-links"
           style={{
@@ -448,7 +497,7 @@ export default function TermsPage() {
             transform: 'translateX(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 5,
           }}
         >
           {[
@@ -466,8 +515,7 @@ export default function TermsPage() {
                 color: COLORS.muted,
                 textDecoration: 'none',
                 fontSize: 14,
-                padding: '10px 12px',
-                borderRadius: 9,
+                padding: '9px 12px',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -476,7 +524,7 @@ export default function TermsPage() {
           ))}
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT */}
         <div
           style={{
             marginLeft: 'auto',
@@ -493,8 +541,7 @@ export default function TermsPage() {
                 color: COLORS.muted,
                 textDecoration: 'none',
                 fontSize: 14,
-                padding: '11px 14px',
-                borderRadius: 9,
+                padding: '9px 12px',
               }}
             >
               Log in
@@ -540,420 +587,564 @@ export default function TermsPage() {
         </div>
       </nav>
 
-      {/* CONTENT */}
+      {/* PAGE */}
       <div
         style={{
           position: 'relative',
           zIndex: 2,
-          maxWidth: 850,
+          maxWidth: 1100,
           margin: '0 auto',
           paddingTop: 130,
         }}
       >
         {/* HEADER */}
-        <div
-          className="terms-header"
+        <header
           style={{
             textAlign: 'center',
-            padding: '45px 40px 38px',
-            marginBottom: 18,
-            borderRadius: 24,
-            background:
-              'linear-gradient(180deg,rgba(14,14,14,.96),rgba(8,8,8,.94))',
-            border: '1px solid rgba(255,106,26,.22)',
-            boxShadow:
-              '0 20px 70px rgba(0,0,0,.5), 0 0 45px rgba(255,106,26,.05)',
+            marginBottom: 45,
           }}
         >
           <div
             style={{
-              width: 48,
-              height: 48,
-              margin: '0 auto 18px',
-              borderRadius: 11,
-              overflow: 'hidden',
-              boxShadow:
-                '0 0 25px rgba(255,106,26,.3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 12px',
+              borderRadius: 999,
+              background: 'rgba(255,106,26,.09)',
+              border:
+                '1px solid rgba(255,106,26,.22)',
+              color: COLORS.orangeBright,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '.08em',
+              textTransform: 'uppercase',
+              marginBottom: 17,
             }}
           >
-            <img
-              src="/icon.png"
-              alt=""
-              width={48}
-              height={48}
+            <span
               style={{
-                display: 'block',
-                filter:
-                  'drop-shadow(0 0 8px rgba(255,106,26,.45))',
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: COLORS.orange,
+                boxShadow:
+                  '0 0 8px rgba(255,106,26,.8)',
               }}
             />
+
+            Legal
           </div>
 
           <h1
             className="terms-title"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              margin: 0,
-              fontSize: 30,
+              fontSize: 34,
+              lineHeight: 1.15,
               fontWeight: 600,
-              letterSpacing: '-1px',
+              letterSpacing: '-1.2px',
+              margin: 0,
               color: '#fff',
             }}
           >
             Terms of Service
           </h1>
 
-          <div
+          <p
             style={{
-              marginTop: 10,
-              fontSize: 13,
+              margin: '12px 0 0',
               color: COLORS.faint,
+              fontSize: 13,
             }}
           >
             Last updated {LAST_UPDATED}
-          </div>
+          </p>
+        </header>
 
-          <div
-            style={{
-              width: 55,
-              height: 2,
-              margin: '22px auto 0',
-              borderRadius: 999,
-              background: COLORS.orange,
-              boxShadow:
-                '0 0 14px rgba(255,106,26,.7)',
-            }}
-          />
-        </div>
-
-        {/* INTRO */}
+        {/* TERMS LAYOUT */}
         <div
-          className="terms-section"
-          style={cardStyle}
-        >
-          <p style={paragraphStyle}>
-            By using illness.lol, these Terms apply. They set
-            out what you can put on your page, what we can do
-            as the platform, and how we handle things when
-            something doesn&apos;t go as planned.
-          </p>
-        </div>
-
-        <Section title="1. Welcome">
-          <p style={paragraphStyle}>
-            illness.lol is a bio link platform — one shareable
-            page where you collect your links, socials, and
-            more. Pages can be public depending on your
-            settings, so anything you put on yours might be
-            visible to anyone. Only publish things you actually
-            have the right to share.
-          </p>
-
-          <p style={paragraphStyle}>
-            These Terms apply whenever you visit, sign in, or
-            otherwise use illness.lol. Sticking around after we
-            update them counts as agreeing to the new version.
-          </p>
-        </Section>
-
-        <Section title="2. Changes to These Terms">
-          <p style={paragraphStyle}>
-            We can revise these Terms whenever it makes sense —
-            to reflect new features, legal requirements, or how
-            the Service works in practice. Updates go live when
-            published here, and continuing to use illness.lol
-            after that means you&apos;re on board.
-          </p>
-
-          <p style={paragraphStyle}>
-            When a change meaningfully affects a paid plan,
-            we&apos;ll do our best to give you a heads-up before
-            it takes effect.
-          </p>
-        </Section>
-
-        <Section title="3. Use of the Service">
-          <p style={paragraphStyle}>
-            illness.lol is here for you to use lawfully and
-            within these Terms. Don&apos;t do anything that
-            breaks, slows down, or destabilizes the Service, or
-            makes it harder for others to enjoy their own page.
-            In particular:
-          </p>
-
-          <ul style={listStyle}>
-            <li style={listItemStyle}>
-              Don&apos;t try to bypass our security, rate
-              limits, or access controls.
-            </li>
-
-            <li style={listItemStyle}>
-              Don&apos;t pretend to be someone else or imply
-              we&apos;ve endorsed you when we haven&apos;t.
-            </li>
-
-            <li style={listItemStyle}>
-              Don&apos;t access other users&apos; accounts or
-              private data.
-            </li>
-
-            <li style={listItemStyle}>
-              Don&apos;t run bots, scrapers, or automated
-              tooling against the Service without written
-              permission.
-            </li>
-
-            <li style={listItemStyle}>
-              Don&apos;t upload or host malware, exploits, or
-              harmful payloads.
-            </li>
-
-            <li style={listItemStyle}>
-              Don&apos;t publish sexually explicit material,
-              content that sexualizes minors, or content
-              glorifying real-world violence.
-            </li>
-          </ul>
-        </Section>
-
-        <Section title="4. Account Usage">
-          <p style={paragraphStyle}>
-            Your account is yours alone. Don&apos;t share your
-            credentials, hand out logins, or resell access —
-            anything that happens under your account gets
-            attributed to you.
-          </p>
-
-          <p style={paragraphStyle}>
-            Patterns like coordinated abuse, ban evasion, or
-            payment-method recycling usually trigger action
-            across every account we can tie to the same
-            activity.
-          </p>
-        </Section>
-
-        <Section title="5. User-Posted Content">
-          <p style={paragraphStyle}>
-            Anything you put on the Service is yours to stand
-            behind. By posting it, you confirm you own it or
-            have permission to use it, and that it doesn&apos;t
-            break the law or step on someone else&apos;s rights.
-          </p>
-
-          <p style={paragraphStyle}>
-            When you post content, you grant illness.lol a
-            worldwide, royalty-free license to host, store,
-            copy, and display that content to the extent needed
-            to run the Service. Your content stays yours
-            throughout.
-          </p>
-        </Section>
-
-        <Section title="6. Prohibited Content">
-          <p style={paragraphStyle}>
-            Some content and conduct we won&apos;t host on
-            illness.lol, period:
-          </p>
-
-          <ul style={listStyle}>
-            <li style={listItemStyle}>
-              Anything that breaks local, national, or
-              international law.
-            </li>
-
-            <li style={listItemStyle}>
-              Content that infringes someone else&apos;s
-              intellectual property or privacy rights.
-            </li>
-
-            <li style={listItemStyle}>
-              Defamatory, pornographic, harassing, hateful, or
-              exploitative material — and absolutely no
-              sexualization of minors.
-            </li>
-
-            <li style={listItemStyle}>
-              Scams, phishing pages, impersonation campaigns,
-              or spam.
-            </li>
-
-            <li style={listItemStyle}>
-              Malware, exploits, or tools meant to disrupt the
-              Service.
-            </li>
-
-            <li style={listItemStyle}>
-              Content glorifying violence, terrorism,
-              discrimination, or self-harm.
-            </li>
-          </ul>
-        </Section>
-
-        <Section title="7. Purchases & Billing">
-          <p style={paragraphStyle}>
-            Whenever you buy something through the Service, the
-            account and purchase details you provide need to be
-            accurate and current. Placing an order means
-            agreeing to pay the price shown at checkout.
-          </p>
-
-          <p style={paragraphStyle}>
-            We may turn down any order or cap quantities per
-            person. Orders that appear to be for resale may be
-            refused.
-          </p>
-        </Section>
-
-        <Section title="8. No Refund Policy">
-          <p style={paragraphStyle}>
-            Payments to illness.lol are final. Unless the law
-            requires a refund, we don&apos;t refund for change
-            of mind, unused services, or partial use of a plan.
-          </p>
-
-          <p style={paragraphStyle}>
-            Filing a chargeback against a valid charge breaks
-            these Terms and may result in account suspension.
-          </p>
-        </Section>
-
-        <Section title="9. Privacy">
-          <p style={paragraphStyle}>
-            Using illness.lol also means our{' '}
-            <TransitionLink
-              href="/privacy"
-              style={linkStyle}
-              className="terms-link"
-            >
-              Privacy Policy
-            </TransitionLink>{' '}
-            applies. It explains what we collect, why we
-            collect it, and the choices you have.
-          </p>
-        </Section>
-
-        <Section title="10. Intellectual Property">
-          <p style={paragraphStyle}>
-            The Service and materials we provide — your own
-            content excepted — are protected by copyright and
-            other IP laws. Unless explicitly permitted, you
-            can&apos;t copy, redistribute, or reverse-engineer
-            any part of the Service without our written
-            permission.
-          </p>
-        </Section>
-
-        <Section title="11. Disclaimer of Warranties">
-          <p style={paragraphStyle}>
-            illness.lol is provided &quot;as is&quot; and
-            &quot;as available,&quot; with no warranties of any
-            kind. We can&apos;t promise the Service will always
-            be online, secure, or free of errors. You use it at
-            your own risk.
-          </p>
-        </Section>
-
-        <Section title="12. Term & Termination">
-          <p style={paragraphStyle}>
-            These Terms apply from the moment you first use the
-            Service. You can leave whenever you want. On our
-            side, we can suspend, restrict, or terminate
-            accounts for any reason these Terms allow —
-            violations, misuse, fraud, or operational needs.
-          </p>
-        </Section>
-
-        <Section title="13. Contact">
-          <p style={paragraphStyle}>
-            Got a question or something to flag? Reach us on
-            our Discord server at discord.gg/illness or through
-            the platform.
-          </p>
-        </Section>
-
-        {/* BOTTOM */}
-        <div
+          className="terms-layout"
           style={{
-            textAlign: 'center',
-            padding: '25px 0 10px',
-            color: 'rgba(255,255,255,.3)',
-            fontSize: 12,
+            display: 'grid',
+            gridTemplateColumns: '210px minmax(0, 760px)',
+            gap: 35,
+            alignItems: 'start',
+            justifyContent: 'center',
           }}
         >
-          illness.lol
+          {/* SECTION INDEX */}
+          <aside
+            className="section-index"
+            style={{
+              position: 'sticky',
+              top: 110,
+            }}
+          >
+            <div
+              style={{
+                fontFamily:
+                  "'Space Grotesk', sans-serif",
+                fontSize: 11,
+                fontWeight: 600,
+                color: COLORS.faint,
+                textTransform: 'uppercase',
+                letterSpacing: '.08em',
+                marginBottom: 12,
+              }}
+            >
+              On this page
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                borderLeft:
+                  '1px solid rgba(255,255,255,.08)',
+                paddingLeft: 8,
+              }}
+            >
+              {sections.map(([number, title]) => (
+                <a
+                  key={number}
+                  href={`#section-${number}`}
+                  className="section-link"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 9,
+                    padding: '7px 8px',
+                    borderRadius: 7,
+                    border:
+                      '1px solid transparent',
+                    color: COLORS.faint,
+                    textDecoration: 'none',
+                    fontSize: 11,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  <span
+                    className="section-number"
+                    style={{
+                      color: 'rgba(255,255,255,.25)',
+                      fontFamily:
+                        "'Space Grotesk', sans-serif",
+                      fontSize: 10,
+                      minWidth: 18,
+                    }}
+                  >
+                    {number}
+                  </span>
+
+                  <span>{title}</span>
+                </a>
+              ))}
+            </div>
+          </aside>
+
+          {/* CONTENT */}
+          <article
+            className="terms-content"
+            style={{
+              background:
+                'rgba(8,8,8,.84)',
+              border:
+                '1px solid rgba(255,255,255,.07)',
+              borderRadius: 22,
+              padding: '38px 42px',
+              boxShadow:
+                '0 25px 80px rgba(0,0,0,.5)',
+            }}
+          >
+            <div
+              style={{
+                height: 2,
+                width: 45,
+                borderRadius: 999,
+                background: COLORS.orange,
+                boxShadow:
+                  '0 0 14px rgba(255,106,26,.65)',
+                marginBottom: 28,
+              }}
+            />
+
+            <p style={paragraphStyle}>
+              By using illness.lol, these Terms apply. They
+              set out what you can put on your page, what we
+              can do as the platform, and how we handle things
+              when something doesn&apos;t go as planned.
+            </p>
+
+            <Section
+              id="section-1"
+              title="1. Welcome"
+            >
+              <p style={paragraphStyle}>
+                illness.lol is a bio link platform — one
+                shareable page where you collect your links,
+                socials, and more. Pages can be public
+                depending on your settings, so anything you put
+                on yours might be visible to anyone. Only
+                publish things you actually have the right to
+                share.
+              </p>
+
+              <p style={paragraphStyle}>
+                These Terms apply whenever you visit, sign in,
+                or otherwise use illness.lol. Sticking around
+                after we update them counts as agreeing to the
+                new version.
+              </p>
+            </Section>
+
+            <Section
+              id="section-2"
+              title="2. Changes to These Terms"
+            >
+              <p style={paragraphStyle}>
+                We can revise these Terms whenever it makes
+                sense — to reflect new features, legal
+                requirements, or how the Service works in
+                practice. Updates go live when published here,
+                and continuing to use illness.lol after that
+                means you&apos;re on board.
+              </p>
+
+              <p style={paragraphStyle}>
+                When a change meaningfully affects a paid plan,
+                we&apos;ll do our best to give you a heads-up
+                before it takes effect.
+              </p>
+            </Section>
+
+            <Section
+              id="section-3"
+              title="3. Use of the Service"
+            >
+              <p style={paragraphStyle}>
+                illness.lol is here for you to use lawfully and
+                within these Terms. Don&apos;t do anything that
+                breaks, slows down, or destabilizes the
+                Service, or makes it harder for others to enjoy
+                their own page. In particular:
+              </p>
+
+              <ul style={listStyle}>
+                <li style={listItemStyle}>
+                  Don&apos;t try to bypass our security, rate
+                  limits, or access controls.
+                </li>
+
+                <li style={listItemStyle}>
+                  Don&apos;t pretend to be someone else or
+                  imply we&apos;ve endorsed you when we
+                  haven&apos;t.
+                </li>
+
+                <li style={listItemStyle}>
+                  Don&apos;t access other users&apos; accounts
+                  or private data.
+                </li>
+
+                <li style={listItemStyle}>
+                  Don&apos;t run bots, scrapers, or automated
+                  tooling against the Service without written
+                  permission.
+                </li>
+
+                <li style={listItemStyle}>
+                  Don&apos;t upload or host malware, exploits,
+                  or harmful payloads.
+                </li>
+
+                <li style={listItemStyle}>
+                  Don&apos;t publish sexually explicit material,
+                  content that sexualizes minors, or content
+                  glorifying real-world violence.
+                </li>
+              </ul>
+            </Section>
+
+            <Section
+              id="section-4"
+              title="4. Account Usage"
+            >
+              <p style={paragraphStyle}>
+                Your account is yours alone. Don&apos;t share
+                your credentials, hand out logins, or resell
+                access — anything that happens under your
+                account gets attributed to you.
+              </p>
+
+              <p style={paragraphStyle}>
+                Patterns like coordinated abuse, ban evasion,
+                or payment-method recycling usually trigger
+                action across every account we can tie to the
+                same activity.
+              </p>
+            </Section>
+
+            <Section
+              id="section-5"
+              title="5. User-Posted Content"
+            >
+              <p style={paragraphStyle}>
+                Anything you put on the Service is yours to
+                stand behind. By posting it, you confirm you
+                own it or have permission to use it, and that
+                it doesn&apos;t break the law or step on
+                someone else&apos;s rights.
+              </p>
+
+              <p style={paragraphStyle}>
+                When you post content, you grant illness.lol a
+                worldwide, royalty-free license to host, store,
+                copy, and display that content to the extent
+                needed to run the Service. Your content stays
+                yours throughout.
+              </p>
+            </Section>
+
+            <Section
+              id="section-6"
+              title="6. Prohibited Content"
+            >
+              <p style={paragraphStyle}>
+                Some content and conduct we won&apos;t host on
+                illness.lol, period:
+              </p>
+
+              <ul style={listStyle}>
+                <li style={listItemStyle}>
+                  Anything that breaks local, national, or
+                  international law.
+                </li>
+
+                <li style={listItemStyle}>
+                  Content that infringes someone else&apos;s
+                  intellectual property or privacy rights.
+                </li>
+
+                <li style={listItemStyle}>
+                  Defamatory, pornographic, harassing, hateful,
+                  or exploitative material — and absolutely no
+                  sexualization of minors.
+                </li>
+
+                <li style={listItemStyle}>
+                  Scams, phishing pages, impersonation
+                  campaigns, or spam.
+                </li>
+
+                <li style={listItemStyle}>
+                  Malware, exploits, or tools meant to disrupt
+                  the Service.
+                </li>
+
+                <li style={listItemStyle}>
+                  Content glorifying violence, terrorism,
+                  discrimination, or self-harm.
+                </li>
+              </ul>
+            </Section>
+
+            <Section
+              id="section-7"
+              title="7. Purchases & Billing"
+            >
+              <p style={paragraphStyle}>
+                Whenever you buy something through the Service,
+                the account and purchase details you provide
+                need to be accurate and current. Placing an
+                order means agreeing to pay the price shown at
+                checkout.
+              </p>
+
+              <p style={paragraphStyle}>
+                We may turn down any order or cap quantities
+                per person. Orders that appear to be for resale
+                may be refused.
+              </p>
+            </Section>
+
+            <Section
+              id="section-8"
+              title="8. No Refund Policy"
+            >
+              <p style={paragraphStyle}>
+                Payments to illness.lol are final. Unless the
+                law requires a refund, we don&apos;t refund for
+                change of mind, unused services, or partial use
+                of a plan.
+              </p>
+
+              <p style={paragraphStyle}>
+                Filing a chargeback against a valid charge
+                breaks these Terms and may result in account
+                suspension.
+              </p>
+            </Section>
+
+            <Section
+              id="section-9"
+              title="9. Privacy"
+            >
+              <p style={paragraphStyle}>
+                Using illness.lol also means our{' '}
+                <TransitionLink
+                  href="/privacy"
+                  className="terms-link"
+                  style={linkStyle}
+                >
+                  Privacy Policy
+                </TransitionLink>{' '}
+                applies. It explains what we collect, why we
+                collect it, and the choices you have.
+              </p>
+            </Section>
+
+            <Section
+              id="section-10"
+              title="10. Intellectual Property"
+            >
+              <p style={paragraphStyle}>
+                The Service and materials we provide — your own
+                content excepted — are protected by copyright
+                and other IP laws. Unless explicitly permitted,
+                you can&apos;t copy, redistribute, or
+                reverse-engineer any part of the Service
+                without our written permission.
+              </p>
+            </Section>
+
+            <Section
+              id="section-11"
+              title="11. Disclaimer of Warranties"
+            >
+              <p style={paragraphStyle}>
+                illness.lol is provided &quot;as is&quot; and
+                &quot;as available,&quot; with no warranties of
+                any kind. We can&apos;t promise the Service will
+                always be online, secure, or free of errors.
+                You use it at your own risk.
+              </p>
+            </Section>
+
+            <Section
+              id="section-12"
+              title="12. Term & Termination"
+            >
+              <p style={paragraphStyle}>
+                These Terms apply from the moment you first use
+                the Service. You can leave whenever you want.
+                On our side, we can suspend, restrict, or
+                terminate accounts for any reason these Terms
+                allow — violations, misuse, fraud, or
+                operational needs.
+              </p>
+            </Section>
+
+            <Section
+              id="section-13"
+              title="13. Contact"
+            >
+              <p style={paragraphStyle}>
+                Got a question or something to flag? Reach us
+                on our Discord server at discord.gg/illness or
+                through the platform.
+              </p>
+            </Section>
+
+            <div
+              style={{
+                marginTop: 35,
+                paddingTop: 25,
+                borderTop:
+                  '1px solid rgba(255,255,255,.06)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 9,
+                color: 'rgba(255,255,255,.3)',
+                fontSize: 11,
+              }}
+            >
+              <img
+                src="/icon.png"
+                alt=""
+                width={18}
+                height={18}
+                style={{
+                  opacity: .45,
+                  filter:
+                    'drop-shadow(0 0 5px rgba(255,106,26,.3))',
+                }}
+              />
+
+              illness.lol
+            </div>
+          </article>
         </div>
       </div>
     </main>
   )
 }
 
-function Section({ title, children }) {
+function Section({ id, title, children }) {
   return (
-    <div
-      className="terms-section"
-      style={cardStyle}
+    <section
+      id={id}
+      style={{
+        scrollMarginTop: 110,
+        paddingTop: 34,
+        marginTop: 34,
+        borderTop:
+          '1px solid rgba(255,255,255,.06)',
+      }}
     >
-      <div
+      <h2
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          marginBottom: 18,
+          gap: 10,
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: 16,
+          fontWeight: 600,
+          color: '#fff',
+          margin: '0 0 16px',
+          letterSpacing: '-.2px',
         }}
       >
-        <div
+        <span
           style={{
             width: 3,
-            height: 18,
+            height: 17,
             borderRadius: 999,
             background: COLORS.orange,
             boxShadow:
-              '0 0 10px rgba(255,106,26,.55)',
-            flexShrink: 0,
+              '0 0 10px rgba(255,106,26,.65)',
           }}
         />
 
-        <h2 style={headingStyle}>
-          {title}
-        </h2>
-      </div>
+        {title}
+      </h2>
 
       {children}
-    </div>
+    </section>
   )
-}
-
-const cardStyle = {
-  background:
-    'linear-gradient(180deg,rgba(14,14,14,.94),rgba(9,9,9,.94))',
-  border: '1px solid rgba(255,255,255,.07)',
-  borderRadius: 18,
-  padding: '30px 32px',
-  marginBottom: 14,
-  boxShadow:
-    '0 15px 50px rgba(0,0,0,.35)',
-}
-
-const headingStyle = {
-  fontFamily: "'Space Grotesk', sans-serif",
-  fontSize: 13,
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  color: COLORS.orangeBright,
-  margin: 0,
 }
 
 const paragraphStyle = {
   fontSize: 14.5,
-  lineHeight: 1.75,
-  color: 'rgba(255,255,255,.72)',
-  margin: '0 0 13px',
+  lineHeight: 1.8,
+  color: 'rgba(255,255,255,.68)',
+  margin: '0 0 14px',
 }
 
 const listStyle = {
-  margin: '4px 0 4px',
-  paddingLeft: 19,
+  margin: '5px 0 15px',
+  paddingLeft: 20,
   display: 'flex',
   flexDirection: 'column',
   gap: 9,
@@ -961,8 +1152,8 @@ const listStyle = {
 
 const listItemStyle = {
   fontSize: 14.5,
-  lineHeight: 1.65,
-  color: 'rgba(255,255,255,.72)',
+  lineHeight: 1.7,
+  color: 'rgba(255,255,255,.68)',
   paddingLeft: 3,
 }
 
