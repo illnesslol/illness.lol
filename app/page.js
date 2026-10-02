@@ -17,6 +17,65 @@ const COLORS = {
   line: 'rgba(255,255,255,.08)',
 }
 
+/* =========================================================
+   HOVER LINK
+========================================================= */
+
+function AccentLink({
+  href,
+  children,
+  style = {},
+  className = '',
+  target,
+  rel,
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <TransitionLink
+      href={href}
+      target={target}
+      rel={rel}
+      className={className}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...style,
+
+        transition:
+          'color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease',
+
+        color: hovered
+          ? '#ffffff'
+          : style.color || COLORS.muted,
+
+        background: hovered
+          ? 'rgba(255,106,26,.11)'
+          : style.background || 'transparent',
+
+        borderColor: hovered
+          ? 'rgba(255,106,26,.34)'
+          : style.borderColor || 'transparent',
+
+        boxShadow: hovered
+          ? '0 0 18px rgba(255,106,26,.08), inset 0 0 14px rgba(255,106,26,.035)'
+          : style.boxShadow || 'none',
+
+        transform: hovered
+          ? 'translateY(-1px)'
+          : style.transform || 'none',
+      }}
+    >
+      {children}
+    </TransitionLink>
+  )
+}
+
+
+/* =========================================================
+   PLACEHOLDER AVATAR
+========================================================= */
+
 function PlaceholderAvatar({ small = false }) {
   return (
     <div
@@ -32,6 +91,11 @@ function PlaceholderAvatar({ small = false }) {
   )
 }
 
+
+/* =========================================================
+   FAKE ICON
+========================================================= */
+
 function FakeIcon() {
   return (
     <div
@@ -45,6 +109,11 @@ function FakeIcon() {
     />
   )
 }
+
+
+/* =========================================================
+   DASHBOARD PLACEHOLDER
+========================================================= */
 
 function DashboardPlaceholder() {
   return (
@@ -60,11 +129,13 @@ function DashboardPlaceholder() {
           '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
         overflow: 'hidden',
         display: 'flex',
-        transform: 'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+        transform:
+          'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
         transformOrigin: 'center center',
       }}
     >
       {/* SIDEBAR */}
+
       <div
         style={{
           width: 170,
@@ -85,36 +156,58 @@ function DashboardPlaceholder() {
           <PlaceholderAvatar small />
 
           <div>
-            <div style={{ fontSize: 9, color: '#fff', fontWeight: 600 }}>
+            <div
+              style={{
+                fontSize: 9,
+                color: '#fff',
+                fontWeight: 600,
+              }}
+            >
               Welcome back, $
             </div>
-            <div style={{ fontSize: 7, color: COLORS.faint }}>
+
+            <div
+              style={{
+                fontSize: 7,
+                color: COLORS.faint,
+              }}
+            >
               illness.lol
             </div>
           </div>
         </div>
 
-        {['account', 'customize', 'links', 'premium', 'image host'].map(
-          (item, i) => (
-            <div
-              key={item}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 9,
-                padding: '8px 9px',
-                borderRadius: 8,
-                marginBottom: 4,
-                background: i === 0 ? 'rgba(255,106,26,.22)' : 'transparent',
-                color: i === 0 ? '#fff' : 'rgba(255,255,255,.72)',
-                fontSize: 9,
-              }}
-            >
-              <FakeIcon />
-              {item}
-            </div>
-          )
-        )}
+        {[
+          'account',
+          'customize',
+          'links',
+          'premium',
+          'image host',
+        ].map((item, i) => (
+          <div
+            key={item}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 9,
+              padding: '8px 9px',
+              borderRadius: 8,
+              marginBottom: 4,
+              background:
+                i === 0
+                  ? 'rgba(255,106,26,.22)'
+                  : 'transparent',
+              color:
+                i === 0
+                  ? '#fff'
+                  : 'rgba(255,255,255,.72)',
+              fontSize: 9,
+            }}
+          >
+            <FakeIcon />
+            {item}
+          </div>
+        ))}
 
         <div
           style={{
@@ -124,7 +217,13 @@ function DashboardPlaceholder() {
             background: 'rgba(255,255,255,.035)',
           }}
         >
-          <div style={{ fontSize: 8, color: COLORS.muted, marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 8,
+              color: COLORS.muted,
+              marginBottom: 8,
+            }}
+          >
             Have a question or need support?
           </div>
 
@@ -132,7 +231,8 @@ function DashboardPlaceholder() {
             style={{
               height: 27,
               borderRadius: 7,
-              background: 'linear-gradient(90deg,#ff6a1a,#ff8a3d)',
+              background:
+                'linear-gradient(90deg,#ff6a1a,#ff8a3d)',
               color: '#000',
               fontWeight: 600,
               display: 'flex',
@@ -147,8 +247,21 @@ function DashboardPlaceholder() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ flex: 1, padding: 22, minWidth: 0 }}>
-        <div style={{ fontSize: 10, color: '#fff', marginBottom: 15 }}>
+
+      <div
+        style={{
+          flex: 1,
+          padding: 22,
+          minWidth: 0,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            color: '#fff',
+            marginBottom: 15,
+          }}
+        >
           Account Overview
         </div>
 
@@ -183,17 +296,36 @@ function DashboardPlaceholder() {
                 }}
               >
                 <FakeIcon />
-                <span style={{ fontSize: 7, color: COLORS.muted }}>
+
+                <span
+                  style={{
+                    fontSize: 7,
+                    color: COLORS.muted,
+                  }}
+                >
                   {title}
                 </span>
               </div>
 
-              <div style={{ fontSize: 10, color: '#fff' }}>{value}</div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: '#fff',
+                }}
+              >
+                {value}
+              </div>
             </div>
           ))}
         </div>
 
-        <div style={{ fontSize: 9, color: '#fff', marginBottom: 9 }}>
+        <div
+          style={{
+            fontSize: 9,
+            color: '#fff',
+            marginBottom: 9,
+          }}
+        >
           Account Statistics
         </div>
 
@@ -239,8 +371,17 @@ function DashboardPlaceholder() {
                 y1="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#ff6a1a" stopOpacity=".45" />
-                <stop offset="100%" stopColor="#ff6a1a" stopOpacity=".03" />
+                <stop
+                  offset="0%"
+                  stopColor="#ff6a1a"
+                  stopOpacity=".45"
+                />
+
+                <stop
+                  offset="100%"
+                  stopColor="#ff6a1a"
+                  stopOpacity=".03"
+                />
               </linearGradient>
             </defs>
 
@@ -293,6 +434,11 @@ function DashboardPlaceholder() {
   )
 }
 
+
+/* =========================================================
+   PROFILE PLACEHOLDER
+========================================================= */
+
 function ProfilePlaceholder({
   className = '',
   style = {},
@@ -321,7 +467,8 @@ function ProfilePlaceholder({
         ...style,
       }}
     >
-      {/* IMAGE PLACEHOLDER */}
+      {/* IMAGE */}
+
       <div
         style={{
           position: 'absolute',
@@ -331,6 +478,7 @@ function ProfilePlaceholder({
       />
 
       {/* DARK OVERLAY */}
+
       <div
         style={{
           position: 'absolute',
@@ -341,7 +489,15 @@ function ProfilePlaceholder({
       />
 
       {/* CONTENT */}
-      <div style={{ position: 'absolute', left: 22, right: 22, bottom: 20 }}>
+
+      <div
+        style={{
+          position: 'absolute',
+          left: 22,
+          right: 22,
+          bottom: 20,
+        }}
+      >
         <PlaceholderAvatar />
 
         <div
@@ -355,11 +511,23 @@ function ProfilePlaceholder({
           {username}
         </div>
 
-        <div style={{ marginTop: 5, color: COLORS.faint, fontSize: 9 }}>
+        <div
+          style={{
+            marginTop: 5,
+            color: COLORS.faint,
+            fontSize: 9,
+          }}
+        >
           Welcome to my profile!
         </div>
 
-        <div style={{ display: 'flex', gap: 7, marginTop: 15 }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 7,
+            marginTop: 15,
+          }}
+        >
           {[1, 2, 3, 4].map(i => (
             <div
               key={i}
@@ -368,7 +536,8 @@ function ProfilePlaceholder({
                 height: 31,
                 borderRadius: 8,
                 background: 'rgba(255,255,255,.1)',
-                border: '1px solid rgba(255,255,255,.12)',
+                border:
+                  '1px solid rgba(255,255,255,.12)',
               }}
             />
           ))}
@@ -380,7 +549,8 @@ function ProfilePlaceholder({
             marginTop: 14,
             borderRadius: 10,
             background: 'rgba(255,255,255,.09)',
-            border: '1px solid rgba(255,255,255,.1)',
+            border:
+              '1px solid rgba(255,255,255,.1)',
           }}
         />
       </div>
@@ -388,21 +558,43 @@ function ProfilePlaceholder({
   )
 }
 
-// Draws a single leaf shape centered on (0, 0), pointing up.
+
+/* =========================================================
+   FALLING LEAVES
+========================================================= */
+
 function drawLeaf(ctx, size, color, opacity) {
   ctx.globalAlpha = opacity
   ctx.fillStyle = color
 
   ctx.beginPath()
+
   ctx.moveTo(0, -size)
-  ctx.bezierCurveTo(size * 0.95, -size * 0.45, size * 0.7, size * 0.65, 0, size)
-  ctx.bezierCurveTo(-size * 0.7, size * 0.65, -size * 0.95, -size * 0.45, 0, -size)
+
+  ctx.bezierCurveTo(
+    size * 0.95,
+    -size * 0.45,
+    size * 0.7,
+    size * 0.65,
+    0,
+    size
+  )
+
+  ctx.bezierCurveTo(
+    -size * 0.7,
+    size * 0.65,
+    -size * 0.95,
+    -size * 0.45,
+    0,
+    -size
+  )
+
   ctx.fill()
 
-  // center vein
   ctx.globalAlpha = opacity * 0.9
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
+
   ctx.beginPath()
   ctx.moveTo(0, -size * 0.85)
   ctx.lineTo(0, size * 1.15)
@@ -411,8 +603,14 @@ function drawLeaf(ctx, size, color, opacity) {
   ctx.globalAlpha = 1
 }
 
+
+/* =========================================================
+   HOME PAGE
+========================================================= */
+
 export default function HomePage() {
   const canvasRef = useRef(null)
+
   const [visible, setVisible] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -433,9 +631,13 @@ export default function HomePage() {
       })
 
     const canvas = canvasRef.current
-    if (!canvas) return () => clearTimeout(timer)
+
+    if (!canvas) {
+      return () => clearTimeout(timer)
+    }
 
     const ctx = canvas.getContext('2d')
+
     const reduceMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches
@@ -446,28 +648,55 @@ export default function HomePage() {
     }
 
     resize()
+
     window.addEventListener('resize', resize)
 
-    const leafColors = ['#ff6a1a', '#ff8a3d', '#e85a0c', '#ffffff']
+    const leafColors = [
+      '#ff6a1a',
+      '#ff8a3d',
+      '#e85a0c',
+      '#ffffff',
+    ]
 
     const makeLeaf = (spreadY = false) => ({
       x: Math.random() * window.innerWidth,
+
       y: spreadY
         ? Math.random() * window.innerHeight
         : -30 - Math.random() * 120,
+
       size: Math.random() * 6 + 9,
+
       speed: Math.random() * 0.35 + 0.35,
+
       swayAmp: Math.random() * 30 + 20,
-      swaySpeed: Math.random() * 0.012 + 0.006,
+
+      swaySpeed:
+        Math.random() * 0.012 + 0.006,
+
       phase: Math.random() * Math.PI * 2,
+
       rotation: Math.random() * Math.PI * 2,
+
       spin: (Math.random() - 0.5) * 0.012,
+
       opacity: Math.random() * 0.2 + 0.22,
-      color: leafColors[Math.floor(Math.random() * leafColors.length)],
+
+      color:
+        leafColors[
+          Math.floor(
+            Math.random() * leafColors.length
+          )
+        ],
+
       baseX: 0,
     })
 
-    const leaves = Array.from({ length: 7 }, () => makeLeaf(true))
+    const leaves = Array.from(
+      { length: 7 },
+      () => makeLeaf(true)
+    )
+
     leaves.forEach(l => {
       l.baseX = l.x
     })
@@ -476,7 +705,13 @@ export default function HomePage() {
     let tick = 0
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
+
       tick += 1
 
       leaves.forEach(l => {
@@ -487,30 +722,56 @@ export default function HomePage() {
 
         const sway = reduceMotion
           ? 0
-          : Math.sin(tick * l.swaySpeed + l.phase) * l.swayAmp
+          : Math.sin(
+              tick * l.swaySpeed + l.phase
+            ) * l.swayAmp
+
         const x = l.baseX + sway
 
         if (l.y > canvas.height + 40) {
           l.y = -30
-          l.baseX = Math.random() * canvas.width
+          l.baseX =
+            Math.random() * canvas.width
         }
 
         ctx.save()
+
         ctx.translate(x, l.y)
-        ctx.rotate(l.rotation + Math.sin(tick * l.swaySpeed + l.phase) * 0.5)
-        drawLeaf(ctx, l.size, l.color, l.opacity)
+
+        ctx.rotate(
+          l.rotation +
+            Math.sin(
+              tick * l.swaySpeed +
+                l.phase
+            ) *
+              0.5
+        )
+
+        drawLeaf(
+          ctx,
+          l.size,
+          l.color,
+          l.opacity
+        )
+
         ctx.restore()
       })
 
-      animationFrame = requestAnimationFrame(draw)
+      animationFrame =
+        requestAnimationFrame(draw)
     }
 
     draw()
 
     return () => {
       clearTimeout(timer)
+
       cancelAnimationFrame(animationFrame)
-      window.removeEventListener('resize', resize)
+
+      window.removeEventListener(
+        'resize',
+        resize
+      )
     }
   }, [])
 
@@ -520,11 +781,17 @@ export default function HomePage() {
         minHeight: '100vh',
         background: COLORS.bg,
         color: '#fff',
-        fontFamily: "'Inter', system-ui, sans-serif",
+        fontFamily:
+          "'Inter', system-ui, sans-serif",
         position: 'relative',
         overflow: 'hidden',
       }}
     >
+
+      {/* =====================================================
+          GLOBAL STYLES
+      ===================================================== */}
+
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
@@ -542,7 +809,7 @@ export default function HomePage() {
         }
 
         ::selection {
-          background: rgba(255, 106, 26, 0.4);
+          background: rgba(255,106,26,.4);
           color: #fff;
         }
 
@@ -551,29 +818,52 @@ export default function HomePage() {
           outline-offset: 3px;
         }
 
+        /*
+         * NAV LINKS
+         */
+
         .nav-link {
-          transition: 0.2s ease;
+          transition:
+            color .2s ease,
+            background .2s ease,
+            border-color .2s ease,
+            box-shadow .2s ease,
+            transform .2s ease;
         }
 
-        .nav-link:hover {
-          color: #fff !important;
-        }
+        /*
+         * HERO BUTTONS
+         */
 
         .hero-button {
-          transition: 0.2s ease;
+          transition:
+            color .2s ease,
+            background .2s ease,
+            border-color .2s ease,
+            box-shadow .2s ease,
+            transform .2s ease;
         }
 
-        .hero-button:hover {
-          transform: translateY(-2px);
-        }
+        /*
+         * PRIMARY BUTTON
+         */
 
         .primary-button:hover {
-          box-shadow: 0 0 30px rgba(255, 106, 26, 0.5) !important;
+          box-shadow:
+            0 0 25px rgba(255,106,26,.35),
+            0 0 55px rgba(255,106,26,.12) !important;
         }
+
+        /*
+         * RESPONSIVE
+         */
 
         @media (max-width: 1100px) {
           .showcase {
-            transform: translateX(-50%) scale(0.82) !important;
+            transform:
+              translateX(-50%)
+              scale(.82) !important;
+
             transform-origin: top center;
           }
         }
@@ -596,7 +886,10 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform: translateX(-50%) scale(0.58) !important;
+            transform:
+              translateX(-50%)
+              scale(.58) !important;
+
             height: 300px !important;
             margin-top: 10px !important;
           }
@@ -604,7 +897,8 @@ export default function HomePage() {
 
         @media (max-width: 520px) {
           .nav {
-            width: calc(100% - 24px) !important;
+            width:
+              calc(100% - 24px) !important;
           }
 
           .nav-brand {
@@ -624,13 +918,20 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform: translateX(-50%) scale(0.42) !important;
+            transform:
+              translateX(-50%)
+              scale(.42) !important;
+
             height: 220px !important;
           }
         }
       `}</style>
 
-      {/* FALLING LEAVES */}
+
+      {/* =====================================================
+          FALLING LEAVES
+      ===================================================== */}
+
       <canvas
         ref={canvasRef}
         aria-hidden="true"
@@ -644,7 +945,11 @@ export default function HomePage() {
         }}
       />
 
-      {/* DOT GRID */}
+
+      {/* =====================================================
+          DOT GRID
+      ===================================================== */}
+
       <div
         aria-hidden="true"
         style={{
@@ -652,34 +957,50 @@ export default function HomePage() {
           inset: 0,
           zIndex: 0,
           pointerEvents: 'none',
+
           backgroundImage:
             'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
+
           backgroundSize: '28px 28px',
+
           maskImage:
             'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
+
           WebkitMaskImage:
             'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
         }}
       />
 
-      {/* ORANGE GLOW */}
+
+      {/* =====================================================
+          ORANGE GLOW
+      ===================================================== */}
+
       <div
         style={{
           position: 'fixed',
           top: -380,
           left: '50%',
           transform: 'translateX(-50%)',
+
           width: 1000,
           height: 700,
+
           borderRadius: '50%',
+
           background:
             'radial-gradient(circle,rgba(255,106,26,.16),transparent 68%)',
+
           pointerEvents: 'none',
           zIndex: 0,
         }}
       />
 
-      {/* NAV */}
+
+      {/* =====================================================
+          NAVIGATION
+      ===================================================== */}
+
       <nav
         className="nav"
         style={{
@@ -687,28 +1008,56 @@ export default function HomePage() {
           top: 21,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 'min(1180px, calc(100% - 40px))',
+
+          width:
+            'min(1180px, calc(100% - 40px))',
+
           height: 70,
+
           borderRadius: 40,
-          background: 'rgba(10,10,10,.92)',
-          border: '1px solid rgba(255,255,255,.06)',
-          boxShadow: '0 15px 50px rgba(0,0,0,.4)',
+
+          background:
+            'rgba(10,10,10,.92)',
+
+          border:
+            '1px solid rgba(255,255,255,.06)',
+
+          boxShadow:
+            '0 15px 50px rgba(0,0,0,.4)',
+
           display: 'flex',
           alignItems: 'center',
-          padding: '0 22px 0 28px',
+
+          padding:
+            '0 22px 0 28px',
+
           zIndex: 20,
         }}
       >
+
         {/* BRAND */}
-        <TransitionLink
+
+        <AccentLink
           href="/"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 12,
+
             color: '#fff',
+
             textDecoration: 'none',
+
             minWidth: 200,
+
+            background: 'transparent',
+            border: '1px solid transparent',
+            borderRadius: 14,
+
+            padding:
+              '6px 10px 6px 0',
+
+            boxShadow: 'none',
           }}
         >
           <img
@@ -718,251 +1067,433 @@ export default function HomePage() {
             height={30}
             style={{
               display: 'block',
-              filter: 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
+
+              filter:
+                'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
           />
 
           <span
             className="nav-brand"
             style={{
-              fontFamily: "'Space Grotesk', sans-serif",
+              fontFamily:
+                "'Space Grotesk', sans-serif",
+
               fontSize: 21,
+
               fontWeight: 600,
+
               letterSpacing: '-.7px',
             }}
           >
             illness.lol
           </span>
-        </TransitionLink>
+        </AccentLink>
+
 
         {/* CENTER LINKS */}
+
         <div
           className="desktop-links"
           style={{
             position: 'absolute',
             left: '50%',
-            transform: 'translateX(-50%)',
+            transform:
+              'translateX(-50%)',
+
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+
+            gap: 5,
           }}
         >
           {[
             ['Help Center', '/help'],
-            ['Discord', 'https://discord.gg/illness'],
-            ['Leaderboard', '/leaderboard'],
+            [
+              'Discord',
+              'https://discord.gg/illness',
+            ],
+            [
+              'Leaderboard',
+              '/leaderboard',
+            ],
             ['Pricing', '/pricing'],
-            ['Questions', '/questions'],
+            [
+              'Questions',
+              '/questions',
+            ],
           ].map(([label, href]) => (
-            <TransitionLink
+            <AccentLink
               key={label}
               href={href}
               className="nav-link"
+              target={
+                label === 'Discord'
+                  ? '_blank'
+                  : undefined
+              }
+              rel={
+                label === 'Discord'
+                  ? 'noopener noreferrer'
+                  : undefined
+              }
               style={{
                 color: COLORS.muted,
+
                 textDecoration: 'none',
+
                 fontSize: 14,
-                padding: '10px 12px',
+
+                padding:
+                  '9px 13px',
+
                 whiteSpace: 'nowrap',
+
+                border:
+                  '1px solid transparent',
+
+                borderRadius: 12,
+
+                background:
+                  'transparent',
+
+                boxShadow: 'none',
               }}
             >
               {label}
-            </TransitionLink>
+            </AccentLink>
           ))}
         </div>
 
-        {/* RIGHT */}
+
+        {/* RIGHT SIDE */}
+
         <div
           style={{
             marginLeft: 'auto',
+
             display: 'flex',
             alignItems: 'center',
+
             gap: 8,
           }}
         >
+
           {!loggedIn && (
-            <TransitionLink
+            <AccentLink
               href="/login"
               className="nav-login nav-link"
               style={{
                 color: COLORS.muted,
+
                 textDecoration: 'none',
+
                 fontSize: 14,
-                padding: '11px 14px',
+
+                padding:
+                  '9px 13px',
+
+                border:
+                  '1px solid transparent',
+
+                borderRadius: 12,
+
+                background:
+                  'transparent',
+
+                boxShadow: 'none',
               }}
             >
               Log in
-            </TransitionLink>
+            </AccentLink>
           )}
 
+
           {authChecked && loggedIn ? (
-            <TransitionLink
+            <AccentLink
               href="/dashboard"
               className="hero-button"
               style={{
                 color: '#fff',
-                background: 'rgba(255,106,26,.16)',
-                border: '1px solid rgba(255,106,26,.55)',
+
+                background:
+                  'rgba(255,106,26,.16)',
+
+                border:
+                  '1px solid rgba(255,106,26,.55)',
+
                 textDecoration: 'none',
+
                 fontSize: 14,
+
                 fontWeight: 500,
-                padding: '11px 17px',
+
+                padding:
+                  '11px 17px',
+
                 borderRadius: 25,
+
+                boxShadow:
+                  '0 0 12px rgba(255,106,26,.08)',
               }}
             >
               Dashboard
-            </TransitionLink>
+            </AccentLink>
           ) : (
-            <TransitionLink
+            <AccentLink
               href="/signup"
               className="hero-button"
               style={{
                 color: '#000',
-                background: COLORS.orange,
+
+                background:
+                  COLORS.orange,
+
                 textDecoration: 'none',
+
                 fontSize: 14,
+
                 fontWeight: 600,
-                padding: '12px 19px',
+
+                padding:
+                  '12px 19px',
+
                 borderRadius: 25,
-                boxShadow: '0 0 18px rgba(255,106,26,.25)',
+
+                border:
+                  '1px solid transparent',
+
+                boxShadow:
+                  '0 0 18px rgba(255,106,26,.25)',
               }}
             >
               Sign up
-            </TransitionLink>
+            </AccentLink>
           )}
+
         </div>
       </nav>
 
-      {/* HERO */}
+
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+
       <section
         className="hero"
         style={{
           position: 'relative',
           zIndex: 2,
+
           minHeight: 650,
+
           paddingTop: 185,
+
           textAlign: 'center',
+
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(14px)',
-          transition: 'opacity .7s ease, transform .7s ease',
+
+          opacity:
+            visible ? 1 : 0,
+
+          transform:
+            visible
+              ? 'translateY(0)'
+              : 'translateY(14px)',
+
+          transition:
+            'opacity .7s ease, transform .7s ease',
         }}
       >
+
         <h1
           className="hero-title"
           style={{
-            fontFamily: "'Space Grotesk', sans-serif",
+            fontFamily:
+              "'Space Grotesk', sans-serif",
+
             fontSize: 46,
+
             lineHeight: 1.15,
+
             letterSpacing: '-1.5px',
+
             fontWeight: 600,
+
             margin: 0,
+
             color: '#fff',
           }}
         >
           Everything you want, right here.
-
         </h1>
+
 
         <p
           className="hero-subtitle"
           style={{
             maxWidth: 720,
-            margin: '17px auto 25px',
+
+            margin:
+              '17px auto 25px',
+
             fontSize: 17,
+
             lineHeight: 1.6,
+
             color: COLORS.muted,
           }}
         >
-          illness.lol is your go-to for modern, feature rich custom bio pages
-          and fast, secure file hosting
+          illness.lol is your go-to for modern,
+          feature rich custom bio pages and
+          fast, secure file hosting
         </p>
+
 
         <div
           style={{
             display: 'flex',
+
             gap: 10,
+
             alignItems: 'center',
+
             justifyContent: 'center',
           }}
         >
-          <TransitionLink
+
+          <AccentLink
             href="/signup"
             className="hero-button primary-button"
             style={{
               display: 'inline-flex',
+
               alignItems: 'center',
+
               justifyContent: 'center',
-              padding: '12px 18px',
+
+              padding:
+                '12px 18px',
+
               borderRadius: 14,
+
               color: '#000',
-              background: COLORS.orange,
+
+              background:
+                COLORS.orange,
+
               textDecoration: 'none',
+
               fontSize: 14,
+
               fontWeight: 600,
-              boxShadow: '0 0 20px rgba(255,106,26,.3)',
+
+              border:
+                '1px solid transparent',
+
+              boxShadow:
+                '0 0 20px rgba(255,106,26,.3)',
             }}
           >
             Sign Up for Free
-          </TransitionLink>
+          </AccentLink>
 
-          <TransitionLink
+
+          <AccentLink
             href="/pricing"
             className="hero-button"
             style={{
               display: 'inline-flex',
+
               alignItems: 'center',
+
               justifyContent: 'center',
-              padding: '12px 18px',
+
+              padding:
+                '12px 18px',
+
               borderRadius: 14,
+
               color: '#fff',
-              background: 'rgba(255,255,255,.04)',
-              border: '1px solid rgba(255,255,255,.14)',
+
+              background:
+                'rgba(255,255,255,.04)',
+
+              border:
+                '1px solid rgba(255,255,255,.14)',
+
               textDecoration: 'none',
+
               fontSize: 14,
+
               fontWeight: 500,
             }}
           >
             View Pricing
-          </TransitionLink>
+          </AccentLink>
+
         </div>
       </section>
 
-      {/* SHOWCASE */}
+
+      {/* =====================================================
+          SHOWCASE
+      ===================================================== */}
+
       <section
         className="showcase"
         style={{
           position: 'relative',
+
           zIndex: 3,
+
           width: 1500,
+
           height: 500,
-          margin: '-160px auto 0',
+
+          margin:
+            '-160px auto 0',
+
           left: '50%',
-          transform: 'translateX(-50%)',
+
+          transform:
+            'translateX(-50%)',
         }}
       >
+
         {/* DASHBOARD */}
+
         <DashboardPlaceholder />
 
+
         {/* RIGHT PROFILE STACK */}
+
         <div
           style={{
             position: 'absolute',
+
             right: 45,
+
             top: 70,
+
             width: 700,
+
             height: 450,
           }}
         >
+
           <ProfilePlaceholder
             username="Azure"
             image={1}
             style={{
               left: 0,
               top: 0,
-              transform: 'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+
+              transform:
+                'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+
               opacity: 0.65,
             }}
           />
@@ -973,7 +1504,10 @@ export default function HomePage() {
             style={{
               left: 140,
               top: 35,
-              transform: 'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
+
+              transform:
+                'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
+
               zIndex: 2,
             }}
           />
@@ -984,37 +1518,61 @@ export default function HomePage() {
             style={{
               left: 305,
               top: 75,
-              transform: 'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+
+              transform:
+                'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+
               zIndex: 3,
             }}
           />
+
         </div>
 
+
         {/* BOTTOM FADE */}
+
         <div
           style={{
             position: 'absolute',
+
             left: -100,
             right: -100,
+
             bottom: -80,
+
             height: 180,
-            background: 'linear-gradient(to bottom,transparent,#000000 72%)',
+
+            background:
+              'linear-gradient(to bottom,transparent,#000000 72%)',
+
             pointerEvents: 'none',
+
             zIndex: 10,
           }}
         />
+
       </section>
 
-      {/* SMALL BOTTOM FADE */}
+
+      {/* =====================================================
+          SMALL BOTTOM FADE
+      ===================================================== */}
+
       <div
         style={{
           height: 160,
+
           marginTop: -100,
+
           position: 'relative',
+
           zIndex: 5,
-          background: 'linear-gradient(to bottom,transparent,#000000)',
+
+          background:
+            'linear-gradient(to bottom,transparent,#000000)',
         }}
       />
+
     </main>
   )
 }
