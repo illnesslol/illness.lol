@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { TransitionLink } from '../components/PageTransition'
+import { TransitionLink } from '../../components/PageTransition'
 
 const LAST_UPDATED = 'June 27, 2026'
 
