@@ -1,26 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase-client'
 import { useTransition } from '@/components/PageTransition'
 
-const COLORS = {
-  bg: '#000000',
-  surface: '#0c0c0c',
-  surfaceAlt: '#141414',
-  orange: '#ff6a1a',
-  orangeBright: '#ff8a3d',
-  orangeSoft: 'rgba(255,106,26,.16)',
-  orangeBorder: 'rgba(255,106,26,.5)',
-  white: '#ffffff',
-  muted: 'rgba(255,255,255,.72)',
-  faint: 'rgba(255,255,255,.4)',
-  line: 'rgba(255,255,255,.08)',
-}
-
 export default function SignupPage() {
   const { navigate } = useTransition()
-  const canvasRef = useRef(null)
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -37,184 +22,9 @@ export default function SignupPage() {
   const [agreed, setAgreed] = useState(false)
 
   /*
-   * FALLING LEAVES
-   * Same style/behavior as the homepage.
-   */
-  useEffect(() => {
-    const canvas = canvasRef.current
-
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-
-    if (!ctx) return
-
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
-
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-
-    resize()
-
-    window.addEventListener('resize', resize)
-
-    const leafColors = [
-      '#ff6a1a',
-      '#ff8a3d',
-      '#e85a0c',
-      '#ffffff',
-    ]
-
-    const makeLeaf = () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      size: Math.random() * 6 + 9,
-      speed: Math.random() * 0.35 + 0.35,
-      swayAmp: Math.random() * 30 + 20,
-      swaySpeed: Math.random() * 0.012 + 0.006,
-      phase: Math.random() * Math.PI * 2,
-      rotation: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.012,
-      opacity: Math.random() * 0.2 + 0.22,
-      color:
-        leafColors[
-          Math.floor(Math.random() * leafColors.length)
-        ],
-      baseX: 0,
-    })
-
-    const drawLeaf = (size, color, opacity) => {
-      ctx.globalAlpha = opacity
-      ctx.fillStyle = color
-
-      ctx.beginPath()
-
-      ctx.moveTo(0, -size)
-
-      ctx.bezierCurveTo(
-        size * 0.95,
-        -size * 0.45,
-        size * 0.7,
-        size * 0.65,
-        0,
-        size
-      )
-
-      ctx.bezierCurveTo(
-        -size * 0.7,
-        size * 0.65,
-        -size * 0.95,
-        -size * 0.45,
-        0,
-        -size
-      )
-
-      ctx.fill()
-
-      ctx.globalAlpha = opacity * 0.9
-      ctx.strokeStyle = '#000000'
-      ctx.lineWidth = 1
-
-      ctx.beginPath()
-
-      ctx.moveTo(0, -size * 0.85)
-      ctx.lineTo(0, size * 1.15)
-
-      ctx.stroke()
-
-      ctx.globalAlpha = 1
-    }
-
-    const leaves = Array.from(
-      { length: 10 },
-      () => makeLeaf()
-    )
-
-    leaves.forEach((leaf) => {
-      leaf.baseX = leaf.x
-    })
-
-    let animationFrame
-    let tick = 0
-
-    const draw = () => {
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      )
-
-      tick += 1
-
-      leaves.forEach((leaf) => {
-        if (!reduceMotion) {
-          leaf.y += leaf.speed
-          leaf.rotation += leaf.spin
-        }
-
-        const sway = reduceMotion
-          ? 0
-          : Math.sin(
-              tick * leaf.swaySpeed +
-                leaf.phase
-            ) * leaf.swayAmp
-
-        const x = leaf.baseX + sway
-
-        if (leaf.y > canvas.height + 40) {
-          leaf.y = -30
-          leaf.baseX =
-            Math.random() * canvas.width
-        }
-
-        ctx.save()
-
-        ctx.translate(x, leaf.y)
-
-        ctx.rotate(
-          leaf.rotation +
-            Math.sin(
-              tick * leaf.swaySpeed +
-                leaf.phase
-            ) *
-              0.5
-        )
-
-        drawLeaf(
-          leaf.size,
-          leaf.color,
-          leaf.opacity
-        )
-
-        ctx.restore()
-      })
-
-      animationFrame =
-        requestAnimationFrame(draw)
-    }
-
-    draw()
-
-    return () => {
-      cancelAnimationFrame(animationFrame)
-
-      window.removeEventListener(
-        'resize',
-        resize
-      )
-    }
-  }, [])
-
-  /*
-   * USERNAME AVAILABILITY
-   *
-   * 1-24 characters.
-   * Letters, numbers and underscores.
+   * Username availability
+   * 1–24 characters
+   * Letters, numbers and underscores
    */
   useEffect(() => {
     const clean = username.trim().toLowerCase()
@@ -253,9 +63,7 @@ export default function SignupPage() {
         return
       }
 
-      setUsernameStatus(
-        data ? 'taken' : 'available'
-      )
+      setUsernameStatus(data ? 'taken' : 'available')
     }, 350)
 
     return () => {
@@ -270,43 +78,27 @@ export default function SignupPage() {
     /[a-z]/.test(password) &&
     /\d/.test(password)
 
+  const emailValid =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+
   const canSubmit =
     username.trim().length >= 1 &&
     username.trim().length <= 24 &&
     usernameStatus === 'available' &&
-    email.trim() &&
+    emailValid &&
     passwordStrong &&
     password === confirmPassword &&
     agreed &&
-    !loading
+    !loading &&
+    !oauthLoading
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     setError('')
 
-    const cleanUsername =
-      username.trim().toLowerCase()
-
-    const cleanEmail =
-      email.trim().toLowerCase()
-
-    if (
-      cleanUsername.length < 1 ||
-      cleanUsername.length > 24
-    ) {
-      setError(
-        'Username must be between 1 and 24 characters.'
-      )
-      return
-    }
-
-    if (!/^[a-z0-9_]+$/.test(cleanUsername)) {
-      setError(
-        'Username can only contain letters, numbers, and underscores.'
-      )
-      return
-    }
+    const cleanUsername = username.trim().toLowerCase()
+    const cleanEmail = email.trim().toLowerCase()
 
     if (!agreed) {
       setError(
@@ -315,10 +107,24 @@ export default function SignupPage() {
       return
     }
 
-    if (usernameStatus !== 'available') {
+    if (
+      cleanUsername.length < 1 ||
+      cleanUsername.length > 24 ||
+      !/^[a-z0-9_]+$/.test(cleanUsername)
+    ) {
       setError(
-        'Please choose an available username.'
+        'Username must be 1–24 characters and can only contain letters, numbers, and underscores.'
       )
+      return
+    }
+
+    if (usernameStatus !== 'available') {
+      setError('Please choose an available username.')
+      return
+    }
+
+    if (!emailValid) {
+      setError('Please enter a valid email address.')
       return
     }
 
@@ -337,16 +143,15 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      const { data, error } =
-        await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: {
-              username: cleanUsername,
-            },
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            username: cleanUsername,
           },
-        })
+        },
+      })
 
       if (error) {
         setError(error.message)
@@ -366,11 +171,7 @@ export default function SignupPage() {
       setLoading(false)
     } catch (err) {
       console.error(err)
-
-      setError(
-        'Something went wrong. Please try again.'
-      )
-
+      setError('Something went wrong. Please try again.')
       setLoading(false)
     }
   }
@@ -380,14 +181,12 @@ export default function SignupPage() {
     setOauthLoading(provider)
 
     try {
-      const { error } =
-        await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo:
-              `${window.location.origin}/dashboard`,
-          },
-        })
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      })
 
       if (error) {
         setError(error.message)
@@ -395,11 +194,7 @@ export default function SignupPage() {
       }
     } catch (err) {
       console.error(err)
-
-      setError(
-        'Unable to continue with that provider.'
-      )
-
+      setError('Unable to continue with that provider.')
       setOauthLoading('')
     }
   }
@@ -413,7 +208,6 @@ export default function SignupPage() {
         setError(
           'Passkeys are not available yet. Enable Passkeys in your Supabase project first.'
         )
-
         setOauthLoading('')
         return
       }
@@ -432,95 +226,81 @@ export default function SignupPage() {
       }
     } catch (err) {
       console.error(err)
-
-      setError(
-        'Passkey sign in was cancelled or failed.'
-      )
-
+      setError('Passkey sign in was cancelled or failed.')
       setOauthLoading('')
     }
   }
 
   return (
     <main className="signup-page">
-      {/* Falling leaves */}
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className="leaf-canvas"
-      />
+      <FallingLeaves />
 
-      {/* Homepage-style dot grid */}
-      <div
-        aria-hidden="true"
-        className="dot-grid"
-      />
-
-      {/* Homepage-style orange glow */}
-      <div
-        aria-hidden="true"
-        className="orange-glow"
-      />
+      <div className="orange-glow glow-top" />
+      <div className="orange-glow glow-left" />
+      <div className="orange-glow glow-right" />
 
       <section className="signup-card">
-        {/* illness.lol + leaf INSIDE the card */}
+        {/* BRAND */}
+
         <div className="brand">
           <img
             src="/icon.png"
             alt=""
-            width={38}
-            height={38}
+            width={34}
+            height={34}
+            className="brand-icon"
           />
 
           <span>illness.lol</span>
-
-          <span className="brand-leaf">
-            🍂
-          </span>
         </div>
 
         <h1>Create account</h1>
 
         <p className="subtitle">
-          Join illness.lol and create your profile
+          Create your illness.lol account
         </p>
 
-        {/* OAuth */}
+        {/* SOCIAL */}
+
         <div className="social-row">
           <button
             type="button"
             className="social-button"
-            onClick={() =>
-              handleOAuth('discord')
-            }
-            disabled={!!oauthLoading}
+            onClick={() => handleOAuth('discord')}
+            disabled={!!oauthLoading || loading}
           >
             <DiscordIcon />
-            <span>Discord</span>
+            <span>
+              {oauthLoading === 'discord'
+                ? 'Connecting...'
+                : 'Discord'}
+            </span>
           </button>
 
           <button
             type="button"
             className="social-button"
-            onClick={() =>
-              handleOAuth('google')
-            }
-            disabled={!!oauthLoading}
+            onClick={() => handleOAuth('google')}
+            disabled={!!oauthLoading || loading}
           >
             <GoogleIcon />
-            <span>Google</span>
+            <span>
+              {oauthLoading === 'google'
+                ? 'Connecting...'
+                : 'Google'}
+            </span>
           </button>
         </div>
 
-        {/* Passkey */}
+        {/* PASSKEY */}
+
         <button
           type="button"
           className="passkey-button"
           onClick={handlePasskey}
-          disabled={!!oauthLoading}
+          disabled={!!oauthLoading || loading}
         >
-          {/* No emoji here */}
-          <PasskeyIcon />
+          <LockIcon />
 
           <span>
             {oauthLoading === 'passkey'
@@ -529,6 +309,8 @@ export default function SignupPage() {
           </span>
         </button>
 
+        {/* DIVIDER */}
+
         <div className="divider">
           <span />
           <p>OR</p>
@@ -536,23 +318,27 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Username */}
+          {/* USERNAME */}
+
           <div className="field">
-            <label>Username</label>
+            <label htmlFor="username">
+              Username
+            </label>
 
             <div
               className={`input-wrap ${
                 usernameStatus === 'available'
                   ? 'success'
                   : usernameStatus === 'taken' ||
-                    usernameStatus === 'invalid'
-                  ? 'danger'
-                  : ''
+                      usernameStatus === 'invalid'
+                    ? 'danger'
+                    : ''
               }`}
             >
               <UserIcon />
 
               <input
+                id="username"
                 type="text"
                 placeholder="your_username"
                 value={username}
@@ -562,23 +348,18 @@ export default function SignupPage() {
                   setUsername(
                     e.target.value
                       .toLowerCase()
-                      .replace(
-                        /[^a-z0-9_]/g,
-                        ''
-                      )
+                      .replace(/[^a-z0-9_]/g, '')
                   )
                 }
               />
 
-              {usernameStatus ===
-                'checking' && (
+              {usernameStatus === 'checking' && (
                 <span className="status checking">
                   Checking...
                 </span>
               )}
 
-              {usernameStatus ===
-                'available' && (
+              {usernameStatus === 'available' && (
                 <span className="status available">
                   ✓ Available
                 </span>
@@ -591,24 +372,25 @@ export default function SignupPage() {
               )}
             </div>
 
-            {usernameStatus ===
-              'invalid' &&
+            {usernameStatus === 'invalid' &&
               username.length > 0 && (
                 <small className="hint">
-                  1–24 characters. Letters,
-                  numbers, and underscores only.
+                  1–24 characters. Letters, numbers, and
+                  underscores only.
                 </small>
               )}
           </div>
 
-          {/* Email */}
+          {/* EMAIL */}
+
           <div className="field">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
 
             <div className="input-wrap">
-              <EmailIcon />
+              <MailIcon />
 
               <input
+                id="email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -620,19 +402,20 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* Password */}
+          {/* PASSWORD */}
+
           <div className="field">
-            <label>Password</label>
+            <label htmlFor="password">
+              Password
+            </label>
 
             <div className="input-wrap">
-              {/* Little lock icon next to password */}
               <LockIcon />
 
               <input
+                id="password"
                 type={
-                  showPassword
-                    ? 'text'
-                    : 'password'
+                  showPassword ? 'text' : 'password'
                 }
                 placeholder="Create a strong password"
                 value={password}
@@ -646,9 +429,7 @@ export default function SignupPage() {
                 type="button"
                 className="eye-button"
                 onClick={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
+                  setShowPassword(!showPassword)
                 }
                 aria-label={
                   showPassword
@@ -672,26 +453,25 @@ export default function SignupPage() {
                   </span>
                 ) : (
                   <span>
-                    Use 8+ characters with
-                    uppercase, lowercase, and a
-                    number.
+                    Use 8+ characters with uppercase,
+                    lowercase, and a number.
                   </span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Confirm password */}
+          {/* CONFIRM PASSWORD */}
+
           <div className="field">
-            <label>
+            <label htmlFor="confirmPassword">
               Confirm password
             </label>
 
             <div
               className={`input-wrap ${
                 confirmPassword.length > 0
-                  ? password ===
-                    confirmPassword
+                  ? password === confirmPassword
                     ? 'success'
                     : 'danger'
                   : ''
@@ -700,6 +480,7 @@ export default function SignupPage() {
               <LockIcon />
 
               <input
+                id="confirmPassword"
                 type={
                   showConfirmPassword
                     ? 'text'
@@ -709,9 +490,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 autoComplete="new-password"
                 onChange={(e) =>
-                  setConfirmPassword(
-                    e.target.value
-                  )
+                  setConfirmPassword(e.target.value)
                 }
               />
 
@@ -737,11 +516,9 @@ export default function SignupPage() {
               </button>
             </div>
 
-            {confirmPassword.length >
-              0 && (
+            {confirmPassword.length > 0 && (
               <div className="password-hint">
-                {password ===
-                confirmPassword ? (
+                {password === confirmPassword ? (
                   <span className="good">
                     ✓ Passwords match
                   </span>
@@ -754,7 +531,8 @@ export default function SignupPage() {
             )}
           </div>
 
-          {/* Terms */}
+          {/* TERMS */}
+
           <label className="terms">
             <input
               type="checkbox"
@@ -788,16 +566,21 @@ export default function SignupPage() {
             </span>
           </label>
 
+          {/* ERROR */}
+
           {error && (
             <div className="error-box">
               {error}
             </div>
           )}
 
-          {/* Signup button */}
+          {/* SIGN UP */}
+
           <button
             type="submit"
-            className="continue-button"
+            className={`continue-button ${
+              canSubmit ? 'ready' : ''
+            }`}
             disabled={!canSubmit}
           >
             {loading ? (
@@ -824,6 +607,7 @@ export default function SignupPage() {
 
         .signup-page {
           min-height: 100vh;
+          width: 100%;
           background: #000;
           color: #fff;
           display: flex;
@@ -833,142 +617,99 @@ export default function SignupPage() {
           position: relative;
           overflow: hidden;
           font-family:
-            'Inter',
+            Inter,
             system-ui,
             -apple-system,
             BlinkMacSystemFont,
-            'Segoe UI',
+            "Segoe UI",
             sans-serif;
         }
 
-        .leaf-canvas {
+        .signup-page::before {
+          content: "";
           position: fixed;
           inset: 0;
-          width: 100%;
-          height: 100%;
           pointer-events: none;
-          z-index: 1;
-        }
-
-        .dot-grid {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-
           background-image:
             radial-gradient(
               rgba(255, 255, 255, 0.1) 1px,
               transparent 1px
             );
-
           background-size: 28px 28px;
-
           mask-image:
             radial-gradient(
-              ellipse 75% 65% at 50% 35%,
-              #000 20%,
-              transparent 78%
+              ellipse 75% 70% at 50% 40%,
+              #000 15%,
+              transparent 80%
             );
-
           -webkit-mask-image:
             radial-gradient(
-              ellipse 75% 65% at 50% 35%,
-              #000 20%,
-              transparent 78%
+              ellipse 75% 70% at 50% 40%,
+              #000 15%,
+              transparent 80%
             );
-        }
-
-        .orange-glow {
-          position: fixed;
-          top: -380px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 1000px;
-          height: 700px;
-          border-radius: 50%;
-          background:
-            radial-gradient(
-              circle,
-              rgba(255, 106, 26, 0.16),
-              transparent 68%
-            );
-          pointer-events: none;
-          z-index: 0;
+          opacity: 0.65;
         }
 
         .signup-card {
           width: 100%;
-          max-width: 450px;
+          max-width: 460px;
           position: relative;
-          z-index: 2;
-
-          background:
-            rgba(12, 12, 12, 0.94);
-
-          border:
-            1px solid rgba(255, 255, 255, 0.08);
-
-          border-radius: 20px;
-
-          padding:
-            30px 32px 28px;
-
+          z-index: 5;
+          background: rgba(10, 10, 10, 0.94);
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          border-radius: 22px;
+          padding: 30px 30px 25px;
           box-shadow:
             0 30px 100px rgba(0, 0, 0, 0.85),
-            0 0 40px rgba(255, 106, 26, 0.08);
-
+            0 0 40px rgba(255, 106, 26, 0.07);
           backdrop-filter: blur(20px);
         }
 
         .brand {
           display: flex;
-          align-items: center;
           justify-content: center;
+          align-items: center;
           gap: 9px;
-          margin-bottom: 18px;
-
+          margin-bottom: 20px;
+          color: #fff;
           font-family:
-            'Space Grotesk',
+            "Space Grotesk",
+            Inter,
             sans-serif;
-
-          font-size: 19px;
+          font-size: 20px;
           font-weight: 600;
           letter-spacing: -0.5px;
         }
 
-        .brand img {
+        .brand-icon {
           display: block;
+          object-fit: contain;
           filter:
             drop-shadow(
-              0 0 10px
-                rgba(255, 106, 26, 0.35)
+              0 0 10px rgba(255, 106, 26, 0.35)
             );
-        }
-
-        .brand-leaf {
-          font-size: 21px;
-          line-height: 1;
         }
 
         h1 {
           margin: 0;
           text-align: center;
-
           font-family:
-            'Space Grotesk',
+            "Space Grotesk",
+            Inter,
             sans-serif;
-
-          font-size: 28px;
-          letter-spacing: -0.8px;
+          font-size: 29px;
+          line-height: 1.15;
+          letter-spacing: -1px;
           font-weight: 600;
         }
 
         .subtitle {
           text-align: center;
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 14px;
-          margin: 7px 0 25px;
+          color: rgba(255, 255, 255, 0.48);
+          font-size: 13px;
+          margin: 8px 0 24px;
+          line-height: 1.4;
         }
 
         .social-row {
@@ -979,72 +720,54 @@ export default function SignupPage() {
 
         .social-button,
         .passkey-button {
-          border:
-            1px solid
-            rgba(255, 255, 255, 0.1);
-
-          background:
-            rgba(255, 255, 255, 0.035);
-
-          color: white;
-          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.035);
+          color: #fff;
+          border-radius: 11px;
           cursor: pointer;
           font-family: inherit;
-
           transition:
-            background 0.15s,
-            border 0.15s,
-            transform 0.15s,
-            box-shadow 0.15s;
+            background 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
         }
 
         .social-button {
-          height: 46px;
-
+          height: 45px;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 9px;
-
           font-size: 13px;
           font-weight: 500;
         }
 
-        .social-button:hover,
-        .passkey-button:hover {
-          background:
-            rgba(255, 106, 26, 0.08);
-
-          border-color:
-            rgba(255, 106, 26, 0.35);
-
+        .social-button:hover:not(:disabled),
+        .passkey-button:hover:not(:disabled) {
+          background: rgba(255, 106, 26, 0.08);
+          border-color: rgba(255, 106, 26, 0.35);
           transform: translateY(-1px);
-
           box-shadow:
-            0 0 18px
-              rgba(255, 106, 26, 0.08);
+            0 0 20px rgba(255, 106, 26, 0.06);
         }
 
         .social-button:disabled,
         .passkey-button:disabled {
           opacity: 0.55;
           cursor: default;
-          transform: none;
         }
 
         .passkey-button {
           width: 100%;
-          height: 46px;
-          margin-top: 10px;
-
+          height: 45px;
+          margin-top: 9px;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 9px;
-
           font-size: 13px;
           font-weight: 600;
-
           color: #fff;
         }
 
@@ -1052,119 +775,104 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin: 25px 0;
+          margin: 22px 0;
         }
 
         .divider span {
           flex: 1;
           height: 1px;
-          background:
-            rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .divider p {
           margin: 0;
-          color:
-            rgba(255, 255, 255, 0.35);
-          font-size: 11px;
+          color: rgba(255, 255, 255, 0.32);
+          font-size: 10px;
           font-weight: 600;
+        }
+
+        form {
+          width: 100%;
         }
 
         .field {
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
 
-        label {
+        .field label {
           display: block;
-          color:
-            rgba(255, 255, 255, 0.72);
-
-          font-size: 13px;
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 12px;
           font-weight: 600;
-          margin-bottom: 7px;
+          margin: 0 0 6px;
+          line-height: 1.2;
         }
 
         .input-wrap {
-          height: 46px;
-
+          width: 100%;
+          height: 45px;
           display: flex;
           align-items: center;
-
-          border:
-            1px solid
-            rgba(255, 255, 255, 0.1);
-
-          background:
-            rgba(255, 255, 255, 0.035);
-
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.035);
           border-radius: 10px;
-
           transition:
-            border 0.15s,
-            background 0.15s,
-            box-shadow 0.15s;
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease;
         }
 
         .input-wrap:focus-within {
-          border-color:
-            rgba(255, 106, 26, 0.65);
-
-          background:
-            rgba(255, 255, 255, 0.05);
-
+          border-color: rgba(255, 106, 26, 0.65);
+          background: rgba(255, 255, 255, 0.045);
           box-shadow:
             0 0 0 3px
               rgba(255, 106, 26, 0.08);
         }
 
         .input-wrap.success {
-          border-color:
-            rgba(75, 190, 115, 0.55);
+          border-color: rgba(72, 196, 112, 0.55);
         }
 
         .input-wrap.danger {
-          border-color:
-            rgba(220, 80, 70, 0.55);
+          border-color: rgba(235, 78, 69, 0.6);
         }
 
         .input-icon {
           width: 42px;
+          flex: 0 0 42px;
           display: flex;
-          justify-content: center;
           align-items: center;
-          color:
-            rgba(255, 255, 255, 0.42);
-          flex-shrink: 0;
+          justify-content: center;
+          color: rgba(255, 255, 255, 0.42);
         }
 
         .input-wrap input {
           flex: 1;
           min-width: 0;
           height: 100%;
-
           border: none;
           outline: none;
           background: transparent;
-          color: white;
-
+          color: #fff;
           font-family: inherit;
-          font-size: 14px;
+          font-size: 13px;
+          padding: 0;
         }
 
         .input-wrap input::placeholder {
-          color:
-            rgba(255, 255, 255, 0.35);
+          color: rgba(255, 255, 255, 0.32);
         }
 
         .status {
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 600;
-          padding-right: 12px;
+          padding-right: 11px;
           white-space: nowrap;
         }
 
         .status.available {
-          color: #65c982;
+          color: #65d38a;
         }
 
         .status.taken {
@@ -1172,42 +880,37 @@ export default function SignupPage() {
         }
 
         .status.checking {
-          color: #c89b72;
+          color: #ff9a62;
         }
 
         .eye-button {
           width: 40px;
           height: 100%;
-
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.4);
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-
-          border: none;
-          background: transparent;
-          color:
-            rgba(255, 255, 255, 0.4);
-
-          cursor: pointer;
           padding: 0;
         }
 
         .eye-button:hover {
-          color:
-            rgba(255, 255, 255, 0.85);
+          color: rgba(255, 255, 255, 0.85);
         }
 
         .hint,
         .password-hint {
           display: block;
-          margin-top: 6px;
-          font-size: 11px;
-          color:
-            rgba(255, 255, 255, 0.35);
+          margin-top: 5px;
+          font-size: 10px;
+          line-height: 1.35;
+          color: rgba(255, 255, 255, 0.35);
         }
 
         .good {
-          color: #65c982;
+          color: #65d38a;
         }
 
         .bad {
@@ -1217,10 +920,9 @@ export default function SignupPage() {
         .terms {
           display: flex;
           align-items: flex-start;
-          gap: 10px;
-
+          gap: 9px;
           cursor: pointer;
-          margin: 20px 0 16px;
+          margin: 18px 0 14px;
         }
 
         .terms input {
@@ -1233,43 +935,29 @@ export default function SignupPage() {
           width: 17px;
           height: 17px;
           flex: 0 0 17px;
-
-          border-radius: 4px;
-
-          border:
-            1px solid
-            rgba(255, 255, 255, 0.28);
-
-          background:
-            rgba(255, 255, 255, 0.03);
-
+          border-radius: 5px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.025);
           display: flex;
           align-items: center;
           justify-content: center;
-
-          color: #fff;
+          color: #000;
           font-size: 11px;
-
-          margin-top: 1px;
-
-          transition: all 0.15s;
+          font-weight: 800;
+          margin-top: 0;
+          transition:
+            background 0.15s ease,
+            border-color 0.15s ease;
         }
 
-        .terms input:checked
-          + .custom-check {
+        .terms input:checked + .custom-check {
           background: #ff6a1a;
-          border-color: #ff8a3d;
-
-          box-shadow:
-            0 0 12px
-              rgba(255, 106, 26, 0.2);
+          border-color: #ff6a1a;
         }
 
         .terms-text {
-          color:
-            rgba(255, 255, 255, 0.55);
-
-          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 11px;
           line-height: 1.45;
           font-weight: 400;
         }
@@ -1280,119 +968,77 @@ export default function SignupPage() {
         }
 
         .terms-text a:hover {
-          color: #fff;
+          color: #ffa561;
           text-decoration: underline;
         }
 
         .error-box {
-          border:
-            1px solid
-            rgba(225, 80, 70, 0.25);
-
-          background:
-            rgba(225, 80, 70, 0.08);
-
+          border: 1px solid rgba(235, 78, 69, 0.3);
+          background: rgba(235, 78, 69, 0.08);
           color: #f18a83;
-
-          border-radius: 8px;
-
-          padding: 10px 12px;
-
-          font-size: 12px;
-          line-height: 1.45;
-
-          margin-bottom: 12px;
+          border-radius: 9px;
+          padding: 9px 11px;
+          font-size: 11px;
+          line-height: 1.4;
+          margin-bottom: 11px;
         }
 
         .continue-button {
           width: 100%;
           height: 46px;
-
           border: none;
-          border-radius: 10px;
-
-          background:
-            linear-gradient(
-              135deg,
-              #ff6a1a,
-              #ff8a3d
-            );
-
+          border-radius: 11px;
+          background: #ff6a1a;
           color: #000;
-
           font-family: inherit;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 700;
+          cursor: not-allowed;
+          opacity: 0.35;
+          transition:
+            transform 0.18s ease,
+            filter 0.18s ease,
+            opacity 0.18s ease,
+            box-shadow 0.18s ease;
+        }
 
+        .continue-button.ready {
           cursor: pointer;
-
+          opacity: 1;
           box-shadow:
             0 0 20px
               rgba(255, 106, 26, 0.25);
-
-          transition:
-            transform 0.15s,
-            filter 0.15s,
-            opacity 0.15s,
-            box-shadow 0.15s;
         }
 
-        .continue-button:hover:not(
-            :disabled
-          ) {
-          filter: brightness(1.08);
+        .continue-button.ready:hover {
+          filter: brightness(1.1);
           transform: translateY(-1px);
-
           box-shadow:
-            0 0 25px
-              rgba(255, 106, 26, 0.35),
-            0 0 55px
-              rgba(255, 106, 26, 0.12);
+            0 0 28px
+              rgba(255, 106, 26, 0.38);
         }
 
         .continue-button:disabled {
-          opacity: 0.4;
           cursor: not-allowed;
-          box-shadow: none;
         }
 
         .spinner {
           display: inline-block;
-
           width: 13px;
           height: 13px;
-
           border-radius: 50%;
-
-          border:
-            2px solid
-            rgba(0, 0, 0, 0.25);
-
+          border: 2px solid rgba(0, 0, 0, 0.25);
           border-top-color: #000;
-
-          animation:
-            spin 0.7s linear infinite;
-
+          animation: spin 0.7s linear infinite;
           margin-right: 7px;
-
           vertical-align: -2px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
         }
 
         .login-text {
           text-align: center;
-
-          color:
-            rgba(255, 255, 255, 0.4);
-
-          font-size: 12px;
-
-          margin: 21px 0 0;
+          color: rgba(255, 255, 255, 0.4);
+          font-size: 11px;
+          margin: 17px 0 0;
         }
 
         .login-text a {
@@ -1402,7 +1048,55 @@ export default function SignupPage() {
         }
 
         .login-text a:hover {
-          color: #fff;
+          color: #ffa561;
+        }
+
+        .orange-glow {
+          position: fixed;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(80px);
+          z-index: 0;
+        }
+
+        .glow-top {
+          width: 700px;
+          height: 450px;
+          top: -280px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(255, 106, 26, 0.13);
+        }
+
+        .glow-left {
+          width: 280px;
+          height: 280px;
+          left: -160px;
+          top: 35%;
+          background: rgba(255, 106, 26, 0.07);
+        }
+
+        .glow-right {
+          width: 280px;
+          height: 280px;
+          right: -160px;
+          bottom: 10%;
+          background: rgba(255, 106, 26, 0.07);
+        }
+
+        .leaves-canvas {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 3;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         @media (max-width: 520px) {
@@ -1412,21 +1106,296 @@ export default function SignupPage() {
           }
 
           .signup-card {
-            margin-top: 10px;
-            padding: 28px 20px 24px;
+            margin-top: 12px;
+            padding: 26px 19px 22px;
           }
 
           h1 {
-            font-size: 25px;
+            font-size: 26px;
           }
 
           .social-button span {
-            display: none;
+            display: inline;
           }
         }
       `}</style>
     </main>
   )
+}
+
+/* =========================================================
+   FALLING LEAVES
+========================================================= */
+
+function FallingLeaves() {
+  const [canvas, setCanvas] = useState(null)
+
+  useEffect(() => {
+    const element = document.createElement('canvas')
+    element.className = 'leaves-canvas'
+    element.setAttribute('aria-hidden', 'true')
+
+    document.body.appendChild(element)
+    setCanvas(element)
+
+    return () => {
+      element.remove()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) return
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+
+    const resize = () => {
+      const dpr = Math.min(
+        window.devicePixelRatio || 1,
+        2
+      )
+
+      canvas.width =
+        window.innerWidth * dpr
+
+      canvas.height =
+        window.innerHeight * dpr
+
+      canvas.style.width = '100%'
+      canvas.style.height = '100%'
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      )
+    }
+
+    resize()
+
+    window.addEventListener(
+      'resize',
+      resize
+    )
+
+    const colors = [
+      '#ff6a1a',
+      '#ff8a3d',
+      '#e85a0c',
+      '#ffffff',
+    ]
+
+    const makeLeaf = () => ({
+      x:
+        Math.random() *
+        window.innerWidth,
+
+      y:
+        -40 -
+        Math.random() *
+          window.innerHeight,
+
+      size:
+        Math.random() * 5 + 8,
+
+      speed:
+        Math.random() * 0.35 + 0.3,
+
+      swayAmp:
+        Math.random() * 30 + 20,
+
+      swaySpeed:
+        Math.random() * 0.012 + 0.006,
+
+      phase:
+        Math.random() *
+        Math.PI *
+        2,
+
+      rotation:
+        Math.random() *
+        Math.PI *
+        2,
+
+      spin:
+        (Math.random() - 0.5) *
+        0.012,
+
+      opacity:
+        Math.random() * 0.18 + 0.18,
+
+      color:
+        colors[
+          Math.floor(
+            Math.random() *
+              colors.length
+          )
+        ],
+
+      baseX: 0,
+    })
+
+    const leaves = Array.from(
+      { length: 12 },
+      makeLeaf
+    )
+
+    leaves.forEach((leaf) => {
+      leaf.baseX = leaf.x
+      leaf.y =
+        Math.random() *
+        window.innerHeight
+    })
+
+    let animationFrame
+    let tick = 0
+
+    const drawLeaf = (
+      size,
+      color,
+      opacity
+    ) => {
+      ctx.globalAlpha = opacity
+      ctx.fillStyle = color
+
+      ctx.beginPath()
+
+      ctx.moveTo(0, -size)
+
+      ctx.bezierCurveTo(
+        size * 0.95,
+        -size * 0.45,
+        size * 0.7,
+        size * 0.65,
+        0,
+        size
+      )
+
+      ctx.bezierCurveTo(
+        -size * 0.7,
+        size * 0.65,
+        -size * 0.95,
+        -size * 0.45,
+        0,
+        -size
+      )
+
+      ctx.fill()
+
+      ctx.globalAlpha =
+        opacity * 0.85
+
+      ctx.strokeStyle = '#000'
+      ctx.lineWidth = 1
+
+      ctx.beginPath()
+
+      ctx.moveTo(
+        0,
+        -size * 0.85
+      )
+
+      ctx.lineTo(
+        0,
+        size * 1.15
+      )
+
+      ctx.stroke()
+
+      ctx.globalAlpha = 1
+    }
+
+    const draw = () => {
+      ctx.clearRect(
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+      )
+
+      tick += 1
+
+      leaves.forEach((leaf) => {
+        if (!reduceMotion) {
+          leaf.y += leaf.speed
+          leaf.rotation += leaf.spin
+        }
+
+        const sway = reduceMotion
+          ? 0
+          : Math.sin(
+              tick *
+                leaf.swaySpeed +
+                leaf.phase
+            ) * leaf.swayAmp
+
+        const x =
+          leaf.baseX + sway
+
+        if (
+          leaf.y >
+          window.innerHeight + 50
+        ) {
+          leaf.y = -40
+
+          leaf.baseX =
+            Math.random() *
+            window.innerWidth
+        }
+
+        ctx.save()
+
+        ctx.translate(
+          x,
+          leaf.y
+        )
+
+        ctx.rotate(
+          leaf.rotation +
+            Math.sin(
+              tick *
+                leaf.swaySpeed +
+                leaf.phase
+            ) *
+              0.5
+        )
+
+        drawLeaf(
+          leaf.size,
+          leaf.color,
+          leaf.opacity
+        )
+
+        ctx.restore()
+      })
+
+      animationFrame =
+        requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      cancelAnimationFrame(
+        animationFrame
+      )
+
+      window.removeEventListener(
+        'resize',
+        resize
+      )
+    }
+  }, [canvas])
+
+  return null
 }
 
 /* =========================================================
@@ -1453,6 +1422,7 @@ function LockIcon() {
           height="11"
           rx="2"
         />
+
         <path d="M8 10V7a4 4 0 0 1 8 0v3" />
       </svg>
     </span>
@@ -1472,14 +1442,19 @@ function UserIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6" />
+        <circle
+          cx="12"
+          cy="8"
+          r="4"
+        />
+
+        <path d="M4 21a8 8 0 0 1 16 0" />
       </svg>
     </span>
   )
 }
 
-function EmailIcon() {
+function MailIcon() {
   return (
     <span className="input-icon">
       <svg
@@ -1499,6 +1474,7 @@ function EmailIcon() {
           height="14"
           rx="2"
         />
+
         <path d="m3 7 9 6 9-6" />
       </svg>
     </span>
@@ -1508,8 +1484,8 @@ function EmailIcon() {
 function EyeIcon() {
   return (
     <svg
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -1517,7 +1493,7 @@ function EyeIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
       <circle cx="12" cy="12" r="2.5" />
     </svg>
   )
@@ -1526,8 +1502,8 @@ function EyeIcon() {
 function EyeOffIcon() {
   return (
     <svg
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -1535,30 +1511,10 @@ function EyeOffIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M3 3l18 18" />
-      <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.2 3.8" />
-      <path d="M6.3 6.8C3.9 8.3 2.5 12 2.5 12s3.5 6 9.5 6c1 0 2-.2 2.8-.5" />
+      <path d="m3 3 18 18" />
+      <path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.7" />
+      <path d="M6.2 6.9C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6" />
       <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
-  )
-}
-
-function PasskeyIcon() {
-  return (
-    <svg
-      width="17"
-      height="17"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="8" cy="15" r="4" />
-      <path d="M11 12l7-7" />
-      <path d="m16 5 3 3" />
-      <path d="m14 7 3 3" />
     </svg>
   )
 }
