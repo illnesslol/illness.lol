@@ -18,7 +18,7 @@ const COLORS = {
 }
 
 /* =========================================================
-   HOVER LINK
+   ACCENT LINK
 ========================================================= */
 
 function AccentLink({
@@ -83,8 +83,10 @@ function PlaceholderAvatar({ small = false }) {
         width: small ? 32 : 48,
         height: small ? 32 : 48,
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #ff6a1a, #ffa561)',
-        boxShadow: '0 0 20px rgba(255,106,26,.3)',
+        background:
+          'linear-gradient(135deg, #ff6a1a, #ffa561)',
+        boxShadow:
+          '0 0 20px rgba(255,106,26,.3)',
         flexShrink: 0,
       }}
     />
@@ -103,8 +105,10 @@ function FakeIcon() {
         width: 22,
         height: 22,
         borderRadius: 6,
-        background: 'rgba(255,106,26,.22)',
-        border: '1px solid rgba(255,106,26,.25)',
+        background:
+          'rgba(255,106,26,.22)',
+        border:
+          '1px solid rgba(255,106,26,.25)',
       }}
     />
   )
@@ -123,7 +127,8 @@ function DashboardPlaceholder() {
         width: 790,
         height: 465,
         background: '#050505',
-        border: `2px solid ${COLORS.orangeBorder}`,
+        border:
+          `2px solid ${COLORS.orangeBorder}`,
         borderRadius: 26,
         boxShadow:
           '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
@@ -131,16 +136,19 @@ function DashboardPlaceholder() {
         display: 'flex',
         transform:
           'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
-        transformOrigin: 'center center',
+        transformOrigin:
+          'center center',
       }}
     >
+
       {/* SIDEBAR */}
 
       <div
         style={{
           width: 170,
           background: COLORS.surface,
-          borderRight: `1px solid ${COLORS.line}`,
+          borderRight:
+            `1px solid ${COLORS.line}`,
           padding: 16,
           flexShrink: 0,
         }}
@@ -214,7 +222,8 @@ function DashboardPlaceholder() {
             marginTop: 70,
             padding: 10,
             borderRadius: 10,
-            background: 'rgba(255,255,255,.035)',
+            background:
+              'rgba(255,255,255,.035)',
           }}
         >
           <div
@@ -246,6 +255,7 @@ function DashboardPlaceholder() {
         </div>
       </div>
 
+
       {/* CONTENT */}
 
       <div
@@ -268,7 +278,8 @@ function DashboardPlaceholder() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.2fr 1fr 1fr 1fr',
+            gridTemplateColumns:
+              '1.2fr 1fr 1fr 1fr',
             gap: 9,
             marginBottom: 20,
           }}
@@ -282,7 +293,8 @@ function DashboardPlaceholder() {
             <div
               key={title}
               style={{
-                background: 'rgba(255,106,26,.12)',
+                background:
+                  'rgba(255,106,26,.12)',
                 borderRadius: 9,
                 padding: 12,
               }}
@@ -334,7 +346,8 @@ function DashboardPlaceholder() {
             height: 205,
             borderRadius: 13,
             background: '#080808',
-            border: '1px solid rgba(255,255,255,.05)',
+            border:
+              '1px solid rgba(255,255,255,.05)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -359,7 +372,8 @@ function DashboardPlaceholder() {
               left: 15,
               right: 15,
               bottom: 10,
-              width: 'calc(100% - 30px)',
+              width:
+                'calc(100% - 30px)',
               height: 155,
             }}
           >
@@ -460,20 +474,23 @@ function ProfilePlaceholder({
         height: 410,
         borderRadius: 24,
         overflow: 'hidden',
-        border: `2px solid ${COLORS.orangeBorder}`,
+        border:
+          `2px solid ${COLORS.orangeBorder}`,
         background: '#050505',
         boxShadow:
           '0 20px 70px rgba(0,0,0,.8), 0 0 30px rgba(255,106,26,.1)',
         ...style,
       }}
     >
+
       {/* IMAGE */}
 
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: backgrounds[image - 1],
+          background:
+            backgrounds[image - 1],
         }}
       />
 
@@ -503,7 +520,8 @@ function ProfilePlaceholder({
         <div
           style={{
             marginTop: 12,
-            fontFamily: "'Space Grotesk', sans-serif",
+            fontFamily:
+              "'Space Grotesk', sans-serif",
             fontSize: 19,
             fontWeight: 700,
           }}
@@ -535,7 +553,8 @@ function ProfilePlaceholder({
                 width: 31,
                 height: 31,
                 borderRadius: 8,
-                background: 'rgba(255,255,255,.1)',
+                background:
+                  'rgba(255,255,255,.1)',
                 border:
                   '1px solid rgba(255,255,255,.12)',
               }}
@@ -548,7 +567,8 @@ function ProfilePlaceholder({
             height: 39,
             marginTop: 14,
             borderRadius: 10,
-            background: 'rgba(255,255,255,.09)',
+            background:
+              'rgba(255,255,255,.09)',
             border:
               '1px solid rgba(255,255,255,.1)',
           }}
@@ -563,7 +583,12 @@ function ProfilePlaceholder({
    FALLING LEAVES
 ========================================================= */
 
-function drawLeaf(ctx, size, color, opacity) {
+function drawLeaf(
+  ctx,
+  size,
+  color,
+  opacity
+) {
   ctx.globalAlpha = opacity
   ctx.fillStyle = color
 
@@ -591,13 +616,24 @@ function drawLeaf(ctx, size, color, opacity) {
 
   ctx.fill()
 
-  ctx.globalAlpha = opacity * 0.9
+  ctx.globalAlpha =
+    opacity * 0.9
+
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
 
   ctx.beginPath()
-  ctx.moveTo(0, -size * 0.85)
-  ctx.lineTo(0, size * 1.15)
+
+  ctx.moveTo(
+    0,
+    -size * 0.85
+  )
+
+  ctx.lineTo(
+    0,
+    size * 1.15
+  )
+
   ctx.stroke()
 
   ctx.globalAlpha = 1
@@ -611,9 +647,14 @@ function drawLeaf(ctx, size, color, opacity) {
 export default function HomePage() {
   const canvasRef = useRef(null)
 
-  const [visible, setVisible] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [visible, setVisible] =
+    useState(false)
+
+  const [authChecked, setAuthChecked] =
+    useState(false)
+
+  const [loggedIn, setLoggedIn] =
+    useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -623,7 +664,10 @@ export default function HomePage() {
     fetch('/api/me')
       .then(res => res.json())
       .then(data => {
-        setLoggedIn(Boolean(data.loggedIn))
+        setLoggedIn(
+          Boolean(data.loggedIn)
+        )
+
         setAuthChecked(true)
       })
       .catch(() => {
@@ -633,23 +677,32 @@ export default function HomePage() {
     const canvas = canvasRef.current
 
     if (!canvas) {
-      return () => clearTimeout(timer)
+      return () =>
+        clearTimeout(timer)
     }
 
-    const ctx = canvas.getContext('2d')
+    const ctx =
+      canvas.getContext('2d')
 
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
+    const reduceMotion =
+      window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches
 
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      canvas.width =
+        window.innerWidth
+
+      canvas.height =
+        window.innerHeight
     }
 
     resize()
 
-    window.addEventListener('resize', resize)
+    window.addEventListener(
+      'resize',
+      resize
+    )
 
     const leafColors = [
       '#ff6a1a',
@@ -658,44 +711,68 @@ export default function HomePage() {
       '#ffffff',
     ]
 
-    const makeLeaf = (spreadY = false) => ({
-      x: Math.random() * window.innerWidth,
+    const makeLeaf = (
+      spreadY = false
+    ) => ({
+      x:
+        Math.random() *
+        window.innerWidth,
 
       y: spreadY
-        ? Math.random() * window.innerHeight
-        : -30 - Math.random() * 120,
+        ? Math.random() *
+          window.innerHeight
+        : -30 -
+          Math.random() * 120,
 
-      size: Math.random() * 6 + 9,
+      size:
+        Math.random() * 6 + 9,
 
-      speed: Math.random() * 0.35 + 0.35,
+      speed:
+        Math.random() * 0.35 +
+        0.35,
 
-      swayAmp: Math.random() * 30 + 20,
+      swayAmp:
+        Math.random() * 30 +
+        20,
 
       swaySpeed:
-        Math.random() * 0.012 + 0.006,
+        Math.random() * 0.012 +
+        0.006,
 
-      phase: Math.random() * Math.PI * 2,
+      phase:
+        Math.random() *
+        Math.PI *
+        2,
 
-      rotation: Math.random() * Math.PI * 2,
+      rotation:
+        Math.random() *
+        Math.PI *
+        2,
 
-      spin: (Math.random() - 0.5) * 0.012,
+      spin:
+        (Math.random() - 0.5) *
+        0.012,
 
-      opacity: Math.random() * 0.2 + 0.22,
+      opacity:
+        Math.random() * 0.2 +
+        0.22,
 
       color:
         leafColors[
           Math.floor(
-            Math.random() * leafColors.length
+            Math.random() *
+              leafColors.length
           )
         ],
 
       baseX: 0,
     })
 
-    const leaves = Array.from(
-      { length: 7 },
-      () => makeLeaf(true)
-    )
+    const leaves =
+      Array.from(
+        { length: 7 },
+        () => makeLeaf(true)
+      )
 
     leaves.forEach(l => {
       l.baseX = l.x
@@ -720,28 +797,42 @@ export default function HomePage() {
           l.rotation += l.spin
         }
 
-        const sway = reduceMotion
-          ? 0
-          : Math.sin(
-              tick * l.swaySpeed + l.phase
-            ) * l.swayAmp
+        const sway =
+          reduceMotion
+            ? 0
+            : Math.sin(
+                tick *
+                  l.swaySpeed +
+                  l.phase
+              ) *
+              l.swayAmp
 
-        const x = l.baseX + sway
+        const x =
+          l.baseX + sway
 
-        if (l.y > canvas.height + 40) {
+        if (
+          l.y >
+          canvas.height + 40
+        ) {
           l.y = -30
+
           l.baseX =
-            Math.random() * canvas.width
+            Math.random() *
+            canvas.width
         }
 
         ctx.save()
 
-        ctx.translate(x, l.y)
+        ctx.translate(
+          x,
+          l.y
+        )
 
         ctx.rotate(
           l.rotation +
             Math.sin(
-              tick * l.swaySpeed +
+              tick *
+                l.swaySpeed +
                 l.phase
             ) *
               0.5
@@ -766,7 +857,9 @@ export default function HomePage() {
     return () => {
       clearTimeout(timer)
 
-      cancelAnimationFrame(animationFrame)
+      cancelAnimationFrame(
+        animationFrame
+      )
 
       window.removeEventListener(
         'resize',
@@ -818,10 +911,6 @@ export default function HomePage() {
           outline-offset: 3px;
         }
 
-        /*
-         * NAV LINKS
-         */
-
         .nav-link {
           transition:
             color .2s ease,
@@ -830,10 +919,6 @@ export default function HomePage() {
             box-shadow .2s ease,
             transform .2s ease;
         }
-
-        /*
-         * HERO BUTTONS
-         */
 
         .hero-button {
           transition:
@@ -844,19 +929,11 @@ export default function HomePage() {
             transform .2s ease;
         }
 
-        /*
-         * PRIMARY BUTTON
-         */
-
         .primary-button:hover {
           box-shadow:
             0 0 25px rgba(255,106,26,.35),
             0 0 55px rgba(255,106,26,.12) !important;
         }
-
-        /*
-         * RESPONSIVE
-         */
 
         @media (max-width: 1100px) {
           .showcase {
@@ -961,7 +1038,8 @@ export default function HomePage() {
           backgroundImage:
             'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
 
-          backgroundSize: '28px 28px',
+          backgroundSize:
+            '28px 28px',
 
           maskImage:
             'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
@@ -981,7 +1059,8 @@ export default function HomePage() {
           position: 'fixed',
           top: -380,
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform:
+            'translateX(-50%)',
 
           width: 1000,
           height: 700,
@@ -1007,7 +1086,8 @@ export default function HomePage() {
           position: 'absolute',
           top: 21,
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform:
+            'translateX(-50%)',
 
           width:
             'min(1180px, calc(100% - 40px))',
@@ -1035,9 +1115,12 @@ export default function HomePage() {
         }}
       >
 
-        {/* BRAND */}
+        {/* =================================================
+            BRAND
+            NO HOVER BOX / NO ORANGE EFFECT
+        ================================================= */}
 
-        <AccentLink
+        <TransitionLink
           href="/"
           style={{
             display: 'flex',
@@ -1049,15 +1132,6 @@ export default function HomePage() {
             textDecoration: 'none',
 
             minWidth: 200,
-
-            background: 'transparent',
-            border: '1px solid transparent',
-            borderRadius: 14,
-
-            padding:
-              '6px 10px 6px 0',
-
-            boxShadow: 'none',
           }}
         >
           <img
@@ -1088,10 +1162,12 @@ export default function HomePage() {
           >
             illness.lol
           </span>
-        </AccentLink>
+        </TransitionLink>
 
 
-        {/* CENTER LINKS */}
+        {/* =================================================
+            CENTER LINKS
+        ================================================= */}
 
         <div
           className="desktop-links"
@@ -1117,56 +1193,70 @@ export default function HomePage() {
               'Leaderboard',
               '/leaderboard',
             ],
-            ['Pricing', '/pricing'],
+            [
+              'Pricing',
+              '/pricing',
+            ],
             [
               'Questions',
               '/questions',
             ],
-          ].map(([label, href]) => (
-            <AccentLink
-              key={label}
-              href={href}
-              className="nav-link"
-              target={
-                label === 'Discord'
-                  ? '_blank'
-                  : undefined
-              }
-              rel={
-                label === 'Discord'
-                  ? 'noopener noreferrer'
-                  : undefined
-              }
-              style={{
-                color: COLORS.muted,
+          ].map(
+            ([label, href]) => (
+              <AccentLink
+                key={label}
+                href={href}
+                className="nav-link"
 
-                textDecoration: 'none',
+                target={
+                  label === 'Discord'
+                    ? '_blank'
+                    : undefined
+                }
 
-                fontSize: 14,
+                rel={
+                  label === 'Discord'
+                    ? 'noopener noreferrer'
+                    : undefined
+                }
 
-                padding:
-                  '9px 13px',
+                style={{
+                  color:
+                    COLORS.muted,
 
-                whiteSpace: 'nowrap',
+                  textDecoration:
+                    'none',
 
-                border:
-                  '1px solid transparent',
+                  fontSize: 14,
 
-                borderRadius: 12,
+                  padding:
+                    '9px 13px',
 
-                background:
-                  'transparent',
+                  whiteSpace:
+                    'nowrap',
 
-                boxShadow: 'none',
-              }}
-            >
-              {label}
-            </AccentLink>
-          ))}
+                  border:
+                    '1px solid transparent',
+
+                  borderRadius: 12,
+
+                  background:
+                    'transparent',
+
+                  boxShadow:
+                    'none',
+                }}
+              >
+                {label}
+              </AccentLink>
+            )
+          )}
         </div>
 
 
-        {/* RIGHT SIDE */}
+        {/* =================================================
+            RIGHT SIDE
+        ================================================= */}
 
         <div
           style={{
@@ -1184,9 +1274,11 @@ export default function HomePage() {
               href="/login"
               className="nav-login nav-link"
               style={{
-                color: COLORS.muted,
+                color:
+                  COLORS.muted,
 
-                textDecoration: 'none',
+                textDecoration:
+                  'none',
 
                 fontSize: 14,
 
@@ -1201,7 +1293,8 @@ export default function HomePage() {
                 background:
                   'transparent',
 
-                boxShadow: 'none',
+                boxShadow:
+                  'none',
               }}
             >
               Log in
@@ -1209,7 +1302,8 @@ export default function HomePage() {
           )}
 
 
-          {authChecked && loggedIn ? (
+          {authChecked &&
+          loggedIn ? (
             <AccentLink
               href="/dashboard"
               className="hero-button"
@@ -1222,7 +1316,8 @@ export default function HomePage() {
                 border:
                   '1px solid rgba(255,106,26,.55)',
 
-                textDecoration: 'none',
+                textDecoration:
+                  'none',
 
                 fontSize: 14,
 
@@ -1249,7 +1344,8 @@ export default function HomePage() {
                 background:
                   COLORS.orange,
 
-                textDecoration: 'none',
+                textDecoration:
+                  'none',
 
                 fontSize: 14,
 
@@ -1318,7 +1414,8 @@ export default function HomePage() {
 
             lineHeight: 1.15,
 
-            letterSpacing: '-1.5px',
+            letterSpacing:
+              '-1.5px',
 
             fontWeight: 600,
 
@@ -1327,7 +1424,8 @@ export default function HomePage() {
             color: '#fff',
           }}
         >
-          Everything you want, right here.
+          Everything you want,
+          right here.
         </h1>
 
 
@@ -1343,12 +1441,14 @@ export default function HomePage() {
 
             lineHeight: 1.6,
 
-            color: COLORS.muted,
+            color:
+              COLORS.muted,
           }}
         >
-          illness.lol is your go-to for modern,
-          feature rich custom bio pages and
-          fast, secure file hosting
+          illness.lol is your go-to
+          for modern, feature rich
+          custom bio pages and fast,
+          secure file hosting
         </p>
 
 
@@ -1360,7 +1460,8 @@ export default function HomePage() {
 
             alignItems: 'center',
 
-            justifyContent: 'center',
+            justifyContent:
+              'center',
           }}
         >
 
@@ -1368,11 +1469,14 @@ export default function HomePage() {
             href="/signup"
             className="hero-button primary-button"
             style={{
-              display: 'inline-flex',
+              display:
+                'inline-flex',
 
-              alignItems: 'center',
+              alignItems:
+                'center',
 
-              justifyContent: 'center',
+              justifyContent:
+                'center',
 
               padding:
                 '12px 18px',
@@ -1384,7 +1488,8 @@ export default function HomePage() {
               background:
                 COLORS.orange,
 
-              textDecoration: 'none',
+              textDecoration:
+                'none',
 
               fontSize: 14,
 
@@ -1405,11 +1510,14 @@ export default function HomePage() {
             href="/pricing"
             className="hero-button"
             style={{
-              display: 'inline-flex',
+              display:
+                'inline-flex',
 
-              alignItems: 'center',
+              alignItems:
+                'center',
 
-              justifyContent: 'center',
+              justifyContent:
+                'center',
 
               padding:
                 '12px 18px',
@@ -1424,7 +1532,8 @@ export default function HomePage() {
               border:
                 '1px solid rgba(255,255,255,.14)',
 
-              textDecoration: 'none',
+              textDecoration:
+                'none',
 
               fontSize: 14,
 
@@ -1468,7 +1577,7 @@ export default function HomePage() {
         <DashboardPlaceholder />
 
 
-        {/* RIGHT PROFILE STACK */}
+        {/* PROFILE STACK */}
 
         <div
           style={{
@@ -1545,7 +1654,8 @@ export default function HomePage() {
             background:
               'linear-gradient(to bottom,transparent,#000000 72%)',
 
-            pointerEvents: 'none',
+            pointerEvents:
+              'none',
 
             zIndex: 10,
           }}
