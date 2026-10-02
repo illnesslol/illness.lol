@@ -712,7 +712,7 @@ export default function HomePage() {
           }}
         >
           <img
-            src="/logo.png"
+            src="/icon.png"
             alt=""
             width={30}
             height={30}
