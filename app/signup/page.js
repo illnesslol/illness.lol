@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/app/lib/supabase-client'
 import { useTransition } from '@/components/PageTransition'
 
 const COLORS = {
   bg: '#000000',
   surface: '#0c0c0c',
+  surfaceAlt: '#141414',
   orange: '#ff6a1a',
   orangeBright: '#ff8a3d',
   orangeSoft: 'rgba(255,106,26,.16)',
@@ -19,7 +20,7 @@ const COLORS = {
 
 export default function SignupPage() {
   const { navigate } = useTransition()
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const canvasRef = useRef(null)
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -35,10 +36,10 @@ export default function SignupPage() {
   const [oauthLoading, setOauthLoading] = useState('')
   const [agreed, setAgreed] = useState(false)
 
-  /* =========================================================
-     FALLING LEAVES — SAME STYLE AS HOMEPAGE
-  ========================================================= */
-
+  /*
+   * FALLING LEAVES
+   * Same style/behavior as the homepage.
+   */
   useEffect(() => {
     const canvas = canvasRef.current
 
@@ -68,11 +69,25 @@ export default function SignupPage() {
       '#ffffff',
     ]
 
-    const drawLeaf = (
-      size: number,
-      color: string,
-      opacity: number
-    ) => {
+    const makeLeaf = () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      size: Math.random() * 6 + 9,
+      speed: Math.random() * 0.35 + 0.35,
+      swayAmp: Math.random() * 30 + 20,
+      swaySpeed: Math.random() * 0.012 + 0.006,
+      phase: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.012,
+      opacity: Math.random() * 0.2 + 0.22,
+      color:
+        leafColors[
+          Math.floor(Math.random() * leafColors.length)
+        ],
+      baseX: 0,
+    })
+
+    const drawLeaf = (size, color, opacity) => {
       ctx.globalAlpha = opacity
       ctx.fillStyle = color
 
@@ -114,36 +129,16 @@ export default function SignupPage() {
       ctx.globalAlpha = 1
     }
 
-    const makeLeaf = (spreadY = false) => ({
-      x: Math.random() * window.innerWidth,
-      y: spreadY
-        ? Math.random() * window.innerHeight
-        : -30 - Math.random() * 120,
-      size: Math.random() * 6 + 9,
-      speed: Math.random() * 0.35 + 0.35,
-      swayAmp: Math.random() * 30 + 20,
-      swaySpeed: Math.random() * 0.012 + 0.006,
-      phase: Math.random() * Math.PI * 2,
-      rotation: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.012,
-      opacity: Math.random() * 0.2 + 0.22,
-      color:
-        leafColors[
-          Math.floor(Math.random() * leafColors.length)
-        ],
-      baseX: 0,
-    })
-
     const leaves = Array.from(
-      { length: 9 },
-      () => makeLeaf(true)
+      { length: 10 },
+      () => makeLeaf()
     )
 
     leaves.forEach((leaf) => {
       leaf.baseX = leaf.x
     })
 
-    let animationFrame = 0
+    let animationFrame
     let tick = 0
 
     const draw = () => {
@@ -165,7 +160,8 @@ export default function SignupPage() {
         const sway = reduceMotion
           ? 0
           : Math.sin(
-              tick * leaf.swaySpeed + leaf.phase
+              tick * leaf.swaySpeed +
+                leaf.phase
             ) * leaf.swayAmp
 
         const x = leaf.baseX + sway
@@ -183,7 +179,8 @@ export default function SignupPage() {
         ctx.rotate(
           leaf.rotation +
             Math.sin(
-              tick * leaf.swaySpeed + leaf.phase
+              tick * leaf.swaySpeed +
+                leaf.phase
             ) *
               0.5
         )
@@ -213,10 +210,12 @@ export default function SignupPage() {
     }
   }, [])
 
-  /* =========================================================
-     USERNAME CHECK
-  ========================================================= */
-
+  /*
+   * USERNAME AVAILABILITY
+   *
+   * 1-24 characters.
+   * Letters, numbers and underscores.
+   */
   useEffect(() => {
     const clean = username.trim().toLowerCase()
 
@@ -225,7 +224,6 @@ export default function SignupPage() {
       return
     }
 
-    // Username is now 1–24 characters.
     if (clean.length < 1 || clean.length > 24) {
       setUsernameStatus('invalid')
       return
@@ -266,34 +264,23 @@ export default function SignupPage() {
     }
   }, [username])
 
-  /* =========================================================
-     VALIDATION
-  ========================================================= */
-
   const passwordStrong =
     password.length >= 8 &&
     /[A-Z]/.test(password) &&
     /[a-z]/.test(password) &&
     /\d/.test(password)
 
-  const usernameValid =
+  const canSubmit =
     username.trim().length >= 1 &&
     username.trim().length <= 24 &&
-    /^[a-z0-9_]+$/i.test(username.trim())
+    usernameStatus === 'available' &&
+    email.trim() &&
+    passwordStrong &&
+    password === confirmPassword &&
+    agreed &&
+    !loading
 
-  /*
-   * The signup button is clickable even before every field is
-   * valid so the user gets the appropriate validation message.
-   */
-  const canSubmit = !loading
-
-  /* =========================================================
-     SIGN UP
-  ========================================================= */
-
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     setError('')
@@ -304,41 +291,34 @@ export default function SignupPage() {
     const cleanEmail =
       email.trim().toLowerCase()
 
-    if (!cleanUsername) {
-      setError('Please enter a username.')
-      return
-    }
-
-    if (cleanUsername.length > 24) {
+    if (
+      cleanUsername.length < 1 ||
+      cleanUsername.length > 24
+    ) {
       setError(
-        'Username must be 24 characters or less.'
+        'Username must be between 1 and 24 characters.'
       )
       return
     }
 
-    if (!usernameValid) {
+    if (!/^[a-z0-9_]+$/.test(cleanUsername)) {
       setError(
         'Username can only contain letters, numbers, and underscores.'
       )
       return
     }
 
-    if (
-      usernameStatus === 'taken'
-    ) {
-      setError('That username is already taken.')
+    if (!agreed) {
+      setError(
+        'Please agree to the Terms of Service and Privacy Policy.'
+      )
       return
     }
 
-    if (
-      usernameStatus !== 'available'
-    ) {
-      setError('Please choose an available username.')
-      return
-    }
-
-    if (!cleanEmail) {
-      setError('Please enter your email address.')
+    if (usernameStatus !== 'available') {
+      setError(
+        'Please choose an available username.'
+      )
       return
     }
 
@@ -351,13 +331,6 @@ export default function SignupPage() {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
-      return
-    }
-
-    if (!agreed) {
-      setError(
-        'Please agree to the Terms of Service and Privacy Policy.'
-      )
       return
     }
 
@@ -402,13 +375,7 @@ export default function SignupPage() {
     }
   }
 
-  /* =========================================================
-     OAUTH
-  ========================================================= */
-
-  const handleOAuth = async (
-    provider: 'discord' | 'google'
-  ) => {
+  const handleOAuth = async (provider) => {
     setError('')
     setOauthLoading(provider)
 
@@ -436,10 +403,6 @@ export default function SignupPage() {
       setOauthLoading('')
     }
   }
-
-  /* =========================================================
-     PASSKEY
-  ========================================================= */
 
   const handlePasskey = async () => {
     setError('')
@@ -480,55 +443,40 @@ export default function SignupPage() {
 
   return (
     <main className="signup-page">
-
-      {/* =====================================================
-          HOMEPAGE-STYLE BACKGROUND
-      ===================================================== */}
-
+      {/* Falling leaves */}
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className="falling-leaves"
+        className="leaf-canvas"
       />
 
+      {/* Homepage-style dot grid */}
       <div
         aria-hidden="true"
         className="dot-grid"
       />
 
+      {/* Homepage-style orange glow */}
       <div
         aria-hidden="true"
         className="orange-glow"
       />
 
-      {/* =====================================================
-          SIGNUP CARD
-      ===================================================== */}
-
       <section className="signup-card">
-
-        {/* BRAND INSIDE CARD */}
+        {/* illness.lol + leaf INSIDE the card */}
         <div className="brand">
-
           <img
             src="/icon.png"
             alt=""
-            width={30}
-            height={30}
-            className="brand-icon"
+            width={38}
+            height={38}
           />
 
-          <span className="brand-name">
-            illness.lol
-          </span>
+          <span>illness.lol</span>
 
-          <span
-            className="brand-leaf"
-            aria-hidden="true"
-          >
+          <span className="brand-leaf">
             🍂
           </span>
-
         </div>
 
         <h1>Create account</h1>
@@ -537,12 +485,8 @@ export default function SignupPage() {
           Join illness.lol and create your profile
         </p>
 
-        {/* ===================================================
-            SOCIAL SIGN IN
-        =================================================== */}
-
+        {/* OAuth */}
         <div className="social-row">
-
           <button
             type="button"
             className="social-button"
@@ -552,12 +496,7 @@ export default function SignupPage() {
             disabled={!!oauthLoading}
           >
             <DiscordIcon />
-
-            <span>
-              {oauthLoading === 'discord'
-                ? 'Opening...'
-                : 'Discord'}
-            </span>
+            <span>Discord</span>
           </button>
 
           <button
@@ -569,36 +508,26 @@ export default function SignupPage() {
             disabled={!!oauthLoading}
           >
             <GoogleIcon />
-
-            <span>
-              {oauthLoading === 'google'
-                ? 'Opening...'
-                : 'Google'}
-            </span>
+            <span>Google</span>
           </button>
-
         </div>
 
-        {/* ===================================================
-            PASSKEY
-        =================================================== */}
-
+        {/* Passkey */}
         <button
           type="button"
           className="passkey-button"
           onClick={handlePasskey}
           disabled={!!oauthLoading}
         >
+          {/* No emoji here */}
+          <PasskeyIcon />
+
           <span>
             {oauthLoading === 'passkey'
               ? 'Opening passkey...'
               : 'Continue with passkey'}
           </span>
         </button>
-
-        {/* ===================================================
-            DIVIDER
-        =================================================== */}
 
         <div className="divider">
           <span />
@@ -607,16 +536,9 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-
-          {/* =================================================
-              USERNAME
-          ================================================= */}
-
+          {/* Username */}
           <div className="field">
-
-            <label htmlFor="username">
-              Username
-            </label>
+            <label>Username</label>
 
             <div
               className={`input-wrap ${
@@ -628,13 +550,9 @@ export default function SignupPage() {
                   : ''
               }`}
             >
-
-              <span className="input-icon">
-                👤
-              </span>
+              <UserIcon />
 
               <input
-                id="username"
                 type="text"
                 placeholder="your_username"
                 value={username}
@@ -666,13 +584,11 @@ export default function SignupPage() {
                 </span>
               )}
 
-              {usernameStatus ===
-                'taken' && (
+              {usernameStatus === 'taken' && (
                 <span className="status taken">
                   Taken
                 </span>
               )}
-
             </div>
 
             {usernameStatus ===
@@ -683,27 +599,16 @@ export default function SignupPage() {
                   numbers, and underscores only.
                 </small>
               )}
-
           </div>
 
-          {/* =================================================
-              EMAIL
-          ================================================= */}
-
+          {/* Email */}
           <div className="field">
-
-            <label htmlFor="email">
-              Email
-            </label>
+            <label>Email</label>
 
             <div className="input-wrap">
-
-              <span className="input-icon">
-                ✉
-              </span>
+              <EmailIcon />
 
               <input
-                id="email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -712,33 +617,18 @@ export default function SignupPage() {
                   setEmail(e.target.value)
                 }
               />
-
             </div>
-
           </div>
 
-          {/* =================================================
-              PASSWORD
-          ================================================= */}
-
+          {/* Password */}
           <div className="field">
-
-            <label htmlFor="password">
-              Password
-            </label>
+            <label>Password</label>
 
             <div className="input-wrap">
-
-              {/* Little lock icon */}
-              <span
-                className="input-icon lock-icon"
-                aria-hidden="true"
-              >
-                🔒
-              </span>
+              {/* Little lock icon next to password */}
+              <LockIcon />
 
               <input
-                id="password"
                 type={
                   showPassword
                     ? 'text'
@@ -748,36 +638,34 @@ export default function SignupPage() {
                 value={password}
                 autoComplete="new-password"
                 onChange={(e) =>
-                  setPassword(
-                    e.target.value
-                  )
+                  setPassword(e.target.value)
                 }
               />
 
               <button
                 type="button"
                 className="eye-button"
-                aria-label={
-                  showPassword
-                    ? 'Hide password'
-                    : 'Show password'
-                }
                 onClick={() =>
                   setShowPassword(
                     !showPassword
                   )
                 }
+                aria-label={
+                  showPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
               >
-                {showPassword
-                  ? '🙈'
-                  : '👁'}
+                {showPassword ? (
+                  <EyeOffIcon />
+                ) : (
+                  <EyeIcon />
+                )}
               </button>
-
             </div>
 
             {password.length > 0 && (
               <div className="password-hint">
-
                 {passwordStrong ? (
                   <span className="good">
                     ✓ Strong password
@@ -785,23 +673,17 @@ export default function SignupPage() {
                 ) : (
                   <span>
                     Use 8+ characters with
-                    uppercase, lowercase,
-                    and a number.
+                    uppercase, lowercase, and a
+                    number.
                   </span>
                 )}
-
               </div>
             )}
-
           </div>
 
-          {/* =================================================
-              CONFIRM PASSWORD
-          ================================================= */}
-
+          {/* Confirm password */}
           <div className="field">
-
-            <label htmlFor="confirm-password">
+            <label>
               Confirm password
             </label>
 
@@ -815,16 +697,9 @@ export default function SignupPage() {
                   : ''
               }`}
             >
-
-              <span
-                className="input-icon lock-icon"
-                aria-hidden="true"
-              >
-                🔒
-              </span>
+              <LockIcon />
 
               <input
-                id="confirm-password"
                 type={
                   showConfirmPassword
                     ? 'text'
@@ -843,28 +718,28 @@ export default function SignupPage() {
               <button
                 type="button"
                 className="eye-button"
-                aria-label={
-                  showConfirmPassword
-                    ? 'Hide password'
-                    : 'Show password'
-                }
                 onClick={() =>
                   setShowConfirmPassword(
                     !showConfirmPassword
                   )
                 }
+                aria-label={
+                  showConfirmPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
               >
-                {showConfirmPassword
-                  ? '🙈'
-                  : '👁'}
+                {showConfirmPassword ? (
+                  <EyeOffIcon />
+                ) : (
+                  <EyeIcon />
+                )}
               </button>
-
             </div>
 
             {confirmPassword.length >
               0 && (
               <div className="password-hint">
-
                 {password ===
                 confirmPassword ? (
                   <span className="good">
@@ -875,25 +750,17 @@ export default function SignupPage() {
                     Passwords don't match
                   </span>
                 )}
-
               </div>
             )}
-
           </div>
 
-          {/* =================================================
-              TERMS
-          ================================================= */}
-
+          {/* Terms */}
           <label className="terms">
-
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) =>
-                setAgreed(
-                  e.target.checked
-                )
+                setAgreed(e.target.checked)
               }
             />
 
@@ -903,17 +770,14 @@ export default function SignupPage() {
 
             <span className="terms-text">
               I agree to the{' '}
-
               <a
                 href="/terms"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Terms of Service
-              </a>
-
-              {' '}and{' '}
-
+              </a>{' '}
+              and{' '}
               <a
                 href="/privacy"
                 target="_blank"
@@ -921,28 +785,16 @@ export default function SignupPage() {
               >
                 Privacy Policy
               </a>
-
             </span>
-
           </label>
 
-          {/* =================================================
-              ERROR
-          ================================================= */}
-
           {error && (
-            <div
-              className="error-box"
-              role="alert"
-            >
+            <div className="error-box">
               {error}
             </div>
           )}
 
-          {/* =================================================
-              CREATE ACCOUNT
-          ================================================= */}
-
+          {/* Signup button */}
           <button
             type="submit"
             className="continue-button"
@@ -957,42 +809,17 @@ export default function SignupPage() {
               'Create account'
             )}
           </button>
-
         </form>
 
         <p className="login-text">
           Already have an account?{' '}
-
-          <a href="/login">
-            Sign in
-          </a>
+          <a href="/login">Sign in</a>
         </p>
-
       </section>
 
-      {/* =====================================================
-          STYLES
-      ===================================================== */}
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-
+      <style jsx>{`
         * {
           box-sizing: border-box;
-        }
-
-        html {
-          background: #000;
-        }
-
-        body {
-          margin: 0;
-          background: #000;
-        }
-
-        ::selection {
-          background: rgba(255, 106, 26, .4);
-          color: #fff;
         }
 
         .signup-page {
@@ -1002,7 +829,7 @@ export default function SignupPage() {
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 90px 20px 40px;
+          padding: 40px 20px;
           position: relative;
           overflow: hidden;
           font-family:
@@ -1014,11 +841,7 @@ export default function SignupPage() {
             sans-serif;
         }
 
-        /* =====================================================
-           HOMEPAGE BACKGROUND
-        ===================================================== */
-
-        .falling-leaves {
+        .leaf-canvas {
           position: fixed;
           inset: 0;
           width: 100%;
@@ -1035,7 +858,7 @@ export default function SignupPage() {
 
           background-image:
             radial-gradient(
-              rgba(255,255,255,.1) 1px,
+              rgba(255, 255, 255, 0.1) 1px,
               transparent 1px
             );
 
@@ -1067,76 +890,64 @@ export default function SignupPage() {
           background:
             radial-gradient(
               circle,
-              rgba(255,106,26,.16),
+              rgba(255, 106, 26, 0.16),
               transparent 68%
             );
           pointer-events: none;
           z-index: 0;
         }
 
-        /* =====================================================
-           CARD
-        ===================================================== */
-
         .signup-card {
           width: 100%;
           max-width: 450px;
           position: relative;
-          z-index: 5;
+          z-index: 2;
 
           background:
-            rgba(10,10,10,.94);
+            rgba(12, 12, 12, 0.94);
 
           border:
-            1px solid rgba(255,255,255,.08);
+            1px solid rgba(255, 255, 255, 0.08);
 
-          border-radius: 22px;
+          border-radius: 20px;
 
           padding:
             30px 32px 28px;
 
           box-shadow:
-            0 30px 100px rgba(0,0,0,.85),
-            0 0 45px rgba(255,106,26,.08);
+            0 30px 100px rgba(0, 0, 0, 0.85),
+            0 0 40px rgba(255, 106, 26, 0.08);
 
-          backdrop-filter: blur(22px);
+          backdrop-filter: blur(20px);
         }
-
-        /* =====================================================
-           ILLNESS.LOL BRAND INSIDE BOX
-        ===================================================== */
 
         .brand {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 9px;
-          margin-bottom: 17px;
-        }
+          margin-bottom: 18px;
 
-        .brand-icon {
-          display: block;
-          width: 30px;
-          height: 30px;
-          filter:
-            drop-shadow(
-              0 0 10px
-              rgba(255,106,26,.35)
-            );
-        }
-
-        .brand-name {
           font-family:
             'Space Grotesk',
             sans-serif;
 
-          font-size: 21px;
+          font-size: 19px;
           font-weight: 600;
-          letter-spacing: -.7px;
+          letter-spacing: -0.5px;
+        }
+
+        .brand img {
+          display: block;
+          filter:
+            drop-shadow(
+              0 0 10px
+                rgba(255, 106, 26, 0.35)
+            );
         }
 
         .brand-leaf {
-          font-size: 19px;
+          font-size: 21px;
           line-height: 1;
         }
 
@@ -1148,51 +959,43 @@ export default function SignupPage() {
             'Space Grotesk',
             sans-serif;
 
-          font-size: 29px;
-          line-height: 1.15;
-          letter-spacing: -1px;
+          font-size: 28px;
+          letter-spacing: -0.8px;
           font-weight: 600;
         }
 
         .subtitle {
           text-align: center;
-          color: rgba(255,255,255,.5);
-          font-size: 13px;
-          margin: 8px 0 25px;
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 14px;
+          margin: 7px 0 25px;
         }
-
-        /* =====================================================
-           SOCIAL
-        ===================================================== */
 
         .social-row {
           display: grid;
-          grid-template-columns:
-            1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 10px;
         }
 
         .social-button,
         .passkey-button {
           border:
-            1px solid rgba(255,255,255,.1);
+            1px solid
+            rgba(255, 255, 255, 0.1);
 
           background:
-            rgba(255,255,255,.035);
+            rgba(255, 255, 255, 0.035);
 
           color: white;
-
-          border-radius: 11px;
-
+          border-radius: 10px;
           cursor: pointer;
-
           font-family: inherit;
 
           transition:
-            background .2s ease,
-            border-color .2s ease,
-            transform .2s ease,
-            box-shadow .2s ease;
+            background 0.15s,
+            border 0.15s,
+            transform 0.15s,
+            box-shadow 0.15s;
         }
 
         .social-button {
@@ -1201,7 +1004,6 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-
           gap: 9px;
 
           font-size: 13px;
@@ -1211,29 +1013,24 @@ export default function SignupPage() {
         .social-button:hover,
         .passkey-button:hover {
           background:
-            rgba(255,106,26,.08);
+            rgba(255, 106, 26, 0.08);
 
           border-color:
-            rgba(255,106,26,.35);
+            rgba(255, 106, 26, 0.35);
+
+          transform: translateY(-1px);
 
           box-shadow:
             0 0 18px
-            rgba(255,106,26,.07);
-
-          transform:
-            translateY(-1px);
+              rgba(255, 106, 26, 0.08);
         }
 
         .social-button:disabled,
         .passkey-button:disabled {
-          opacity: .55;
+          opacity: 0.55;
           cursor: default;
           transform: none;
         }
-
-        /* =====================================================
-           PASSKEY
-        ===================================================== */
 
         .passkey-button {
           width: 100%;
@@ -1243,59 +1040,47 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 9px;
 
           font-size: 13px;
           font-weight: 600;
 
-          color:
-            rgba(255,255,255,.9);
+          color: #fff;
         }
-
-        /* =====================================================
-           DIVIDER
-        ===================================================== */
 
         .divider {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin: 24px 0;
+          margin: 25px 0;
         }
 
         .divider span {
           flex: 1;
           height: 1px;
           background:
-            rgba(255,255,255,.08);
+            rgba(255, 255, 255, 0.08);
         }
 
         .divider p {
           margin: 0;
-
           color:
-            rgba(255,255,255,.35);
-
-          font-size: 10px;
+            rgba(255, 255, 255, 0.35);
+          font-size: 11px;
           font-weight: 600;
         }
-
-        /* =====================================================
-           FIELDS
-        ===================================================== */
 
         .field {
           margin-bottom: 16px;
         }
 
-        .field label {
+        label {
           display: block;
-
           color:
-            rgba(255,255,255,.72);
+            rgba(255, 255, 255, 0.72);
 
           font-size: 13px;
           font-weight: 600;
-
           margin-bottom: 7px;
         }
 
@@ -1306,52 +1091,50 @@ export default function SignupPage() {
           align-items: center;
 
           border:
-            1px solid rgba(255,255,255,.1);
+            1px solid
+            rgba(255, 255, 255, 0.1);
 
           background:
-            rgba(255,255,255,.035);
+            rgba(255, 255, 255, 0.035);
 
           border-radius: 10px;
 
           transition:
-            border-color .15s ease,
-            background .15s ease,
-            box-shadow .15s ease;
+            border 0.15s,
+            background 0.15s,
+            box-shadow 0.15s;
         }
 
         .input-wrap:focus-within {
           border-color:
-            rgba(255,106,26,.65);
+            rgba(255, 106, 26, 0.65);
 
           background:
-            rgba(255,255,255,.05);
+            rgba(255, 255, 255, 0.05);
 
           box-shadow:
             0 0 0 3px
-            rgba(255,106,26,.08);
+              rgba(255, 106, 26, 0.08);
         }
 
         .input-wrap.success {
           border-color:
-            rgba(75,190,115,.55);
+            rgba(75, 190, 115, 0.55);
         }
 
         .input-wrap.danger {
           border-color:
-            rgba(220,80,70,.55);
+            rgba(220, 80, 70, 0.55);
         }
 
         .input-icon {
           width: 42px;
-          text-align: center;
-          opacity: .45;
-          font-size: 14px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color:
+            rgba(255, 255, 255, 0.42);
           flex-shrink: 0;
-        }
-
-        .lock-icon {
-          opacity: .55;
-          font-size: 13px;
         }
 
         .input-wrap input {
@@ -1361,7 +1144,6 @@ export default function SignupPage() {
 
           border: none;
           outline: none;
-
           background: transparent;
           color: white;
 
@@ -1371,7 +1153,7 @@ export default function SignupPage() {
 
         .input-wrap input::placeholder {
           color:
-            rgba(255,255,255,.35);
+            rgba(255, 255, 255, 0.35);
         }
 
         .status {
@@ -1390,36 +1172,38 @@ export default function SignupPage() {
         }
 
         .status.checking {
-          color: #ff9b63;
+          color: #c89b72;
         }
 
         .eye-button {
+          width: 40px;
+          height: 100%;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
           border: none;
           background: transparent;
-
           color:
-            rgba(255,255,255,.4);
+            rgba(255, 255, 255, 0.4);
 
           cursor: pointer;
-
-          padding: 10px;
-          font-size: 14px;
+          padding: 0;
         }
 
         .eye-button:hover {
           color:
-            rgba(255,255,255,.8);
+            rgba(255, 255, 255, 0.85);
         }
 
         .hint,
         .password-hint {
           display: block;
           margin-top: 6px;
-
           font-size: 11px;
-
           color:
-            rgba(255,255,255,.35);
+            rgba(255, 255, 255, 0.35);
         }
 
         .good {
@@ -1430,17 +1214,12 @@ export default function SignupPage() {
           color: #ef726b;
         }
 
-        /* =====================================================
-           TERMS
-        ===================================================== */
-
         .terms {
           display: flex;
           align-items: flex-start;
           gap: 10px;
 
           cursor: pointer;
-
           margin: 20px 0 16px;
         }
 
@@ -1459,41 +1238,36 @@ export default function SignupPage() {
 
           border:
             1px solid
-            rgba(255,255,255,.28);
+            rgba(255, 255, 255, 0.28);
 
           background:
-            rgba(255,255,255,.03);
+            rgba(255, 255, 255, 0.03);
 
           display: flex;
           align-items: center;
           justify-content: center;
 
           color: #fff;
-
           font-size: 11px;
 
           margin-top: 1px;
 
-          transition:
-            all .15s ease;
+          transition: all 0.15s;
         }
 
         .terms input:checked
           + .custom-check {
-          background:
-            #ff6a1a;
-
-          border-color:
-            #ff8a3d;
+          background: #ff6a1a;
+          border-color: #ff8a3d;
 
           box-shadow:
             0 0 12px
-            rgba(255,106,26,.2);
+              rgba(255, 106, 26, 0.2);
         }
 
         .terms-text {
           color:
-            rgba(255,255,255,.55);
+            rgba(255, 255, 255, 0.55);
 
           font-size: 12px;
           line-height: 1.45;
@@ -1501,9 +1275,7 @@ export default function SignupPage() {
         }
 
         .terms-text a {
-          color:
-            #ff8a3d;
-
+          color: #ff8a3d;
           text-decoration: none;
         }
 
@@ -1512,17 +1284,13 @@ export default function SignupPage() {
           text-decoration: underline;
         }
 
-        /* =====================================================
-           ERROR
-        ===================================================== */
-
         .error-box {
           border:
             1px solid
-            rgba(225,80,70,.25);
+            rgba(225, 80, 70, 0.25);
 
           background:
-            rgba(225,80,70,.08);
+            rgba(225, 80, 70, 0.08);
 
           color: #f18a83;
 
@@ -1536,16 +1304,12 @@ export default function SignupPage() {
           margin-bottom: 12px;
         }
 
-        /* =====================================================
-           CREATE ACCOUNT
-        ===================================================== */
-
         .continue-button {
           width: 100%;
           height: 46px;
 
           border: none;
-          border-radius: 11px;
+          border-radius: 10px;
 
           background:
             linear-gradient(
@@ -1557,7 +1321,6 @@ export default function SignupPage() {
           color: #000;
 
           font-family: inherit;
-
           font-size: 14px;
           font-weight: 700;
 
@@ -1565,36 +1328,32 @@ export default function SignupPage() {
 
           box-shadow:
             0 0 20px
-            rgba(255,106,26,.25);
+              rgba(255, 106, 26, 0.25);
 
           transition:
-            transform .2s ease,
-            filter .2s ease,
-            opacity .2s ease,
-            box-shadow .2s ease;
+            transform 0.15s,
+            filter 0.15s,
+            opacity 0.15s,
+            box-shadow 0.15s;
         }
 
-        .continue-button:hover:not(:disabled) {
+        .continue-button:hover:not(
+            :disabled
+          ) {
           filter: brightness(1.08);
-
-          transform:
-            translateY(-1px);
+          transform: translateY(-1px);
 
           box-shadow:
             0 0 25px
-            rgba(255,106,26,.35),
+              rgba(255, 106, 26, 0.35),
             0 0 55px
-            rgba(255,106,26,.12);
+              rgba(255, 106, 26, 0.12);
         }
 
-        /*
-         * Intentionally stays clickable when the form is
-         * incomplete so validation can tell the user what
-         * needs fixing.
-         */
         .continue-button:disabled {
-          opacity: .55;
-          cursor: wait;
+          opacity: 0.4;
+          cursor: not-allowed;
+          box-shadow: none;
         }
 
         .spinner {
@@ -1607,13 +1366,12 @@ export default function SignupPage() {
 
           border:
             2px solid
-            rgba(0,0,0,.25);
+            rgba(0, 0, 0, 0.25);
 
-          border-top-color:
-            #000;
+          border-top-color: #000;
 
           animation:
-            spin .7s linear infinite;
+            spin 0.7s linear infinite;
 
           margin-right: 7px;
 
@@ -1626,15 +1384,11 @@ export default function SignupPage() {
           }
         }
 
-        /* =====================================================
-           LOGIN
-        ===================================================== */
-
         .login-text {
           text-align: center;
 
           color:
-            rgba(255,255,255,.4);
+            rgba(255, 255, 255, 0.4);
 
           font-size: 12px;
 
@@ -1651,33 +1405,23 @@ export default function SignupPage() {
           color: #fff;
         }
 
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
         @media (max-width: 520px) {
           .signup-page {
-            padding:
-              30px 12px;
+            padding: 20px 12px;
             align-items: flex-start;
           }
 
           .signup-card {
             margin-top: 10px;
-            padding:
-              27px 20px 24px;
+            padding: 28px 20px 24px;
           }
 
           h1 {
-            font-size: 26px;
+            font-size: 25px;
           }
 
           .social-button span {
             display: none;
-          }
-
-          .social-button {
-            gap: 0;
           }
         }
       `}</style>
@@ -1686,8 +1430,138 @@ export default function SignupPage() {
 }
 
 /* =========================================================
-   GOOGLE ICON
+   ICONS
 ========================================================= */
+
+function LockIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect
+          x="4"
+          y="10"
+          width="16"
+          height="11"
+          rx="2"
+        />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </svg>
+    </span>
+  )
+}
+
+function UserIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6" />
+      </svg>
+    </span>
+  )
+}
+
+function EmailIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect
+          x="3"
+          y="5"
+          width="18"
+          height="14"
+          rx="2"
+        />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+    </span>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 3l18 18" />
+      <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.2 3.8" />
+      <path d="M6.3 6.8C3.9 8.3 2.5 12 2.5 12s3.5 6 9.5 6c1 0 2-.2 2.8-.5" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  )
+}
+
+function PasskeyIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l7-7" />
+      <path d="m16 5 3 3" />
+      <path d="m14 7 3 3" />
+    </svg>
+  )
+}
 
 function GoogleIcon() {
   return (
@@ -1695,7 +1569,6 @@ function GoogleIcon() {
       width="17"
       height="17"
       viewBox="0 0 24 24"
-      aria-hidden="true"
     >
       <path
         fill="#4285F4"
@@ -1720,10 +1593,6 @@ function GoogleIcon() {
   )
 }
 
-/* =========================================================
-   DISCORD ICON
-========================================================= */
-
 function DiscordIcon() {
   return (
     <svg
@@ -1731,7 +1600,6 @@ function DiscordIcon() {
       height="18"
       viewBox="0 0 24 24"
       fill="none"
-      aria-hidden="true"
     >
       <path
         fill="#fff"
