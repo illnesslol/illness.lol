@@ -1,505 +1,1117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>illness.lol — Clean Halloween Landing Page</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+'use client'
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            heading: ['Space Grotesk', 'sans-serif'],
-          },
-          colors: {
-            brandBg: '#0a060d',
-            brandDark: '#050307',
-            brandOrange: '#e65c00',
-            brandOrangeBright: '#ff6600',
+import { useEffect, useRef, useState } from 'react'
+import { TransitionLink } from '../components/PageTransition'
+
+const COLORS = {
+  bg: '#17101a',
+  bgDark: '#0d0b10',
+  purple: '#9b4dcc',
+  purpleBright: '#b75be8',
+  purpleSoft: 'rgba(155,77,204,.18)',
+  purpleBorder: 'rgba(181,91,232,.55)',
+  white: '#ffffff',
+  muted: 'rgba(255,255,255,.72)',
+  faint: 'rgba(255,255,255,.4)',
+}
+
+function PlaceholderAvatar({ small = false }) {
+  return (
+    <div
+      style={{
+        width: small ? 32 : 48,
+        height: small ? 32 : 48,
+        borderRadius: '50%',
+        background:
+          'linear-gradient(135deg, #8f48bc, #c27ae8)',
+        boxShadow: '0 0 20px rgba(155,77,204,.3)',
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
+function FakeIcon() {
+  return (
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        background: 'rgba(181,91,232,.22)',
+        border: '1px solid rgba(181,91,232,.18)',
+      }}
+    />
+  )
+}
+
+function DashboardPlaceholder() {
+  return (
+    <div
+      className="dashboard-placeholder"
+      style={{
+        width: 790,
+        height: 465,
+        background: '#09090b',
+        border: `2px solid ${COLORS.purpleBorder}`,
+        borderRadius: 26,
+        boxShadow:
+          '0 0 35px rgba(155,77,204,.14), 0 30px 100px rgba(0,0,0,.75)',
+        overflow: 'hidden',
+        display: 'flex',
+        transform: 'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+        transformOrigin: 'center center',
+      }}
+    >
+      {/* SIDEBAR */}
+      <div
+        style={{
+          width: 170,
+          background: '#0d0d0f',
+          borderRight: '1px solid rgba(255,255,255,.07)',
+          padding: 16,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 9,
+            marginBottom: 22,
+          }}
+        >
+          <PlaceholderAvatar small />
+
+          <div>
+            <div
+              style={{
+                fontSize: 9,
+                color: '#fff',
+                fontWeight: 600,
+              }}
+            >
+              Welcome back, $
+            </div>
+
+            <div
+              style={{
+                fontSize: 7,
+                color: COLORS.faint,
+              }}
+            >
+              illness.lol
+            </div>
+          </div>
+        </div>
+
+        {[
+          'account',
+          'customize',
+          'links',
+          'premium',
+          'image host',
+        ].map((item, i) => (
+          <div
+            key={item}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 9,
+              padding: '8px 9px',
+              borderRadius: 8,
+              marginBottom: 4,
+              background:
+                i === 0
+                  ? 'rgba(155,77,204,.22)'
+                  : 'transparent',
+              color:
+                i === 0
+                  ? '#fff'
+                  : 'rgba(255,255,255,.72)',
+              fontSize: 9,
+            }}
+          >
+            <FakeIcon />
+            {item}
+          </div>
+        ))}
+
+        <div
+          style={{
+            marginTop: 70,
+            padding: 10,
+            borderRadius: 10,
+            background: 'rgba(255,255,255,.025)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 8,
+              color: COLORS.muted,
+              marginBottom: 8,
+            }}
+          >
+            Have a question or need support?
+          </div>
+
+          <div
+            style={{
+              height: 27,
+              borderRadius: 7,
+              background:
+                'linear-gradient(90deg,#7652d9,#9b4dcc)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 8,
+            }}
+          >
+            Join Discord
+          </div>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div
+        style={{
+          flex: 1,
+          padding: 22,
+          minWidth: 0,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            color: '#fff',
+            marginBottom: 15,
+          }}
+        >
+          Account Overview
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns:
+              '1.2fr 1fr 1fr 1fr',
+            gap: 9,
+            marginBottom: 20,
+          }}
+        >
+          {[
+            ['Username', '$'],
+            ['Alias', 'hirs'],
+            ['UID', '1'],
+            ['Profile Views', '4,801'],
+          ].map(([title, value]) => (
+            <div
+              key={title}
+              style={{
+                background: 'rgba(155,77,204,.16)',
+                borderRadius: 9,
+                padding: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  marginBottom: 8,
+                }}
+              >
+                <FakeIcon />
+
+                <span
+                  style={{
+                    fontSize: 7,
+                    color: COLORS.muted,
+                  }}
+                >
+                  {title}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 10,
+                  color: '#fff',
+                }}
+              >
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            fontSize: 9,
+            color: '#fff',
+            marginBottom: 9,
+          }}
+        >
+          Account Statistics
+        </div>
+
+        <div
+          style={{
+            height: 205,
+            borderRadius: 13,
+            background: '#0b0b0d',
+            border: '1px solid rgba(255,255,255,.035)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: 18,
+              top: 16,
+              color: COLORS.faint,
+              fontSize: 7,
+            }}
+          >
+            Profile Views in the last 12 hours
+          </div>
+
+          <svg
+            viewBox="0 0 600 180"
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              left: 15,
+              right: 15,
+              bottom: 10,
+              width: 'calc(100% - 30px)',
+              height: 155,
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="chartGradient"
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#a453cb"
+                  stopOpacity=".45"
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#a453cb"
+                  stopOpacity=".03"
+                />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="
+                M0 150
+                L45 150
+                C70 150 75 120 100 120
+                C125 120 125 150 150 150
+                C175 150 180 50 200 50
+                C220 50 235 150 255 150
+                C275 150 280 60 305 60
+                C330 60 345 150 365 150
+                C385 150 390 110 410 110
+                C430 110 440 150 460 150
+                C480 150 490 75 510 75
+                C530 75 545 150 565 150
+                L600 150
+                L600 180
+                L0 180
+                Z
+              "
+              fill="url(#chartGradient)"
+            />
+
+            <path
+              d="
+                M0 150
+                L45 150
+                C70 150 75 120 100 120
+                C125 120 125 150 150 150
+                C175 150 180 50 200 50
+                C220 50 235 150 255 150
+                C275 150 280 60 305 60
+                C330 60 345 150 365 150
+                C385 150 390 110 410 110
+                C430 110 440 150 460 150
+                C480 150 490 75 510 75
+                C530 75 545 150 565 150
+                L600 150
+              "
+              fill="none"
+              stroke="#a453cb"
+              strokeWidth="2"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfilePlaceholder({
+  className = '',
+  style = {},
+  username = 'username',
+  image = 1,
+}) {
+  const backgrounds = [
+    'linear-gradient(135deg,#111827,#26354a)',
+    'linear-gradient(135deg,#15202b,#314e63)',
+    'linear-gradient(135deg,#15110b,#51421e)',
+  ]
+
+  return (
+    <div
+      className={`profile-placeholder ${className}`}
+      style={{
+        position: 'absolute',
+        width: 390,
+        height: 410,
+        borderRadius: 24,
+        overflow: 'hidden',
+        border: `2px solid ${COLORS.purpleBorder}`,
+        background: '#0b0b0d',
+        boxShadow:
+          '0 20px 70px rgba(0,0,0,.7), 0 0 30px rgba(155,77,204,.1)',
+        ...style,
+      }}
+    >
+      {/* IMAGE PLACEHOLDER */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: backgrounds[image - 1],
+        }}
+      />
+
+      {/* DARK OVERLAY */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(to bottom,rgba(0,0,0,.05) 20%,rgba(0,0,0,.85) 90%)',
+        }}
+      />
+
+      {/* CONTENT */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 22,
+          right: 22,
+          bottom: 20,
+        }}
+      >
+        <PlaceholderAvatar />
+
+        <div
+          style={{
+            marginTop: 12,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 19,
+            fontWeight: 700,
+          }}
+        >
+          {username}
+        </div>
+
+        <div
+          style={{
+            marginTop: 5,
+            color: COLORS.faint,
+            fontSize: 9,
+          }}
+        >
+          Welcome to my profile!
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 7,
+            marginTop: 15,
+          }}
+        >
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              style={{
+                width: 31,
+                height: 31,
+                borderRadius: 8,
+                background: 'rgba(255,255,255,.1)',
+                border:
+                  '1px solid rgba(255,255,255,.12)',
+              }}
+            />
+          ))}
+        </div>
+
+        <div
+          style={{
+            height: 39,
+            marginTop: 14,
+            borderRadius: 10,
+            background: 'rgba(255,255,255,.09)',
+            border:
+              '1px solid rgba(255,255,255,.1)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+export default function HomePage() {
+  const canvasRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(true)
+    }, 100)
+
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => {
+        setLoggedIn(Boolean(data.loggedIn))
+        setAuthChecked(true)
+      })
+      .catch(() => {
+        setAuthChecked(true)
+      })
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    resize()
+
+    window.addEventListener('resize', resize)
+
+    const particles = Array.from(
+      { length: 28 },
+      () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 2 + .5,
+        opacity: Math.random() * .18 + .025,
+      })
+    )
+
+    let animationFrame
+
+    const draw = () => {
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
+
+      particles.forEach(p => {
+        ctx.beginPath()
+        ctx.arc(
+          p.x,
+          p.y,
+          p.size,
+          0,
+          Math.PI * 2
+        )
+
+        ctx.fillStyle = `rgba(180,100,235,${p.opacity})`
+        ctx.fill()
+      })
+
+      animationFrame =
+        requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      clearTimeout(timer)
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener(
+        'resize',
+        resize
+      )
+    }
+  }, [])
+
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        background: COLORS.bg,
+        color: '#fff',
+        fontFamily: "'Inter', system-ui, sans-serif",
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        * {
+          box-sizing: border-box;
+        }
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        body {
+          margin: 0;
+          background: #17101a;
+        }
+
+        ::selection {
+          background: rgba(181,91,232,.35);
+          color: #fff;
+        }
+
+        .nav-link {
+          transition: .2s ease;
+        }
+
+        .nav-link:hover {
+          color: #fff !important;
+        }
+
+        .hero-button {
+          transition: .2s ease;
+        }
+
+        .hero-button:hover {
+          transform: translateY(-2px);
+        }
+
+        .primary-button:hover {
+          box-shadow: 0 0 30px rgba(181,91,232,.45) !important;
+        }
+
+        @media (max-width: 1100px) {
+          .showcase {
+            transform: scale(.82);
+            transform-origin: top center;
           }
         }
-      }
-    }
-  </script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #0a060d;
-      color: #ffffff;
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-
-    ::selection {
-      background: rgba(230, 92, 0, 0.4);
-      color: #ffffff;
-    }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #050307;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #23112b;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #e65c00;
-    }
-
-    .glass-nav {
-      background: rgba(10, 6, 13, 0.85);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(230, 92, 0, 0.2);
-    }
-
-    .hero-btn {
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hero-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .card-3d-dashboard {
-      transform: perspective(1200px) rotateY(8deg) rotateZ(3deg);
-      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .card-3d-dashboard:hover {
-      transform: perspective(1200px) rotateY(2deg) rotateZ(1deg) translateY(-4px);
-    }
-
-    .card-profile-stack {
-      transition: transform 0.4s ease, opacity 0.4s ease;
-    }
-
-    .bg-grid-pattern {
-      background-image: radial-gradient(rgba(230, 92, 0, 0.12) 1px, transparent 1px);
-      background-size: 24px 24px;
-    }
-  </style>
-</head>
-<body class="relative bg-brandBg text-white antialiased selection:bg-brandOrange/30">
-
-  <!-- CANVAS PARTICLES -->
-  <canvas id="particleCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
-
-  <!-- RADIAL ATMOSPHERIC GLOW -->
-  <div id="ambientGlow" class="fixed -top-80 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full pointer-events-none z-0 opacity-70 transition-all duration-700"
-       style="background: radial-gradient(circle, rgba(230,92,0,0.18) 0%, transparent 65%);"></div>
-
-  <!-- MAIN WRAPPER -->
-  <div class="relative z-10 flex flex-col min-h-screen">
-
-    <!-- TOP NAVIGATION -->
-    <header class="pt-5 px-4 w-full flex justify-center">
-      <nav class="glass-nav w-full max-w-6xl h-16 rounded-full px-6 flex items-center justify-between shadow-2xl relative z-30">
-        
-        <!-- BRAND -->
-        <a href="#" class="flex items-center gap-3 text-white no-underline group">
-          <div id="brandDot" class="w-3 h-3 rounded-full bg-brandOrange shadow-[0_0_12px_rgba(230,92,0,0.8)] transition-all duration-300"></div>
-          <span class="font-heading font-bold text-xl tracking-tight text-white group-hover:text-brandOrange transition-colors">
-            illness.lol
-          </span>
-        </a>
-
-        <!-- DESKTOP LINKS -->
-        <div class="hidden md:flex items-center gap-1 text-sm font-medium">
-          <a href="#help" class="px-3 py-1.5 text-neutral-300 hover:text-brandOrange transition-colors rounded-lg">Help Center</a>
-          <a href="#discord" class="px-3 py-1.5 text-neutral-300 hover:text-brandOrange transition-colors rounded-lg">Discord</a>
-          <a href="#compare" class="px-3 py-1.5 text-neutral-300 hover:text-brandOrange transition-colors rounded-lg">Compare</a>
-          <a href="#leaderboard" class="px-3 py-1.5 text-neutral-300 hover:text-brandOrange transition-colors rounded-lg">Leaderboard</a>
-          <a href="#pricing" class="px-3 py-1.5 text-neutral-300 hover:text-brandOrange transition-colors rounded-lg">Pricing</a>
-        </div>
-
-        <!-- AUTH BUTTONS -->
-        <div class="flex items-center gap-3">
-          <a href="#login" class="text-sm text-neutral-300 hover:text-white transition-colors px-3 py-1.5 hidden sm:block">Log in</a>
-          <a href="#signup" id="navPrimaryBtn" class="hero-btn text-sm font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-amber-700 to-brandOrange text-white border border-amber-500/30 shadow-[0_0_15px_rgba(230,92,0,0.25)] hover:shadow-[0_0_25px_rgba(230,92,0,0.45)]">
-            Sign up
-          </a>
-        </div>
-      </nav>
-    </header>
-
-    <!-- HERO SECTION -->
-    <section class="pt-20 pb-12 px-4 text-center flex flex-col items-center justify-center relative">
-      
-      <!-- HALLOWEEN BADGE -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brandOrange/10 border border-brandOrange/30 text-xs text-brandOrangeBright font-medium mb-6">
-        <span class="w-2 h-2 rounded-full bg-brandOrange animate-pulse"></span>
-        <span>Halloween Event Active</span>
-      </div>
-
-      <!-- MAIN HEADLINE -->
-      <h1 class="font-heading text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white max-w-4xl leading-[1.1]">
-        Everything you want, <br class="hidden sm:inline" />
-        <span id="heroAccentText" class="text-brandOrange transition-colors duration-500">unbelievably fast.</span>
-      </h1>
-
-      <!-- SUBTITLE -->
-      <p class="mt-5 text-neutral-400 text-base sm:text-lg max-w-2xl font-normal leading-relaxed">
-        illness.lol is your platform for modern, customizable bio pages and high-performance file hosting — updated for Halloween.
-      </p>
-
-      <!-- CTA BUTTONS -->
-      <div class="mt-8 flex items-center justify-center gap-3 flex-wrap">
-        <a href="#claim" id="ctaPrimary" class="hero-btn px-6 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-amber-700 to-brandOrange border border-white/20 shadow-[0_0_20px_rgba(230,92,0,0.3)] hover:shadow-[0_0_30px_rgba(230,92,0,0.5)]">
-          Claim Username
-        </a>
-        <a href="#pricing" class="hero-btn px-5 py-3 rounded-xl font-medium text-sm text-neutral-200 bg-neutral-900/80 border border-brandOrange/20 hover:border-brandOrange/40 hover:text-white">
-          View Pricing
-        </a>
-      </div>
-    </section>
-
-    <!-- INTERACTIVE CONTROL PANEL FOR PREVIEW -->
-    <section class="max-w-4xl mx-auto w-full px-4 mb-8 relative z-30">
-      <div class="bg-neutral-950/80 border border-brandOrange/20 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl">
-        <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Live Preview Controls</span>
-          <span class="text-xs text-brandOrange font-mono">Interactive Demo</span>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <!-- INPUT: USERNAME -->
-          <div>
-            <label class="block text-neutral-400 mb-1 font-medium">Card Username</label>
-            <input type="text" id="inputUsername" value="pumpkin" 
-                   class="w-full bg-neutral-900 border border-neutral-800 focus:border-brandOrange text-white rounded-lg px-3 py-1.5 outline-none transition-colors" />
-          </div>
-
-          <!-- INPUT: BIO -->
-          <div>
-            <label class="block text-neutral-400 mb-1 font-medium">Card Bio Text</label>
-            <input type="text" id="inputBio" value="Welcome to my profile page." 
-                   class="w-full bg-neutral-900 border border-neutral-800 focus:border-brandOrange text-white rounded-lg px-3 py-1.5 outline-none transition-colors" />
-          </div>
-
-          <!-- INPUT: THEME TONE -->
-          <div>
-            <label class="block text-neutral-400 mb-1 font-medium">Theme Accent Tone</label>
-            <div class="flex gap-2">
-              <button onclick="setTheme('orange')" class="flex-1 py-1.5 rounded bg-amber-700/30 border border-amber-600/50 text-amber-300 font-medium hover:bg-amber-700/50 transition">
-                Orange
-              </button>
-              <button onclick="setTheme('purple')" class="flex-1 py-1.5 rounded bg-purple-900/30 border border-purple-600/50 text-purple-300 font-medium hover:bg-purple-900/50 transition">
-                Purple
-              </button>
-              <button onclick="toggleParticles()" id="particleBtn" class="flex-1 py-1.5 rounded bg-neutral-800 border border-neutral-700 text-neutral-300 font-medium hover:bg-neutral-700 transition">
-                Ember: On
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SHOWCASE AREA -->
-    <section class="w-full max-w-7xl mx-auto px-4 pb-24 relative z-20 overflow-hidden sm:overflow-visible">
-      <div class="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[520px] relative">
-        
-        <!-- DASHBOARD CARD (3D TILT) -->
-        <div class="card-3d-dashboard w-full lg:w-[680px] bg-[#08040a] border border-brandOrange/30 rounded-2xl p-5 shadow-[0_0_50px_rgba(230,92,0,0.12),0_30px_90px_rgba(0,0,0,0.9)] flex flex-col sm:flex-row gap-5 relative overflow-hidden">
-          
-          <!-- SIDEBAR -->
-          <div class="w-full sm:w-44 bg-[#060308] border-r sm:border-r border-b sm:border-b-0 border-white/10 p-3 rounded-xl flex-shrink-0 flex sm:flex-col justify-between">
-            <div>
-              <div class="flex items-center gap-2.5 mb-5">
-                <div id="sideAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-brandOrange to-amber-500 shadow-[0_0_12px_rgba(230,92,0,0.4)]"></div>
-                <div>
-                  <div class="text-[11px] font-semibold text-white">Welcome back</div>
-                  <div class="text-[9px] text-neutral-400 font-mono">illness.lol</div>
-                </div>
-              </div>
-
-              <div class="space-y-1 hidden sm:block">
-                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-brandOrange/20 text-white text-[11px] font-medium border border-brandOrange/30">
-                  <div class="w-2.5 h-2.5 rounded bg-brandOrange"></div>
-                  account
-                </div>
-                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-neutral-400 text-[11px] hover:text-white transition">
-                  <div class="w-2.5 h-2.5 rounded bg-neutral-800"></div>
-                  customize
-                </div>
-                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-neutral-400 text-[11px] hover:text-white transition">
-                  <div class="w-2.5 h-2.5 rounded bg-neutral-800"></div>
-                  links
-                </div>
-                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-neutral-400 text-[11px] hover:text-white transition">
-                  <div class="w-2.5 h-2.5 rounded bg-neutral-800"></div>
-                  premium
-                </div>
-                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-neutral-400 text-[11px] hover:text-white transition">
-                  <div class="w-2.5 h-2.5 rounded bg-neutral-800"></div>
-                  image host
-                </div>
-              </div>
-            </div>
-
-            <div class="p-2.5 rounded-lg bg-brandOrange/5 border border-brandOrange/15 mt-4 sm:mt-8 text-left">
-              <div class="text-[9px] text-neutral-400 mb-2">Need assistance? Reach out anytime.</div>
-              <div class="h-6 rounded bg-gradient-to-r from-amber-700 to-brandOrange flex items-center justify-center text-[10px] text-white font-semibold shadow">
-                Join Discord
-              </div>
-            </div>
-          </div>
-
-          <!-- DASHBOARD CONTENT -->
-          <div class="flex-1 flex flex-col justify-between min-w-0">
-            <div>
-              <div class="text-xs font-semibold text-white mb-3">Overview</div>
-              
-              <!-- METRICS GRID -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                <div class="bg-brandOrange/10 border border-brandOrange/20 p-2.5 rounded-lg">
-                  <div class="text-[9px] text-neutral-400">Username</div>
-                  <div id="dashUsername" class="text-xs font-semibold text-white mt-1">pumpkin</div>
-                </div>
-                <div class="bg-brandOrange/10 border border-brandOrange/20 p-2.5 rounded-lg">
-                  <div class="text-[9px] text-neutral-400">Alias</div>
-                  <div class="text-xs font-semibold text-white mt-1">hirs</div>
-                </div>
-                <div class="bg-brandOrange/10 border border-brandOrange/20 p-2.5 rounded-lg">
-                  <div class="text-[9px] text-neutral-400">UID</div>
-                  <div class="text-xs font-semibold text-white mt-1">1337</div>
-                </div>
-                <div class="bg-brandOrange/10 border border-brandOrange/20 p-2.5 rounded-lg">
-                  <div class="text-[9px] text-neutral-400">Views</div>
-                  <div class="text-xs font-semibold text-white mt-1">6,660</div>
-                </div>
-              </div>
-
-              <!-- ANALYTICS CHART GRAPH -->
-              <div class="text-xs font-semibold text-white mb-2">Analytics</div>
-              <div class="h-40 rounded-xl bg-neutral-950 border border-brandOrange/20 p-3 relative overflow-hidden flex flex-col justify-between">
-                <div class="text-[9px] text-neutral-500">Profile Visits (Past 24 Hours)</div>
-                
-                <svg viewBox="0 0 500 120" class="w-full h-28 overflow-visible">
-                  <defs>
-                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#e65c00" stop-opacity="0.5" />
-                      <stop offset="100%" stop-color="#e65c00" stop-opacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  
-                  <path d="M0 100 Q 60 90, 120 40 T 240 70 T 360 20 T 480 80 L 500 90 L 500 120 L 0 120 Z" 
-                        fill="url(#chartGrad)" />
-                  <path d="M0 100 Q 60 90, 120 40 T 240 70 T 360 20 T 480 80 L 500 90" 
-                        fill="none" id="chartStroke" stroke="#e65c00" stroke-width="2.5" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PROFILE PREVIEW CARDS (STACKED) -->
-        <div class="relative w-full max-w-[340px] h-[380px] flex-shrink-0">
-          
-          <!-- CARD 3 (BACK) -->
-          <div class="card-profile-stack absolute inset-0 rounded-2xl bg-gradient-to-b from-neutral-900 to-neutral-950 border border-brandOrange/20 p-6 shadow-xl transform translate-x-6 translate-y-6 rotate-6 opacity-40">
-            <div class="w-10 h-10 rounded-full bg-neutral-800 mb-3"></div>
-            <div class="h-4 w-24 bg-neutral-800 rounded mb-2"></div>
-            <div class="h-3 w-36 bg-neutral-800/60 rounded"></div>
-          </div>
-
-          <!-- CARD 2 (MIDDLE) -->
-          <div class="card-profile-stack absolute inset-0 rounded-2xl bg-gradient-to-b from-neutral-900 to-neutral-950 border border-brandOrange/30 p-6 shadow-xl transform translate-x-3 translate-y-3 rotate-3 opacity-70">
-            <div class="w-10 h-10 rounded-full bg-neutral-800 mb-3"></div>
-            <div class="h-4 w-28 bg-neutral-800 rounded mb-2"></div>
-            <div class="h-3 w-40 bg-neutral-800/60 rounded"></div>
-          </div>
-
-          <!-- CARD 1 (FRONT / INTERACTIVE) -->
-          <div class="card-profile-stack absolute inset-0 rounded-2xl bg-gradient-to-b from-[#140817] to-[#09050b] border border-brandOrange/40 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(230,92,0,0.15)] flex flex-col justify-end relative overflow-hidden">
-            
-            <div class="absolute inset-0 bg-gradient-to-t from-[#0a060d] via-transparent to-transparent z-0"></div>
-
-            <div class="relative z-10">
-              <div id="cardAvatar" class="w-12 h-12 rounded-full bg-gradient-to-tr from-brandOrange to-amber-500 border-2 border-brandOrange/50 shadow-[0_0_15px_rgba(230,92,0,0.4)] mb-3"></div>
-              
-              <div id="profileUsername" class="font-heading font-bold text-xl text-white tracking-tight">
-                pumpkin
-              </div>
-
-              <div id="profileBio" class="text-xs text-neutral-300 mt-1 font-normal leading-normal">
-                Welcome to my profile page.
-              </div>
-
-              <!-- SOCIAL ICONS MOCK -->
-              <div class="flex gap-2 mt-4">
-                <div class="w-8 h-8 rounded-lg bg-brandOrange/10 border border-brandOrange/20 flex items-center justify-center">
-                  <div class="w-3.5 h-3.5 rounded-sm bg-brandOrange/80"></div>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-brandOrange/10 border border-brandOrange/20 flex items-center justify-center">
-                  <div class="w-3.5 h-3.5 rounded-sm bg-brandOrange/80"></div>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-brandOrange/10 border border-brandOrange/20 flex items-center justify-center">
-                  <div class="w-3.5 h-3.5 rounded-sm bg-brandOrange/80"></div>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-brandOrange/10 border border-brandOrange/20 flex items-center justify-center">
-                  <div class="w-3.5 h-3.5 rounded-sm bg-brandOrange/80"></div>
-                </div>
-              </div>
-
-              <!-- ACTION BAR MOCK -->
-              <div class="h-9 w-full mt-4 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between px-3">
-                <span class="text-[10px] text-neutral-400">illness.lol/pumpkin</span>
-                <span class="text-[10px] text-brandOrange font-medium">Copy</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="mt-auto border-t border-white/10 py-8 px-4 text-center text-xs text-neutral-500">
-      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-brandOrange"></div>
-          <span class="font-heading text-neutral-300 font-semibold text-sm">illness.lol</span>
-          <span>&mdash; Halloween Edition</span>
-        </div>
-        <div class="flex gap-6 text-neutral-400">
-          <a href="#" class="hover:text-white transition">Terms</a>
-          <a href="#" class="hover:text-white transition">Privacy</a>
-          <a href="#" class="hover:text-white transition">Status</a>
-          <a href="#" class="hover:text-white transition">Contact</a>
-        </div>
-      </div>
-    </footer>
-
-  </div>
-
-  <script>
-    // PARTICLES ANIMATION
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let particles = [];
-    let particlesEnabled = true;
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function createParticles() {
-      particles = [];
-      const count = 35;
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 2 + 1,
-          speedY: Math.random() * 0.5 + 0.2,
-          speedX: Math.random() * 0.4 - 0.2,
-          opacity: Math.random() * 0.4 + 0.15,
-          color: '#e65c00'
-        });
-      }
-    }
-
-    createParticles();
-
-    function renderParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (particlesEnabled) {
-        particles.forEach(p => {
-          p.y += p.speedY;
-          p.x += p.speedX;
-
-          if (p.y > canvas.height) {
-            p.y = 0;
-            p.x = Math.random() * canvas.width;
+        @media (max-width: 800px) {
+          .desktop-links {
+            display: none !important;
           }
 
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.opacity;
-          ctx.fill();
-        });
-      }
+          .hero {
+            padding-top: 145px !important;
+          }
 
-      requestAnimationFrame(renderParticles);
-    }
+          .hero-title {
+            font-size: 42px !important;
+          }
 
-    renderParticles();
+          .hero-subtitle {
+            font-size: 15px !important;
+          }
 
-    // LIVE EDIT CONTROLS
-    const inputUsername = document.getElementById('inputUsername');
-    const inputBio = document.getElementById('inputBio');
-    const profileUsername = document.getElementById('profileUsername');
-    const dashUsername = document.getElementById('dashUsername');
-    const profileBio = document.getElementById('profileBio');
+          .showcase {
+            transform: scale(.58);
+            height: 300px !important;
+            margin-top: 10px !important;
+          }
+        }
 
-    inputUsername.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || 'username';
-      profileUsername.textContent = val;
-      dashUsername.textContent = val;
-    });
+        @media (max-width: 520px) {
+          .nav {
+            width: calc(100% - 24px) !important;
+          }
 
-    inputBio.addEventListener('input', (e) => {
-      profileBio.textContent = e.target.value || 'Welcome to my profile page.';
-    });
+          .nav-brand {
+            font-size: 14px !important;
+          }
 
-    // THEME SWITCHING
-    function setTheme(theme) {
-      const ambientGlow = document.getElementById('ambientGlow');
-      const heroAccent = document.getElementById('heroAccentText');
-      const brandDot = document.getElementById('brandDot');
-      const chartStroke = document.getElementById('chartStroke');
+          .nav-login {
+            display: none !important;
+          }
 
-      if (theme === 'purple') {
-        ambientGlow.style.background = 'radial-gradient(circle, rgba(147,51,234,0.22) 0%, transparent 65%)';
-        heroAccent.style.color = '#a855f7';
-        brandDot.style.backgroundColor = '#a855f7';
-        brandDot.style.boxShadow = '0 0 12px rgba(168,85,247,0.8)';
-        chartStroke.setAttribute('stroke', '#a855f7');
-        particles.forEach(p => p.color = '#a855f7');
-      } else {
-        ambientGlow.style.background = 'radial-gradient(circle, rgba(230,92,0,0.18) 0%, transparent 65%)';
-        heroAccent.style.color = '#e65c00';
-        brandDot.style.backgroundColor = '#e65c00';
-        brandDot.style.boxShadow = '0 0 12px rgba(230,92,0,0.8)';
-        chartStroke.setAttribute('stroke', '#e65c00');
-        particles.forEach(p => p.color = '#e65c00');
-      }
-    }
+          .hero-title {
+            font-size: 35px !important;
+          }
 
-    function toggleParticles() {
-      particlesEnabled = !particlesEnabled;
-      const btn = document.getElementById('particleBtn');
-      btn.textContent = `Ember: ${particlesEnabled ? 'On' : 'Off'}`;
-    }
-  </script>
-</body>
-</html>
+          .hero-subtitle {
+            max-width: 330px !important;
+          }
+
+          .showcase {
+            transform: scale(.42);
+            height: 220px !important;
+            margin-left: -180px !important;
+            margin-right: -180px !important;
+          }
+        }
+      `}</style>
+
+      {/* CANVAS PARTICLES */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* PURPLE ATMOSPHERIC GLOW */}
+      <div
+        style={{
+          position: 'fixed',
+          top: -350,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 1000,
+          height: 700,
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle,rgba(120,54,150,.18),transparent 68%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* FAINT PLACEHOLDER SHAPES */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 30,
+          width: 80,
+          height: 190,
+          borderRadius: 18,
+          background: 'rgba(160,75,190,.07)',
+          transform: 'rotate(-12deg)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div
+        style={{
+          position: 'fixed',
+          top: -20,
+          right: 80,
+          width: 90,
+          height: 170,
+          borderRadius: 20,
+          background: 'rgba(160,75,190,.06)',
+          transform: 'rotate(35deg)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div
+        style={{
+          position: 'fixed',
+          top: 95,
+          left: 145,
+          width: 70,
+          height: 55,
+          borderRadius: 12,
+          background: 'rgba(160,75,190,.055)',
+          transform: 'rotate(-28deg)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* NAV */}
+      <nav
+        className="nav"
+        style={{
+          position: 'absolute',
+          top: 21,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'min(1180px, calc(100% - 40px))',
+          height: 70,
+          borderRadius: 40,
+          background: 'rgba(12,10,13,.92)',
+          border:
+            '1px solid rgba(255,255,255,.035)',
+          boxShadow:
+            '0 15px 50px rgba(0,0,0,.3)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 22px 0 28px',
+          zIndex: 20,
+        }}
+      >
+        {/* BRAND */}
+        <TransitionLink
+          href="/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            color: '#fff',
+            textDecoration: 'none',
+            minWidth: 200,
+          }}
+        >
+          {/* PLACEHOLDER LOGO */}
+          <div
+            style={{
+              width: 29,
+              height: 29,
+              borderRadius: 8,
+              background:
+                'linear-gradient(135deg,#8d45b9,#c05de9)',
+              transform: 'rotate(-18deg)',
+              boxShadow:
+                '0 0 16px rgba(181,91,232,.25)',
+            }}
+          />
+
+          <span
+            className="nav-brand"
+            style={{
+              fontFamily:
+                "'Space Grotesk', sans-serif",
+              fontSize: 21,
+              fontWeight: 600,
+              letterSpacing: '-.7px',
+            }}
+          >
+            illness.lol
+          </span>
+        </TransitionLink>
+
+        {/* CENTER LINKS */}
+        <div
+          className="desktop-links"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          {[
+            ['Help Center', '/help'],
+            ['Discord', 'https://discord.gg/illness'],
+            ['Compare', '/compare'],
+            ['Leaderboard', '/leaderboard'],
+            ['Pricing', '/pricing'],
+          ].map(([label, href]) => (
+            <TransitionLink
+              key={label}
+              href={href}
+              className="nav-link"
+              style={{
+                color: COLORS.muted,
+                textDecoration: 'none',
+                fontSize: 14,
+                padding: '10px 12px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {label}
+            </TransitionLink>
+          ))}
+        </div>
+
+        {/* RIGHT */}
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          {!loggedIn && (
+            <TransitionLink
+              href="/login"
+              className="nav-login"
+              style={{
+                color: COLORS.muted,
+                textDecoration: 'none',
+                fontSize: 14,
+                padding: '11px 14px',
+              }}
+            >
+              Log in
+            </TransitionLink>
+          )}
+
+          {authChecked && loggedIn ? (
+            <TransitionLink
+              href="/dashboard"
+              className="hero-button"
+              style={{
+                color: '#fff',
+                background:
+                  'linear-gradient(135deg,rgba(155,77,204,.32),rgba(110,54,140,.22))',
+                border:
+                  '1px solid rgba(181,91,232,.5)',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 500,
+                padding: '11px 17px',
+                borderRadius: 25,
+              }}
+            >
+              Dashboard
+            </TransitionLink>
+          ) : (
+            <TransitionLink
+              href="/signup"
+              className="hero-button"
+              style={{
+                color: '#fff',
+                background:
+                  'linear-gradient(135deg,#7b3d9c,#9b4dcc)',
+                border:
+                  '1px solid rgba(210,140,239,.25)',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                padding: '12px 19px',
+                borderRadius: 25,
+                boxShadow:
+                  '0 0 18px rgba(155,77,204,.2)',
+              }}
+            >
+              Sign up
+            </TransitionLink>
+          )}
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section
+        className="hero"
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          minHeight: 650,
+          paddingTop: 185,
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          opacity: visible ? 1 : 0,
+          transform: visible
+            ? 'translateY(0)'
+            : 'translateY(14px)',
+          transition:
+            'opacity .7s ease, transform .7s ease',
+        }}
+      >
+        <h1
+          className="hero-title"
+          style={{
+            fontFamily:
+              "'Space Grotesk', sans-serif",
+            fontSize: 46,
+            lineHeight: 1.15,
+            letterSpacing: '-1.5px',
+            fontWeight: 600,
+            margin: 0,
+            color: '#fff',
+          }}
+        >
+          Everything you want, right here.
+        </h1>
+
+        <p
+          className="hero-subtitle"
+          style={{
+            maxWidth: 720,
+            margin: '17px auto 25px',
+            fontSize: 17,
+            lineHeight: 1.6,
+            color: COLORS.muted,
+          }}
+        >
+          illness.lol is your go-to for modern,
+          feature rich custom bio pages and fast,
+          secure file hosting
+        </p>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <TransitionLink
+            href="/signup"
+            className="hero-button primary-button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px 18px',
+              borderRadius: 14,
+              color: '#fff',
+              background:
+                'linear-gradient(135deg,#74409a,#9b4dcc)',
+              border:
+                '1px solid rgba(194,122,232,.4)',
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 600,
+              boxShadow:
+                '0 0 20px rgba(155,77,204,.25)',
+            }}
+          >
+            Sign Up for Free
+          </TransitionLink>
+
+          <TransitionLink
+            href="/pricing"
+            className="hero-button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px 18px',
+              borderRadius: 14,
+              color: '#fff',
+              background: 'rgba(20,18,21,.8)',
+              border:
+                '1px solid rgba(255,255,255,.08)',
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            View Pricing
+          </TransitionLink>
+        </div>
+      </section>
+
+      {/* SHOWCASE */}
+      <section
+        className="showcase"
+        style={{
+          position: 'relative',
+          zIndex: 3,
+          width: 1500,
+          height: 500,
+          margin: '-160px auto 0',
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        {/* DASHBOARD */}
+        <DashboardPlaceholder
+        />
+
+        {/* RIGHT PROFILE STACK */}
+        <div
+          style={{
+            position: 'absolute',
+            right: 45,
+            top: 70,
+            width: 700,
+            height: 450,
+          }}
+        >
+          <ProfilePlaceholder
+            username="Azure"
+            image={1}
+            style={{
+              left: 0,
+              top: 0,
+              transform:
+                'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+              opacity: .65,
+            }}
+          />
+
+          <ProfilePlaceholder
+            username="vue"
+            image={2}
+            style={{
+              left: 140,
+              top: 35,
+              transform:
+                'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
+              zIndex: 2,
+            }}
+          />
+
+          <ProfilePlaceholder
+            username="yourname"
+            image={3}
+            style={{
+              left: 305,
+              top: 75,
+              transform:
+                'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+              zIndex: 3,
+            }}
+          />
+        </div>
+
+        {/* BOTTOM FADE */}
+        <div
+          style={{
+            position: 'absolute',
+            left: -100,
+            right: -100,
+            bottom: -80,
+            height: 180,
+            background:
+              'linear-gradient(to bottom,transparent,#17101a 72%)',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        />
+      </section>
+
+      {/* SMALL BOTTOM FADE */}
+      <div
+        style={{
+          height: 160,
+          marginTop: -100,
+          position: 'relative',
+          zIndex: 5,
+          background:
+            'linear-gradient(to bottom,transparent,#17101a)',
+        }}
+      />
+    </main>
+  )
+}
