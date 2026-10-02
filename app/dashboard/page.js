@@ -1,967 +1,177 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 
-/* ================================================================== */
-/*  illness.lol — advanced customization dashboard                    */
-/* ================================================================== */
+const C = {
+  bg: '#070707', surface: '#0d0d0d', raised: '#121212', line: 'rgba(255,255,255,.08)',
+  orange: '#ff6a1a', orange2: '#ff9a52', muted: 'rgba(255,255,255,.62)', faint: 'rgba(255,255,255,.38)',
+}
 
-const ACCOUNT_GROUP = [
-  { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { id: 'analytics', label: 'Analytics', icon: 'M3 3v18h18M7 15l3-4 4 3 5-7' },
-  { id: 'badges', label: 'Badges', icon: 'M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z' },
-  { id: 'settings', label: 'Settings', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1L14.5 3h-4L10 5.5a7 7 0 00-1.7 1l-2.4-1-2 3.4L4 10.9a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1L10 21h4l.5-2.5a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z' },
+const navItems = [
+  { label: 'Overview', icon: '◫' },
+  { label: 'Customize page', icon: '✳' },
+  { label: 'Links', icon: '↗' },
+  { label: 'Appearance', icon: '◐' },
+  { label: 'File hosting', icon: '▤' },
 ]
 
-const NAV = [
-  { id: 'customize', label: 'Customize', icon: 'M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.6 5.7 21l2.3-7.1-6-4.5h7.6z' },
-  { id: 'links', label: 'Links', icon: 'M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1' },
-  { id: 'premium', label: 'Premium', icon: 'M3 7l4 5 5-7 5 7 4-5v11H3z' },
-  { id: 'buttons', label: 'Buttons', icon: 'M4 8a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V8zM4 16a2 2 0 012-2h5a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z' },
-]
+function Icon({ children }) {
+  return <span aria-hidden="true" className="icon">{children}</span>
+}
 
-const EFFECTS = [
-  { key: 'particles', label: 'Particles', hint: 'floating orbs' },
-  { key: 'rain', label: 'Rain', hint: 'falling streaks' },
-  { key: 'snow', label: 'Snow', hint: 'drifting flakes' },
-  { key: 'sparkles', label: 'Sparkles', hint: 'twinkling accent' },
-]
-
-const SOCIAL_TYPES = ['Discord', 'Instagram', 'TikTok', 'X / Twitter', 'YouTube', 'GitHub', 'Spotify', 'Telegram', 'Custom']
-
-const DEFAULT_CFG = {
-  displayName: 'yourname',
-  username: 'yourname',
-  bio: 'just another star in the void ✦',
-  location: '',
-  avatar: '',
-  background: '',
-  audio: '',
-  accent: '#8b5cf6',
-  accent2: '#3b82f6',
-  bgColor: '#06060f',
-  gradientBg: true,
-  cardOpacity: 82,
-  blur: 16,
-  glow: true,
-  tilt: true,
-  monochromeIcons: true,
-  animatedTitle: true,
-  typewriterBio: false,
-  customCursor: false,
-  clickToEnter: true,
-  volume: 40,
-  effects: { particles: true, rain: false, snow: false, sparkles: true },
-  socials: [
-    { id: 1, type: 'Discord', url: '' },
-    { id: 2, type: 'Instagram', url: '' },
-  ],
-  views: 1284,
+function Panel({ children, className = '' }) {
+  return <section className={`panel ${className}`}>{children}</section>
 }
 
 export default function DashboardPage() {
-  const bgCanvasRef = useRef(null)
-  const [section, setSection] = useState('customize')
-  const [cfg, setCfg] = useState(DEFAULT_CFG)
-  const [toast, setToast] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [active, setActive] = useState('Overview')
+  const [copied, setCopied] = useState(false)
+  const [profilePublic, setProfilePublic] = useState(true)
 
-  // load persisted config
-  useEffect(() => {
-    fetch('/api/me')
-      .then(r => r.json())
-      .then(data => {
-        if (data.loggedIn && data.config) {
-          setCfg({ ...DEFAULT_CFG, ...data.config })
-        }
-      })
-      .catch(() => {})
-      .finally(() => setMounted(true))
-  }, [])
-
-  const set = (k, v) => setCfg(c => ({ ...c, [k]: v }))
-  const toggleEffect = (k) => setCfg(c => ({ ...c, effects: { ...c.effects, [k]: !c.effects[k] } }))
-  const addSocial = () => setCfg(c => ({ ...c, socials: [...c.socials, { id: Date.now(), type: 'Custom', url: '' }] }))
-  const updSocial = (id, patch) => setCfg(c => ({ ...c, socials: c.socials.map(s => s.id === id ? { ...s, ...patch } : s) }))
-  const rmSocial = (id) => setCfg(c => ({ ...c, socials: c.socials.filter(s => s.id !== id) }))
-
-  const save = () => {
-    fetch('/api/config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cfg),
-    })
-      .then(r => r.json())
-      .then(res => {
-        if (res.success) {
-          setToast(true)
-          setTimeout(() => setToast(false), 1900)
-        }
-      })
-      .catch(() => {})
+  async function copyProfile() {
+    try {
+      await navigator.clipboard.writeText('https://illness.lol/yourname')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
   }
 
-  // ---- ambient site background canvas ----
-  useEffect(() => {
-    const canvas = bgCanvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    resize()
-    window.addEventListener('resize', resize)
-    const stars = Array.from({ length: 200 }, () => ({
-      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-      r: Math.random() * 1.4 + 0.2, a: Math.random(),
-      speed: Math.random() * 0.003 + 0.0005, twinkle: Math.random() * Math.PI * 2,
-    }))
-    let animId
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      const blobs = [
-        { x: canvas.width * 0.15, y: canvas.height * 0.25, r: 340, color: 'rgba(60,20,120,' },
-        { x: canvas.width * 0.85, y: canvas.height * 0.7, r: 300, color: 'rgba(20,60,100,' },
-      ]
-      blobs.forEach(b => {
-        const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r)
-        g.addColorStop(0, b.color + '0.15)'); g.addColorStop(1, b.color + '0)')
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill()
-      })
-      stars.forEach(s => {
-        s.twinkle += s.speed
-        const alpha = s.a * (0.4 + 0.6 * Math.sin(s.twinkle))
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(220,220,255,${alpha})`; ctx.fill()
-      })
-      animId = requestAnimationFrame(draw)
-    }
-    draw()
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
-  }, [])
-
-  const activeIdx = NAV.findIndex(n => n.id === section)
-  const accountActive = ACCOUNT_GROUP.some(n => n.id === section)
-  const [accountOpen, setAccountOpenState] = useState(true)
-  const [shareOpen, setShareOpen] = useState(false)
-
   return (
-    <div style={{ minHeight: '100vh', background: '#06060f', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', display: 'flex' }}>
-      <GlobalStyles accent={cfg.accent} />
-      <canvas ref={bgCanvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 0 }} />
-
-      {/* loading overlay — hides default config flash until real data arrives, without unmounting the canvas */}
-      {!mounted && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 100,
-          background: '#06060f',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <img
-            src="/icon.png"
-            alt=""
-            style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.6 }}
-          />
-        </div>
-      )}
-
-      {/* ---------------- Sidebar ---------------- */}
+    <main className="dash-shell">
       <aside className="sidebar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 8px 18px' }}>
-          <img src="/icon.png" alt="" style={{ width: '26px', height: '26px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-          <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.3px' }}>illness.lol</span>
+        <a className="brand" href="/">
+          <span className="brand-mark">i.</span>
+          <span>illness<span className="brand-dot">.lol</span></span>
+        </a>
+
+        <div className="user-mini">
+          <div className="avatar">A</div>
+          <div className="user-mini-text"><strong>yourname</strong><span>Free account</span></div>
+          <span className="online-dot" />
         </div>
 
-        <div className="search-box">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input placeholder="Search features..." />
-          <span className="kbd">Ctrl K</span>
-        </div>
-
-        {/* Account collapsible group */}
-        <button className={`nav-group-header ${accountActive ? 'active' : ''}`} onClick={() => setAccountOpenState(o => !o)}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-            Account
-          </span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: accountOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s' }}><path d="M18 15l-6-6-6 6"/></svg>
-        </button>
-        {accountOpen && (
-          <div className="nav-group-body">
-            {ACCOUNT_GROUP.map(n => (
-              <button key={n.id} onClick={() => setSection(n.id)} className={`nav-subitem ${section === n.id ? 'active' : ''}`}>
-                {n.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div style={{ height: '10px' }} />
-
-        <div style={{ position: 'relative' }}>
-          {activeIdx !== -1 && (
-            <div className="nav-indicator" style={{ transform: `translateY(${activeIdx * 44}px)`, boxShadow: `0 0 24px ${cfg.accent}66`, background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})` }} />
-          )}
-          {NAV.map(n => (
-            <button key={n.id} onClick={() => setSection(n.id)} className={`nav-item ${section === n.id ? 'active' : ''}`}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={n.icon} /></svg>
-              {n.label}
+        <p className="nav-label">WORKSPACE</p>
+        <nav className="nav-list" aria-label="Dashboard navigation">
+          {navItems.map(item => (
+            <button key={item.label} className={`nav-item ${active === item.label ? 'active' : ''}`} onClick={() => setActive(item.label)}>
+              <Icon>{item.icon}</Icon><span>{item.label}</span>
+              {item.label === 'Links' && <span className="nav-count">4</span>}
             </button>
           ))}
-        </div>
+        </nav>
 
-        <div style={{ flex: 1 }} />
-
-        <div className="help-card">
-          <div style={{ fontSize: '12.5px', fontWeight: 600, marginBottom: '10px', lineHeight: 1.4 }}>Have a question or need support?</div>
-          <a href="https://discord.gg/YzCrP3ZZaD" target="_blank" rel="noopener noreferrer" className="help-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
-            Help Center
-          </a>
-          <div style={{ fontSize: '12.5px', fontWeight: 600, margin: '12px 0 10px' }}>Check out your page</div>
-          <a href={`/${cfg.username}`} target="_blank" rel="noopener noreferrer" className="help-btn" style={{ background: `${cfg.accent}22`, color: cfg.accent }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-            My Page
-          </a>
-        </div>
-
-        <button className="share-btn" style={{ background: `linear-gradient(135deg, ${cfg.accent}33, ${cfg.accent2}33)`, borderColor: `${cfg.accent}55` }} onClick={() => setShareOpen(true)}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
-          Share Your Profile
-        </button>
-
-        <div className="user-chip">
-          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
-            {cfg.displayName.charAt(0).toUpperCase() || 'U'}
+        <p className="nav-label tools-label">ACCOUNT</p>
+        <button className={`nav-item ${active === 'Settings' ? 'active' : ''}`} onClick={() => setActive('Settings')}><Icon>⚙</Icon><span>Settings</span></button>
+        <div className="sidebar-bottom">
+          <div className="season-card">
+            <div className="season-leaf">✦</div>
+            <strong>Autumn is here</strong>
+            <p>Warm tones. Cozy pages.</p>
+            <span className="season-pill">FALL THEME <span>↗</span></span>
           </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cfg.displayName}</div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>illness.lol/{cfg.username}</div>
-          </div>
+          <a className="discord-link" href="https://discord.gg/illness" target="_blank" rel="noreferrer"><span>◉</span> Need help? Join Discord <span>↗</span></a>
+          <button className="account-button" onClick={() => setActive('Account')}><div className="avatar small">A</div><span><strong>yourname</strong><small>Manage account</small></span><span className="account-more">···</span></button>
         </div>
       </aside>
 
+      <div className="main-area">
+        <header className="topbar">
+          <div className="breadcrumbs"><span>Dashboard</span><b>/</b><strong>{active}</strong></div>
+          <div className="top-actions"><span className="season-tag"><span className="tiny-leaf">✦</span> AUTUMN '26</span><button className="icon-button" aria-label="Notifications">♧<i /></button><button className="view-button" onClick={copyProfile}>↗ <span>View profile</span></button></div>
+        </header>
 
-      {/* ---------------- Main ---------------- */}
-      <main style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', minWidth: 0 }}>
-        <div className="editor-col scroll">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 700, letterSpacing: '-0.5px', textTransform: 'capitalize' }}>{section}</h1>
-            <button className="save-btn" onClick={save}>
-              <span>Save changes</span>
-            </button>
+        <div className="content">
+          <div className="welcome-row">
+            <div><p className="eyebrow"><span /> YOUR PERSONAL SPACE</p><h1>Good evening, <span>yourname.</span></h1><p className="subheading">Your corner of the internet, looking pretty good.</p></div>
+            <button className="primary-button" onClick={() => setActive('Customize page')}><span>✳</span> Customize page <span className="button-arrow">↗</span></button>
           </div>
-          <p style={{ margin: '0 0 26px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-            {section === 'customize' && 'Personalize how your illness.lol page looks and feels.'}
-            {section === 'analytics' && 'How your page has been performing this week.'}
-            {section === 'links' && 'Manage the links visitors see on your page.'}
-            {section === 'badges' && "Browse all badges available on illness.lol and claim the ones you've earned."}
-            {!['customize', 'analytics', 'links', 'badges'].includes(section) && 'Coming soon.'}
-          </p>
 
-          <div key={section} className="section-enter">
-            {section === 'customize' && <CustomizePanel cfg={cfg} set={set} toggleEffect={toggleEffect} addSocial={addSocial} updSocial={updSocial} rmSocial={rmSocial} />}
-            {section === 'analytics' && <AnalyticsPanel cfg={cfg} mounted={mounted} />}
-            {section === 'links' && <LinksPanel cfg={cfg} updSocial={updSocial} rmSocial={rmSocial} addSocial={addSocial} />}
-            {section === 'badges' && <BadgesPanel cfg={cfg} set={set} />}
-            {!['customize', 'analytics', 'links', 'badges'].includes(section) && (
-              <Card title={`${section} — coming soon`} desc="This panel is a placeholder.">
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
-                  The <b style={{ color: '#fff' }}>{section}</b> section isn't built out yet. Try <b style={{ color: '#fff' }}>Customize</b> and <b style={{ color: '#fff' }}>Analytics</b>.
-                </p>
-              </Card>
-            )}
+          <Panel className="profile-banner">
+            <div className="banner-art"><div className="sun-glow" /><span className="leaf leaf-one">✦</span><span className="leaf leaf-two">✧</span><span className="leaf leaf-three">❧</span><div className="banner-grid" /></div>
+            <div className="profile-info"><div className="profile-avatar">A<span className="avatar-status" /></div><div className="profile-copy"><div className="profile-name">yourname <span className="verified">✓</span></div><div className="profile-url">illness.lol/yourname <span>↗</span></div><p>Your bio goes here — tell the world a little about you.</p></div><div className="profile-controls"><span className={`status-pill ${profilePublic ? '' : 'private'}`}><i />{profilePublic ? 'Public' : 'Private'}</span><button className="switch" aria-label="Toggle profile visibility" aria-pressed={profilePublic} onClick={() => setProfilePublic(v => !v)}><span /></button></div></div>
+            <div className="profile-footer"><span><i className="live-dot" /> Profile is {profilePublic ? 'live' : 'hidden'}</span><button onClick={copyProfile}>{copied ? '✓ Copied link' : 'Copy profile link'} <span>⧉</span></button></div>
+          </Panel>
+
+          <div className="section-heading"><div><h2>At a glance</h2><p>A little look at how your page is doing.</p></div><span className="period-label">LAST 7 DAYS <span>⌄</span></span></div>
+          <div className="stats-grid">
+            <Panel className="stat-card"><div className="stat-top"><span className="stat-icon orange">◉</span><span className="trend">↗ 12.8%</span></div><p>Profile views</p><div className="stat-number">2,481</div><div className="mini-chart"><svg viewBox="0 0 220 38" preserveAspectRatio="none"><path d="M0 31 C18 28 18 18 36 23 S57 34 73 18 S98 26 114 15 S140 23 155 10 S180 18 194 5 S210 9 220 2" /></svg></div></Panel>
+            <Panel className="stat-card"><div className="stat-top"><span className="stat-icon gold">↗</span><span className="trend">↗ 8.4%</span></div><p>Link clicks</p><div className="stat-number">864</div><div className="mini-chart chart-gold"><svg viewBox="0 0 220 38" preserveAspectRatio="none"><path d="M0 30 C20 24 25 33 42 22 S65 27 80 18 S105 27 120 12 S148 19 165 13 S193 16 220 3" /></svg></div></Panel>
+            <Panel className="stat-card"><div className="stat-top"><span className="stat-icon green">⌁</span><span className="trend">↗ 3.2%</span></div><p>Unique visitors</p><div className="stat-number">1,706</div><div className="mini-chart chart-green"><svg viewBox="0 0 220 38" preserveAspectRatio="none"><path d="M0 32 C18 24 30 30 46 20 S70 29 88 15 S112 23 132 18 S155 21 173 9 S200 13 220 4" /></svg></div></Panel>
+            <Panel className="stat-card"><div className="stat-top"><span className="stat-icon purple">♡</span><span className="trend neutral">All time</span></div><p>Active links</p><div className="stat-number">04<span className="stat-total"> / 10</span></div><div className="progress-track"><span /></div><div className="progress-caption">4 links published <span>40%</span></div></Panel>
           </div>
-        </div>
 
-        {/* ---------------- Live preview ---------------- */}
-        <div className="preview-col scroll">
-          <div style={{ alignSelf: 'stretch', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>Live preview</span>
-            <span className="live-dot">live</span>
+          <div className="lower-grid">
+            <Panel className="activity-panel"><div className="panel-heading"><div><h2>Profile activity</h2><p>Your traffic over the past week.</p></div><button className="more-button" aria-label="More activity options">···</button></div><div className="chart-legend"><span><i /> Views</span><span><i /> Clicks</span></div><div className="activity-chart"><div className="y-labels"><span>500</span><span>400</span><span>300</span><span>200</span><span>100</span><span>0</span></div><div className="plot"><div className="grid-lines"><i/><i/><i/><i/><i/><i/></div><svg viewBox="0 0 600 190" preserveAspectRatio="none" className="activity-svg"><defs><linearGradient id="areaOrange" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#ff7a2e" stopOpacity=".24"/><stop offset="100%" stopColor="#ff7a2e" stopOpacity="0"/></linearGradient></defs><path className="area" d="M0 145 C30 130 45 140 70 108 S115 128 145 90 S180 110 215 70 S260 90 290 80 S330 103 360 55 S410 78 435 46 S480 75 510 30 S565 50 600 14 L600 190 L0 190 Z"/><path className="line-views" d="M0 145 C30 130 45 140 70 108 S115 128 145 90 S180 110 215 70 S260 90 290 80 S330 103 360 55 S410 78 435 46 S480 75 510 30 S565 50 600 14"/><path className="line-clicks" d="M0 164 C40 155 50 170 85 145 S130 158 160 133 S205 145 240 120 S285 140 320 112 S360 130 395 105 S440 118 470 91 S520 106 555 75 S580 85 600 68"/></svg><div className="x-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></div></div></Panel>
+            <Panel className="quick-panel"><div className="panel-heading"><div><h2>Quick actions</h2><p>Make something happen.</p></div></div><button className="quick-action" onClick={() => setActive('Customize page')}><span className="quick-icon orange">✳</span><span><strong>Edit your page</strong><small>Update your bio and style</small></span><b>↗</b></button><button className="quick-action" onClick={() => setActive('Links')}><span className="quick-icon gold">↗</span><span><strong>Manage links</strong><small>Add or organize your links</small></span><b>↗</b></button><button className="quick-action" onClick={() => setActive('Appearance')}><span className="quick-icon green">◐</span><span><strong>Change appearance</strong><small>Colors, backgrounds, effects</small></span><b>↗</b></button><div className="tip-box"><span>✦</span><div><strong>A little seasonal tip</strong><p>Try a burnt-orange accent to match the autumn vibes.</p></div></div></Panel>
           </div>
-          <TiltPreview cfg={cfg} />
-          <a href="/" style={{ marginTop: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>illness.lol/{cfg.username} ↗</a>
-        </div>
-      </main>
-
-      {/* toast */}
-      <div className={`toast ${toast ? 'show' : ''}`}>
-        <span style={{ color: cfg.accent }}>✓</span> Changes saved
-      </div>
-
-      {shareOpen && <ShareModal cfg={cfg} onClose={() => setShareOpen(false)} />}
-    </div>
-  )
-}
-
-/* ================================================================== */
-/*  Share profile modal                                               */
-/* ================================================================== */
-function ShareModal({ cfg, onClose }) {
-  const [copied, setCopied] = useState(false)
-  const profileUrl = `illness.lol/${cfg.username}`
-  const fullUrl = `https://${profileUrl}`
-
-  const copy = () => {
-    navigator.clipboard.writeText(fullUrl).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1600)
-    }).catch(() => {})
-  }
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.6)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backdropFilter: 'blur(4px)',
-    }} onClick={onClose}>
-      <div
-        style={{
-          width: '380px', maxWidth: '90vw',
-          background: 'rgba(14,14,24,0.97)',
-          border: `0.5px solid ${cfg.accent}44`,
-          borderRadius: '16px', padding: '22px',
-          boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 40px ${cfg.accent}22`,
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <div style={{ fontSize: '16px', fontWeight: 700 }}>Share your profile</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '2px' }}>✕</button>
-        </div>
-        <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '18px' }}>
-          Send people to your illness.lol page or grab a QR code.
-        </div>
-
-        <button style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '12px 14px', marginBottom: '10px', borderRadius: '10px',
-          background: `${cfg.accent}1a`, border: `0.5px solid ${cfg.accent}44`,
-          color: cfg.accent, fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="14.01"/><line x1="18" y1="14" x2="18" y2="14.01"/><line x1="14" y1="18" x2="14" y2="18.01"/><line x1="18" y1="18" x2="18" y2="18.01"/><line x1="21" y1="14" x2="21" y2="21"/></svg>
-          illness.lol QR Code
-        </button>
-
-        <a href={fullUrl} target="_blank" rel="noopener noreferrer" style={{
-          width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '12px 14px', marginBottom: '18px', borderRadius: '10px',
-          background: `${cfg.accent2}1a`, border: `0.5px solid ${cfg.accent2}44`,
-          color: cfg.accent2, fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, textDecoration: 'none',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-          Open my page
-        </a>
-
-        <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '7px' }}>Domain</label>
-        <div style={{
-          width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '16px',
-          borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-          fontSize: '13.5px', color: '#fff',
-        }}>
-          illness.lol
-        </div>
-
-        <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '7px' }}>Your profile URL</label>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <div style={{
-            flex: 1, minWidth: 0, padding: '10px 12px',
-            borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-            fontSize: '12.5px', color: 'rgba(255,255,255,0.7)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {fullUrl}
-          </div>
-          <button onClick={copy} style={{
-            flexShrink: 0, width: '40px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            background: copied ? cfg.accent : `${cfg.accent}33`, color: copied ? '#06060f' : cfg.accent,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s',
-          }}>
-            {copied ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ================================================================== */
-/*  Customize panel                                                   */
-/* ================================================================== */
-function CustomizePanel({ cfg, set, toggleEffect, addSocial, updSocial, rmSocial }) {
-  return (
-    <>
-      <Card title="Profile" desc="The basics visitors see first.">
-        <Row>
-          <Field label="Display name"><input style={inp} value={cfg.displayName} onChange={e => set('displayName', e.target.value)} /></Field>
-          <Field label="Username">
-            <div style={{ position: 'relative' }}>
-              <span style={prefix}>illness.lol/</span>
-              <input style={{ ...inp, paddingLeft: '88px' }} value={cfg.username} onChange={e => set('username', e.target.value)} />
-            </div>
-          </Field>
-        </Row>
-        <Field label="Bio">
-          <textarea style={{ ...inp, minHeight: '64px', resize: 'vertical', paddingTop: '10px' }} value={cfg.bio} onChange={e => set('bio', e.target.value)} maxLength={120} />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '5px', textAlign: 'right' }}>{cfg.bio.length}/120</div>
-        </Field>
-        <Row>
-          <Field label="Location (optional)"><input style={inp} placeholder="Earth" value={cfg.location} onChange={e => set('location', e.target.value)} /></Field>
-          <Field label="Avatar URL"><input style={inp} placeholder="https://…" value={cfg.avatar} onChange={e => set('avatar', e.target.value)} /></Field>
-        </Row>
-        <Toggle label="Typewriter bio animation" checked={cfg.typewriterBio} onChange={() => set('typewriterBio', !cfg.typewriterBio)} accent={cfg.accent} />
-      </Card>
-
-      <Card title="Appearance" desc="Colors, glass, and depth.">
-        <Row>
-          <Field label="Accent color"><ColorInput value={cfg.accent} onChange={v => set('accent', v)} /></Field>
-          <Field label="Secondary accent"><ColorInput value={cfg.accent2} onChange={v => set('accent2', v)} /></Field>
-        </Row>
-        <Field label="Background color"><ColorInput value={cfg.bgColor} onChange={v => set('bgColor', v)} /></Field>
-        <Toggle label="Gradient background" checked={cfg.gradientBg} onChange={() => set('gradientBg', !cfg.gradientBg)} accent={cfg.accent} />
-        <Slider label="Card opacity" value={cfg.cardOpacity} min={20} max={100} suffix="%" accent={cfg.accent} onChange={v => set('cardOpacity', v)} />
-        <Slider label="Background blur" value={cfg.blur} min={0} max={40} suffix="px" accent={cfg.accent} onChange={v => set('blur', v)} />
-        <Toggle label="Card glow" checked={cfg.glow} onChange={() => set('glow', !cfg.glow)} accent={cfg.accent} />
-        <Toggle label="3D tilt on hover" checked={cfg.tilt} onChange={() => set('tilt', !cfg.tilt)} accent={cfg.accent} />
-        <Toggle label="Monochrome social icons" checked={cfg.monochromeIcons} onChange={() => set('monochromeIcons', !cfg.monochromeIcons)} accent={cfg.accent} />
-      </Card>
-
-      <Card title="Effects" desc="Ambient motion layered over your page — watch the preview.">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          {EFFECTS.map(e => {
-            const on = cfg.effects[e.key]
-            return (
-              <button key={e.key} onClick={() => toggleEffect(e.key)} className="effect-chip" style={{
-                borderColor: on ? cfg.accent : 'rgba(255,255,255,0.1)',
-                background: on ? `${cfg.accent}1f` : 'rgba(255,255,255,0.03)',
-              }}>
-                <span className="effect-glow" style={{ background: on ? cfg.accent : 'rgba(255,255,255,0.2)', boxShadow: on ? `0 0 12px ${cfg.accent}` : 'none' }} />
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: 600, color: on ? '#fff' : 'rgba(255,255,255,0.65)' }}>{e.label}</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>{e.hint}</div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </Card>
-
-      <Card title="Media" desc="Background media and profile song.">
-        <Field label="Background image / video URL"><input style={inp} placeholder="https://… (.jpg, .gif, .mp4)" value={cfg.background} onChange={e => set('background', e.target.value)} /></Field>
-        <Field label="Profile song URL"><input style={inp} placeholder="https://… (.mp3)" value={cfg.audio} onChange={e => set('audio', e.target.value)} /></Field>
-        <Slider label="Default volume" value={cfg.volume} min={0} max={100} suffix="%" accent={cfg.accent} onChange={v => set('volume', v)} />
-        <Toggle label='"Click to enter" splash' checked={cfg.clickToEnter} onChange={() => set('clickToEnter', !cfg.clickToEnter)} accent={cfg.accent} />
-      </Card>
-
-      <Card title="Social links" desc="Where your visitors go next.">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {cfg.socials.map(s => (
-            <div key={s.id} className="social-row">
-              <select style={{ ...inp, width: '150px', flexShrink: 0, cursor: 'pointer' }} value={s.type} onChange={e => updSocial(s.id, { type: e.target.value })}>
-                {SOCIAL_TYPES.map(t => <option key={t} value={t} style={{ background: '#12121a' }}>{t}</option>)}
-              </select>
-              <input style={inp} placeholder="https://…" value={s.url} onChange={e => updSocial(s.id, { url: e.target.value })} />
-              <button onClick={() => rmSocial(s.id)} style={iconBtn} title="Remove">✕</button>
-            </div>
-          ))}
-        </div>
-        <button onClick={addSocial} style={{ ...ghostBtn, marginTop: '12px' }}>+ Add link</button>
-      </Card>
-
-      <Card title="General" desc="Extra behavior toggles.">
-        <Toggle label="Animated page title" checked={cfg.animatedTitle} onChange={() => set('animatedTitle', !cfg.animatedTitle)} accent={cfg.accent} />
-        <Toggle label="Custom cursor" checked={cfg.customCursor} onChange={() => set('customCursor', !cfg.customCursor)} accent={cfg.accent} />
-      </Card>
-    </>
-  )
-}
-
-/* ================================================================== */
-/*  Analytics panel — animated                                        */
-/* ================================================================== */
-function AnalyticsPanel({ cfg, mounted }) {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const data = [42, 68, 55, 90, 73, 120, 98]
-  const max = Math.max(...data)
-  const stats = [
-    { label: 'Total views', value: cfg.views.toLocaleString(), delta: '+12.4%' },
-    { label: 'Link clicks', value: '463', delta: '+8.1%' },
-    { label: 'Unique visitors', value: '921', delta: '+5.6%' },
-    { label: 'Avg. time', value: '38s', delta: '+2.0%' },
-  ]
-  return (
-    <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '14px', marginBottom: '18px' }}>
-        {stats.map((s, i) => (
-          <div key={s.label} className="stat-tile" style={{ animationDelay: `${i * 70}ms` }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</div>
-            <div style={{ fontSize: '24px', fontWeight: 700, margin: '6px 0 2px' }}>{s.value}</div>
-            <div style={{ fontSize: '11px', color: cfg.accent }}>{s.delta}</div>
-          </div>
-        ))}
-      </div>
-
-      <Card title="Views this week" desc="Daily page views.">
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '180px', paddingTop: '10px' }}>
-          {data.map((v, i) => (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end' }}>
-              <div className="bar" style={{
-                width: '100%', borderRadius: '6px 6px 2px 2px',
-                background: `linear-gradient(to top, ${cfg.accent}, ${cfg.accent2})`,
-                height: mounted ? `${(v / max) * 100}%` : '0%',
-                transition: `height 0.8s cubic-bezier(.2,.8,.2,1) ${i * 60}ms`,
-                boxShadow: `0 0 18px ${cfg.accent}55`,
-              }} />
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{days[i]}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="Top links" desc="Most clicked destinations.">
-        {[['Discord', 182, 62], ['Instagram', 121, 41], ['Spotify', 96, 33], ['TikTok', 64, 22]].map(([name, clicks, pct], i) => (
-          <div key={name} style={{ marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span>{name}</span><span style={{ color: 'rgba(255,255,255,0.5)' }}>{clicks} clicks</span>
-            </div>
-            <div style={{ height: '7px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: '4px', width: mounted ? `${pct}%` : '0%', background: `linear-gradient(90deg, ${cfg.accent}, ${cfg.accent2})`, transition: `width 0.9s cubic-bezier(.2,.8,.2,1) ${i * 80}ms` }} />
-            </div>
-          </div>
-        ))}
-      </Card>
-    </>
-  )
-}
-
-/* ================================================================== */
-/*  Links panel                                                       */
-/* ================================================================== */
-function LinksPanel({ cfg, updSocial, rmSocial, addSocial }) {
-  return (
-    <Card title="Your links" desc="Drag-free list of destinations shown on your page.">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {cfg.socials.map(s => (
-          <div key={s.id} className="social-row">
-            <select style={{ ...inp, width: '150px', flexShrink: 0, cursor: 'pointer' }} value={s.type} onChange={e => updSocial(s.id, { type: e.target.value })}>
-              {SOCIAL_TYPES.map(t => <option key={t} value={t} style={{ background: '#12121a' }}>{t}</option>)}
-            </select>
-            <input style={inp} placeholder="https://…" value={s.url} onChange={e => updSocial(s.id, { url: e.target.value })} />
-            <button onClick={() => rmSocial(s.id)} style={iconBtn}>✕</button>
-          </div>
-        ))}
-      </div>
-      <button onClick={addSocial} style={{ ...ghostBtn, marginTop: '12px' }}>+ Add link</button>
-    </Card>
-  )
-}
-
-/* ================================================================== */
-/*  Badges panel                                                      */
-/* ================================================================== */
-const BADGE_LIST = [
-  { key: 'staff', name: 'Staff', desc: 'Part of the illness.lol team.', action: 'Claim' },
-  { key: 'verified', name: 'Verified', desc: 'Have 5k+ followers on a social media platform.', action: 'Claim' },
-  { key: 'premium', name: 'Premium', desc: 'Have access to premium features.', action: 'Claim' },
-  { key: 'og', name: 'OG', desc: 'Joined illness.lol before 1,000 users.', action: 'Claim' },
-  { key: 'gifter', name: 'Gifter', desc: 'Gift an illness.lol product to another user.', action: 'Claim' },
-  { key: 'helper', name: 'Helper', desc: 'Help other users in the Discord server.', action: 'Claim' },
-  { key: 'donor', name: 'Donor', desc: 'Donate to help support the development of illness.lol.', action: 'Claim' },
-  { key: 'friends', name: 'Friends', desc: 'Be friends with the owner.', action: 'Claim' },
-  { key: 'first', name: '#1 Ranked', desc: 'Ranked #1 on the illness.lol leaderboard.', action: 'Claim' },
-  { key: 'second', name: '#2 Ranked', desc: 'Ranked #2 on the illness.lol leaderboard.', action: 'Claim' },
-  { key: 'third', name: '#3 Ranked', desc: 'Ranked #3 on the illness.lol leaderboard.', action: 'Claim' },
-  { key: 'booster', name: 'Booster', desc: 'Actively boost our Discord server.', action: 'Claim' },
-]
-
-function BadgesPanel({ cfg, set }) {
-  const badgeSettings = cfg.badgeSettings || {
-    showBadges: true,
-    badgesNextToName: true,
-    glowBadges: false,
-    badgeColor: '#ffffff',
-    monochrome: true,
-    glowStrength: 77,
-  }
-  const setBadgeSetting = (k, v) => set('badgeSettings', { ...badgeSettings, [k]: v })
-
-  return (
-    <>
-      <Card title="All Badges" desc={`${BADGE_LIST.length} total`}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-          {BADGE_LIST.map(b => (
-            <div key={b.key} className="badge-row">
-              <div className="badge-icon" style={{
-                background: `${badgeSettings.monochrome ? badgeSettings.badgeColor : cfg.accent}22`,
-                boxShadow: badgeSettings.glowBadges
-                  ? `0 0 ${4 + badgeSettings.glowStrength / 6}px ${badgeSettings.monochrome ? badgeSettings.badgeColor : cfg.accent}aa`
-                  : 'none',
-              }}>
-                <img
-                  src={`/badges/${b.key}.png`}
-                  alt={b.name}
-                  style={{
-                    width: '20px', height: '20px', objectFit: 'contain',
-                    filter: badgeSettings.monochrome ? 'brightness(0) invert(1)' : 'none',
-                  }}
-                  onError={e => { e.currentTarget.style.display = 'none' }}
-                />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.desc}</div>
-              </div>
-              <button className="badge-action" style={{ borderColor: `${badgeSettings.monochrome ? badgeSettings.badgeColor : cfg.accent}44` }}>{b.action}</button>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="Badge Settings">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
-          <Toggle label="Show Badges" checked={badgeSettings.showBadges} onChange={() => setBadgeSetting('showBadges', !badgeSettings.showBadges)} accent={cfg.accent} />
-          <Toggle label="Badges Next To Name" checked={badgeSettings.badgesNextToName} onChange={() => setBadgeSetting('badgesNextToName', !badgeSettings.badgesNextToName)} accent={cfg.accent} />
-          <Toggle label="Glow Badges" checked={badgeSettings.glowBadges} onChange={() => setBadgeSetting('glowBadges', !badgeSettings.glowBadges)} accent={cfg.accent} />
-        </div>
-
-        <Row>
-          <Field label="Badge Color"><ColorInput value={badgeSettings.badgeColor} onChange={v => setBadgeSetting('badgeColor', v)} /></Field>
-          <Toggle label="Monochrome — all badges use Badge Color" checked={badgeSettings.monochrome} onChange={() => setBadgeSetting('monochrome', !badgeSettings.monochrome)} accent={cfg.accent} />
-        </Row>
-
-        <Slider label="Badge Glow Strength" value={badgeSettings.glowStrength} min={0} max={100} suffix="%" accent={cfg.accent} onChange={v => setBadgeSetting('glowStrength', v)} />
-      </Card>
-    </>
-  )
-}
-
-/* ================================================================== */
-/*  Tilt preview wrapper + animated effects canvas                    */
-/* ================================================================== */
-function TiltPreview({ cfg }) {
-  const wrapRef = useRef(null)
-  const [t, setT] = useState({ rx: 0, ry: 0 })
-
-  const onMove = useCallback((e) => {
-    if (!cfg.tilt) return
-    const r = wrapRef.current.getBoundingClientRect()
-    const px = (e.clientX - r.left) / r.width - 0.5
-    const py = (e.clientY - r.top) / r.height - 0.5
-    setT({ rx: -py * 10, ry: px * 12 })
-  }, [cfg.tilt])
-  const onLeave = () => setT({ rx: 0, ry: 0 })
-
-  return (
-    <div ref={wrapRef} onMouseMove={onMove} onMouseLeave={onLeave} style={{ width: '100%', perspective: '1000px' }}>
-      <div style={{ transform: `rotateX(${t.rx}deg) rotateY(${t.ry}deg)`, transition: 'transform 0.12s ease-out', transformStyle: 'preserve-3d' }}>
-        <ProfilePreview cfg={cfg} />
-      </div>
-    </div>
-  )
-}
-
-function ProfilePreview({ cfg }) {
-  const fxRef = useRef(null)
-  const [typed, setTyped] = useState('')
-
-  // typewriter bio
-  useEffect(() => {
-    if (!cfg.typewriterBio) { setTyped(cfg.bio); return }
-    let i = 0; setTyped('')
-    const id = setInterval(() => {
-      i++; setTyped(cfg.bio.slice(0, i))
-      if (i >= cfg.bio.length) clearInterval(id)
-    }, 45)
-    return () => clearInterval(id)
-  }, [cfg.typewriterBio, cfg.bio])
-
-  // animated effects canvas
-  useEffect(() => {
-    const canvas = fxRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    let W, H, dpr = window.devicePixelRatio || 1
-    const fit = () => {
-      const r = canvas.getBoundingClientRect()
-      W = r.width; H = r.height
-      canvas.width = W * dpr; canvas.height = H * dpr
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-    fit()
-
-    const hex = cfg.accent.replace('#', '')
-    const ar = parseInt(hex.substring(0, 2) || 'ff', 16)
-    const ag = parseInt(hex.substring(2, 4) || 'ff', 16)
-    const ab = parseInt(hex.substring(4, 6) || 'ff', 16)
-
-    const mk = () => {
-      const arr = []
-      if (cfg.effects.particles) for (let i = 0; i < 26; i++) arr.push({ t: 'p', x: Math.random() * W, y: Math.random() * H, r: Math.random() * 2.4 + 0.6, vy: -(Math.random() * 0.3 + 0.1), vx: (Math.random() - 0.5) * 0.2, a: Math.random() * 0.5 + 0.2 })
-      if (cfg.effects.rain) for (let i = 0; i < 40; i++) arr.push({ t: 'r', x: Math.random() * W, y: Math.random() * H, len: Math.random() * 12 + 8, vy: Math.random() * 3 + 4 })
-      if (cfg.effects.snow) for (let i = 0; i < 34; i++) arr.push({ t: 's', x: Math.random() * W, y: Math.random() * H, r: Math.random() * 2 + 1, vy: Math.random() * 0.6 + 0.3, drift: Math.random() * Math.PI * 2 })
-      if (cfg.effects.sparkles) for (let i = 0; i < 22; i++) arr.push({ t: 'k', x: Math.random() * W, y: Math.random() * H, tw: Math.random() * Math.PI * 2, sp: Math.random() * 0.06 + 0.02, sz: Math.random() * 1.6 + 0.6 })
-      return arr
-    }
-    let parts = mk()
-    let raf
-    const loop = () => {
-      ctx.clearRect(0, 0, W, H)
-      parts.forEach(p => {
-        if (p.t === 'p') {
-          p.y += p.vy; p.x += p.vx
-          if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W }
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(${ar},${ag},${ab},${p.a})`; ctx.fill()
-        } else if (p.t === 'r') {
-          p.y += p.vy
-          if (p.y > H + p.len) { p.y = -p.len; p.x = Math.random() * W }
-          ctx.strokeStyle = 'rgba(180,200,255,0.35)'; ctx.lineWidth = 1
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + p.len); ctx.stroke()
-        } else if (p.t === 's') {
-          p.drift += 0.02; p.y += p.vy; p.x += Math.sin(p.drift) * 0.4
-          if (p.y > H + 4) { p.y = -4; p.x = Math.random() * W }
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-          ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.fill()
-        } else if (p.t === 'k') {
-          p.tw += p.sp
-          const a = 0.3 + 0.7 * Math.abs(Math.sin(p.tw))
-          const s = p.sz * (0.6 + 0.4 * Math.abs(Math.sin(p.tw)))
-          ctx.fillStyle = `rgba(${ar},${ag},${ab},${a})`
-          ctx.beginPath()
-          ctx.moveTo(p.x, p.y - s * 2); ctx.lineTo(p.x + s, p.y); ctx.lineTo(p.x, p.y + s * 2); ctx.lineTo(p.x - s, p.y); ctx.closePath(); ctx.fill()
-        }
-      })
-      raf = requestAnimationFrame(loop)
-    }
-    loop()
-    const onResize = () => { fit() }
-    window.addEventListener('resize', onResize)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize) }
-  }, [cfg.effects, cfg.accent])
-
-  const bgIsMedia = cfg.background && cfg.background.trim() !== ''
-  const pageBg = cfg.gradientBg
-    ? `radial-gradient(120% 90% at 50% 0%, ${cfg.accent}22, transparent 60%), ${cfg.bgColor}`
-    : cfg.bgColor
-
-  return (
-    <div style={{ width: '100%', aspectRatio: '9 / 16', borderRadius: '18px', overflow: 'hidden', position: 'relative', background: pageBg, border: '0.5px solid rgba(255,255,255,0.1)', boxShadow: cfg.glow ? `0 20px 60px ${cfg.accent}33` : '0 20px 50px rgba(0,0,0,0.5)' }}>
-      {bgIsMedia && <img src={cfg.background} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }} />}
-      <canvas ref={fxRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />
-
-      <div style={{
-        position: 'absolute', inset: '18px', borderRadius: '14px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '20px', textAlign: 'center',
-        background: `rgba(12,12,22,${cfg.cardOpacity / 100})`,
-        backdropFilter: `blur(${cfg.blur}px)`, WebkitBackdropFilter: `blur(${cfg.blur}px)`,
-        border: '0.5px solid rgba(255,255,255,0.12)',
-        boxShadow: cfg.glow ? `0 0 60px ${cfg.accent}44, inset 0 0 40px ${cfg.accent}11` : 'none',
-      }}>
-        <div className="pfp" style={{
-          width: '76px', height: '76px', borderRadius: '50%', marginBottom: '14px',
-          background: cfg.avatar ? `center/cover url(${cfg.avatar})` : `linear-gradient(135deg, ${cfg.accent}, ${cfg.accent2})`,
-          border: `2px solid ${cfg.accent}`,
-          boxShadow: cfg.glow ? `0 0 24px ${cfg.accent}aa` : 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', fontWeight: 700, color: '#fff',
-        }}>
-          {!cfg.avatar && (cfg.displayName.charAt(0).toUpperCase() || 'U')}
-        </div>
-
-        <div style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px' }}>{cfg.displayName || 'yourname'}</div>
-        {cfg.location && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', marginTop: '3px' }}>📍 {cfg.location}</div>}
-        <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', marginTop: '8px', lineHeight: 1.5, maxWidth: '85%', minHeight: '19px' }}>
-          {typed}{cfg.typewriterBio && typed.length < cfg.bio.length && <span className="caret">|</span>}
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {cfg.socials.map(s => (
-            <div key={s.id} className="soc-icon" title={s.type} style={{
-              background: cfg.monochromeIcons ? 'rgba(255,255,255,0.08)' : `${cfg.accent}33`,
-              color: cfg.monochromeIcons ? 'rgba(255,255,255,0.8)' : cfg.accent,
-            }}>{s.type.charAt(0)}</div>
-          ))}
-        </div>
-
-        <div style={{ marginTop: '18px', fontSize: '11px', color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: cfg.accent, boxShadow: `0 0 8px ${cfg.accent}` }} />
-          {cfg.views.toLocaleString()} views
+          <footer className="footer"><span>© 2026 illness.lol</span><span>Made for your little corner of the internet <b>♥</b></span><a href="/help">Help center ↗</a></footer>
         </div>
       </div>
 
-      {cfg.audio && (
-        <div style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="eq"><i></i><i></i><i></i></span> {cfg.volume}%
-        </div>
-      )}
-    </div>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        body { margin: 0; background: ${C.bg}; color: #f7f5f2; font-family: 'DM Sans', sans-serif; }
+        button, a { font: inherit; }
+        button { cursor: pointer; }
+        .dash-shell { min-height: 100vh; display: flex; background: radial-gradient(ellipse at 75% 0%, rgba(120,57,20,.09), transparent 35%), ${C.bg}; }
+        .sidebar { width: 248px; flex: 0 0 248px; border-right: 1px solid ${C.line}; background: rgba(10,10,10,.96); padding: 27px 15px 17px; display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; height: 100vh; }
+        .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font: 600 21px 'Space Grotesk',sans-serif; letter-spacing: -.7px; padding: 0 11px; }
+        .brand-mark { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg,${C.orange},${C.orange2}); color: #160a03; font-size: 19px; font-weight: 700; box-shadow: 0 0 22px #ff6a1a30; }
+        .brand-dot { color: ${C.orange2}; }
+        .user-mini { display: flex; align-items: center; gap: 10px; margin: 34px 0 31px; padding: 12px 10px; border: 1px solid ${C.line}; border-radius: 13px; background: linear-gradient(120deg,#15120f,#0e0e0e); }
+        .avatar { width: 35px; height: 35px; flex-shrink: 0; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(140deg,#d87535,#f5b56b); color: #211006; font: 700 15px 'Space Grotesk'; }
+        .user-mini-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .user-mini-text strong, .account-button strong { font-size: 12px; font-weight: 600; }
+        .user-mini-text span, .account-button small { font-size: 11px; color: ${C.faint}; }
+        .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #75c994; box-shadow: 0 0 9px #75c99450; }
+        .nav-label { color: #65615d; font-size: 10px; font-weight: 700; letter-spacing: 1.35px; padding: 0 12px; margin: 0 0 10px; }
+        .nav-list { display: grid; gap: 5px; }
+        .nav-item { width: 100%; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #99938d; display: flex; align-items: center; gap: 12px; padding: 11px 12px; font-size: 12px; text-align: left; transition: .18s ease; }
+        .nav-item:hover { background: #ffffff07; color: #fff; }
+        .nav-item.active { color: #fff; border-color: #ff8a3d25; background: linear-gradient(100deg,#ff7a2e1c,#ff7a2e08); box-shadow: inset 2px 0 ${C.orange}; }
+        .icon { width: 18px; text-align: center; color: ${C.orange2}; font-size: 16px; }
+        .nav-count { margin-left: auto; color: #d5a17d; background: #ff8a3d18; border-radius: 5px; padding: 2px 6px; font-size: 10px; }
+        .tools-label { margin-top: 30px; }
+        .sidebar-bottom { margin-top: auto; }
+        .season-card { overflow: hidden; position: relative; padding: 15px 13px 13px; margin: 0 2px 15px; border: 1px solid #ff8a3d20; border-radius: 13px; background: radial-gradient(ellipse at 100% 0%,#a84e2225,transparent 60%), #12100e; }
+        .season-leaf { position: absolute; right: 13px; top: 8px; color: #b96b3b; font-size: 24px; transform: rotate(18deg); }
+        .season-card strong { font-size: 12px; display: block; }
+        .season-card p { margin: 5px 0 13px; font-size: 10px; color: ${C.muted}; }
+        .season-pill { display: inline-flex; gap: 8px; align-items: center; padding: 5px 7px; border-radius: 6px; color: #e8a273; background: #ff8a3d12; font-size: 8px; letter-spacing: .7px; font-weight: 700; }
+        .discord-link { display: flex; align-items: center; gap: 7px; padding: 8px 7px 16px; color: #8e8983; text-decoration: none; font-size: 10px; }
+        .discord-link span:first-child { color: ${C.orange2}; }.discord-link span:last-child { margin-left: auto; }
+        .account-button { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; border: 0; border-top: 1px solid ${C.line}; padding: 15px 5px 0; background: transparent; color: #fff; }
+        .avatar.small { width: 32px; height: 32px; border-radius: 10px; font-size: 13px; }
+        .account-button > span:nth-child(2) { display: flex; flex-direction: column; gap: 3px; flex: 1; }.account-more { color: ${C.muted}; letter-spacing: 2px; }
+        .main-area { flex: 1; min-width: 0; }
+        .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 0 42px; border-bottom: 1px solid ${C.line}; background: #080808c9; }
+        .breadcrumbs { display: flex; align-items: center; gap: 11px; color: #77716b; font-size: 12px; }.breadcrumbs b { color: #48433f; font-weight: 400; }.breadcrumbs strong { color: #e8e3de; font-weight: 500; }
+        .top-actions { display: flex; align-items: center; gap: 17px; }.season-tag { display: flex; align-items: center; gap: 7px; color: #d5a17d; border: 1px solid #ff8a3d24; border-radius: 7px; padding: 7px 9px; font-size: 9px; letter-spacing: .8px; }.tiny-leaf { font-size: 12px; }
+        .icon-button { position: relative; width: 33px; height: 33px; border: 1px solid ${C.line}; border-radius: 9px; color: #b5aea7; background: #111; font-size: 17px; }.icon-button i { position: absolute; right: 7px; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: ${C.orange}; }
+        .view-button { display: flex; align-items: center; gap: 8px; border: 1px solid #ff8a3d40; border-radius: 9px; padding: 9px 13px; background: #ff8a3d12; color: #f0c2a0; font-size: 11px; }
+        .content { max-width: 1450px; padding: 37px 42px 20px; margin: 0 auto; }
+        .welcome-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+        .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: #a87a5a; font-size: 9px; letter-spacing: 1.6px; font-weight: 700; }.eyebrow span { width: 6px; height: 6px; border-radius: 2px; background: ${C.orange}; box-shadow: 0 0 10px #ff6a1a80; }
+        h1,h2,p { margin-top: 0; }.welcome-row h1 { margin: 0; font: 600 clamp(24px,2.2vw,31px)/1.2 'Space Grotesk',sans-serif; letter-spacing: -1px; }.welcome-row h1 span { color: ${C.orange2}; }.subheading { margin: 9px 0 0; color: #8e8983; font-size: 12px; }
+        .primary-button { display: flex; align-items: center; gap: 9px; border: 1px solid #ff8a3d40; border-radius: 10px; padding: 12px 14px; color: #170b04; background: linear-gradient(120deg,#ff8a3d,#ffb16c); font-size: 11px; font-weight: 700; box-shadow: 0 4px 22px #ff6a1a17; transition: transform .2s, box-shadow .2s; }.primary-button:hover { transform: translateY(-1px); box-shadow: 0 6px 25px #ff6a1a30; }.button-arrow { margin-left: 6px; }
+        .panel { min-width: 0; border: 1px solid ${C.line}; border-radius: 14px; background: linear-gradient(145deg,#111 0%,#0b0b0b 100%); box-shadow: 0 12px 35px #00000012; }
+        .profile-banner { overflow: hidden; margin-bottom: 29px; }.banner-art { height: 112px; position: relative; overflow: hidden; background: linear-gradient(105deg,#21150e 0%,#3b2114 42%,#19100b 100%); }.sun-glow { position: absolute; width: 250px; height: 170px; right: 16%; top: -110px; border-radius: 50%; background: #d46b2e; filter: blur(60px); opacity: .42; }.banner-grid { position: absolute; inset: 0; opacity: .18; background-image: linear-gradient(#e99b6720 1px,transparent 1px),linear-gradient(90deg,#e99b6720 1px,transparent 1px); background-size: 30px 30px; mask-image: linear-gradient(90deg,transparent,#000 45%,#000); }.leaf { position: absolute; color: #d98a4d; opacity: .65; }.leaf-one { right: 15%; top: 13px; font-size: 43px; transform: rotate(25deg); }.leaf-two { right: 9%; top: 48px; font-size: 28px; transform: rotate(-20deg); }.leaf-three { right: 23%; top: 53px; font-size: 46px; transform: rotate(18deg); color: #a85a32; }
+        .profile-info { display: flex; align-items: center; gap: 15px; padding: 0 23px 18px; min-height: 94px; }.profile-avatar { position: relative; display: grid; place-items: center; width: 62px; height: 62px; margin-top: -28px; flex-shrink: 0; border: 4px solid #0e0e0e; border-radius: 18px; background: linear-gradient(140deg,#d87535,#f5b56b); color: #251106; font: 700 25px 'Space Grotesk'; box-shadow: 0 5px 20px #0007; }.avatar-status { position: absolute; right: -2px; bottom: -2px; width: 13px; height: 13px; border: 3px solid #0d0d0d; border-radius: 50%; background: #78ca91; }.profile-copy { min-width: 0; padding-top: 13px; }.profile-name { font: 600 16px 'Space Grotesk'; }.verified { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 3px; border-radius: 50%; background: #cf7b42; color: #140a04; font: 700 9px sans-serif; vertical-align: 2px; }.profile-url { margin-top: 5px; color: #d08a5c; font-size: 10px; }.profile-url span { margin-left: 4px; }.profile-copy p { margin: 8px 0 0; color: #817a73; font-size: 11px; }.profile-controls { display: flex; align-items: center; gap: 10px; margin-left: auto; align-self: flex-start; padding-top: 17px; }.status-pill { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid #75c99427; border-radius: 7px; color: #8dd5a5; background: #75c9940b; font-size: 10px; }.status-pill i { width: 5px; height: 5px; border-radius: 50%; background: #75c994; }.status-pill.private { color: #d0a27f; border-color: #ff8a3d25; background: #ff8a3d0b; }.status-pill.private i { background: ${C.orange}; }
+        .switch { width: 32px; height: 18px; padding: 2px; border: 0; border-radius: 20px; background: ${C.orange}; transition: .2s; }.switch span { display: block; width: 14px; height: 14px; border-radius: 50%; background: white; margin-left: 14px; transition: .2s; }.switch[aria-pressed="false"] { background: #393632; }.switch[aria-pressed="false"] span { margin-left: 0; }
+        .profile-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 23px; border-top: 1px solid ${C.line}; color: #77716b; font-size: 10px; }.profile-footer > span { display: flex; align-items: center; gap: 7px; }.live-dot { width: 5px; height: 5px; border-radius: 50%; background: #75c994; }.profile-footer button { border: 0; color: #dca178; background: transparent; font-size: 10px; }.profile-footer button span { margin-left: 6px; }
+        .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }.section-heading h2, .panel-heading h2 { margin: 0; font: 600 15px 'Space Grotesk'; letter-spacing: -.3px; }.section-heading p, .panel-heading p { margin: 5px 0 0; color: #77716b; font-size: 10px; }.period-label { display: flex; align-items: center; gap: 10px; border: 1px solid ${C.line}; border-radius: 7px; padding: 7px 9px; color: #aaa29a; font-size: 9px; letter-spacing: .6px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; margin-bottom: 24px; }.stat-card { padding: 16px 16px 12px; min-height: 155px; overflow: hidden; }.stat-top { display: flex; justify-content: space-between; align-items: center; }.stat-icon,.quick-icon { display: grid; place-items: center; border-radius: 9px; width: 30px; height: 30px; font-size: 16px; }.orange { color: #ff9a5c; background: #ff8a3d16; }.gold { color: #e5bd76; background: #e5bd7616; }.green { color: #88c7a0; background: #88c7a016; }.purple { color: #c4a3df; background: #c4a3df16; }.trend { color: #8fc99e; font-size: 9px; }.trend.neutral { color: #716b65; }.stat-card > p { margin: 14px 0 4px; color: #969089; font-size: 10px; }.stat-number { font: 600 25px 'Space Grotesk'; letter-spacing: -.8px; }.stat-total { color: #77716b; font: 400 13px 'DM Sans'; }.mini-chart { height: 28px; margin: 3px -2px 0; }.mini-chart svg { width: 100%; height: 100%; overflow: visible; }.mini-chart path { fill: none; stroke: #ff8a3d; stroke-width: 2; vector-effect: non-scaling-stroke; }.chart-gold path { stroke: #d6ae68; }.chart-green path { stroke: #7fbd95; }.progress-track { height: 4px; margin-top: 15px; border-radius: 5px; background: #292522; overflow: hidden; }.progress-track span { display: block; height: 100%; width: 40%; border-radius: 5px; background: linear-gradient(90deg,#d36a32,#ffb16c); }.progress-caption { display: flex; justify-content: space-between; margin-top: 7px; color: #77716b; font-size: 9px; }.progress-caption span { color: #c18a62; }
+        .lower-grid { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(280px,1fr); gap: 14px; }.activity-panel,.quick-panel { padding: 19px; }.panel-heading { display: flex; justify-content: space-between; align-items: flex-start; }.more-button { border: 1px solid ${C.line}; border-radius: 7px; background: #ffffff04; color: #8f8880; padding: 2px 8px; letter-spacing: 2px; }.chart-legend { display: flex; gap: 14px; margin-top: 20px; font-size: 9px; color: #99918a; }.chart-legend span { display: flex; align-items: center; gap: 6px; }.chart-legend i { width: 6px; height: 6px; border-radius: 2px; background: ${C.orange}; }.chart-legend span + span i { background: #d6ae68; }
+        .activity-chart { display: flex; gap: 10px; height: 220px; padding-top: 13px; }.y-labels { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 21px; color: #69635d; font-size: 9px; }.plot { position: relative; flex: 1; min-width: 0; }.grid-lines { position: absolute; inset: 0 0 21px; display: flex; flex-direction: column; justify-content: space-between; }.grid-lines i { border-top: 1px dashed #ffffff0d; }.activity-svg { position: absolute; inset: 0 0 21px; width: 100%; height: calc(100% - 21px); overflow: visible; }.activity-svg .area { fill: url(#areaOrange); }.line-views,.line-clicks { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }.line-views { stroke: ${C.orange}; }.line-clicks { stroke: #d6ae68; stroke-dasharray: 4 4; }.x-labels { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; color: #69635d; font-size: 9px; }
+        .quick-panel { display: flex; flex-direction: column; }.quick-panel .panel-heading { margin-bottom: 12px; }.quick-action { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 12px 0; border: 0; border-bottom: 1px solid ${C.line}; background: transparent; color: #eee; }.quick-icon { width: 34px; height: 34px; flex-shrink: 0; }.quick-action > span:nth-child(2) { display: flex; flex-direction: column; gap: 4px; flex: 1; }.quick-action strong { font-size: 11px; font-weight: 600; }.quick-action small { color: #77716b; font-size: 9px; }.quick-action > b { color: #77716b; font-weight: 400; }.quick-action:hover > b { color: ${C.orange2}; }.tip-box { display: flex; gap: 10px; margin-top: 16px; padding: 12px; border: 1px solid #ff8a3d1e; border-radius: 10px; background: #ff8a3d08; }.tip-box > span { color: ${C.orange2}; }.tip-box strong { font-size: 10px; color: #e2b18d; }.tip-box p { margin: 5px 0 0; color: #8e8176; font-size: 9px; line-height: 1.5; }
+        .footer { display: flex; align-items: center; gap: 22px; margin-top: 25px; padding: 15px 1px 5px; color: #5f5a55; font-size: 9px; }.footer span:nth-child(2) { margin: 0 auto; }.footer b { color: ${C.orange}; }.footer a { color: #8b8178; text-decoration: none; }
+        @media (max-width: 1150px) { .sidebar { width: 215px; flex-basis: 215px; }.content { padding: 30px 25px 20px; }.topbar { padding: 0 25px; }.stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 800px) { .sidebar { width: 66px; flex-basis: 66px; padding: 22px 8px; }.brand { padding: 0 9px; }.brand > span:last-child,.user-mini-text,.online-dot,.nav-label,.nav-item > span:not(.icon),.sidebar-bottom { display: none; }.user-mini { justify-content: center; padding: 7px 0; border: 0; background: transparent; margin: 27px 0 20px; }.nav-item { justify-content: center; padding: 12px 0; }.nav-item .icon { font-size: 18px; }.tools-label { display: none; }.topbar { height: 64px; padding: 0 17px; }.content { padding: 25px 17px; }.lower-grid { grid-template-columns: 1fr; }.season-tag { display: none; } }
+        @media (max-width: 520px) { .welcome-row { align-items: flex-start; flex-direction: column; }.welcome-row h1 { font-size: 25px; }.primary-button { padding: 10px 12px; }.stats-grid { gap: 9px; }.stat-card { padding: 12px; min-height: 145px; }.stat-number { font-size: 22px; }.profile-info { padding: 0 13px 15px; gap: 10px; flex-wrap: wrap; }.profile-controls { padding-top: 13px; }.profile-copy p { line-height: 1.4; }.profile-footer { padding: 11px 13px; }.footer { flex-wrap: wrap; gap: 10px; }.footer span:nth-child(2) { margin: 0; order: 3; width: 100%; }.view-button { padding: 8px 9px; }.view-button span { display: none; } }
+      `}</style>
+    </main>
   )
 }
-
-/* ================================================================== */
-/*  Reusable bits                                                     */
-/* ================================================================== */
-function Card({ title, desc, children }) {
-  return (
-    <div className="card">
-      <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '2px' }}>{title}</div>
-      {desc && <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '18px' }}>{desc}</div>}
-      {children}
-    </div>
-  )
-}
-function Row({ children }) { return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>{children}</div> }
-function Field({ label, children }) { return <div style={{ marginBottom: '14px' }}><label style={lbl}>{label}</label>{children}</div> }
-
-function Slider({ label, value, min, max, suffix, onChange, accent }) {
-  const pct = ((value - min) / (max - min)) * 100
-  return (
-    <div style={{ marginBottom: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '9px' }}>
-        <label style={lbl}>{label}</label>
-        <span style={{ fontSize: '12px', color: accent, fontWeight: 600 }}>{value}{suffix}</span>
-      </div>
-      <input type="range" className="range" min={min} max={max} value={value} onChange={e => onChange(Number(e.target.value))}
-        style={{ background: `linear-gradient(90deg, ${accent} ${pct}%, rgba(255,255,255,0.1) ${pct}%)` }} />
-    </div>
-  )
-}
-
-function Toggle({ label, checked, onChange, accent }) {
-  return (
-    <div onClick={onChange} className="toggle-row">
-      <span style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.75)' }}>{label}</span>
-      <div style={{ width: '38px', height: '22px', borderRadius: '11px', flexShrink: 0, background: checked ? accent : 'rgba(255,255,255,0.12)', position: 'relative', transition: 'background 0.2s', boxShadow: checked ? `0 0 12px ${accent}66` : 'none' }}>
-        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', left: checked ? '19px' : '3px', transition: 'left 0.2s cubic-bezier(.34,1.56,.64,1)' }} />
-      </div>
-    </div>
-  )
-}
-
-function ColorInput({ value, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-      <input type="color" value={value} onChange={e => onChange(e.target.value)} className="color-swatch" />
-      <input style={inp} value={value} onChange={e => onChange(e.target.value)} />
-    </div>
-  )
-}
-
-/* ================================================================== */
-/*  Global styles / keyframes                                         */
-/* ================================================================== */
-function GlobalStyles({ accent }) {
-  return (
-    <style>{`
-      * { box-sizing: border-box; }
-      .scroll::-webkit-scrollbar { width: 8px; }
-      .scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-      .scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-      .sidebar { position: relative; z-index: 2; width: 220px; flex-shrink: 0; border-right: 0.5px solid rgba(255,255,255,0.08); background: rgba(10,10,18,0.6); backdrop-filter: blur(16px); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; min-height: 100vh; }
-      .nav-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 40px; border-radius: 10px; opacity: 0.9; transition: transform 0.32s cubic-bezier(.34,1.3,.5,1); z-index: 0; }
-      .nav-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 11px; padding: 10px 12px; margin-bottom: 4px; height: 40px; border-radius: 10px; cursor: pointer; border: none; text-align: left; width: 100%; font-family: inherit; font-size: 13.5px; font-weight: 500; background: transparent; color: rgba(255,255,255,0.5); transition: color 0.2s; }
-      .nav-item:hover { color: rgba(255,255,255,0.85); }
-      .nav-item.active { color: #fff; font-weight: 600; }
-      .user-chip { display: flex; align-items: center; gap: 10px; padding: 12px 8px 2px; border-top: 0.5px solid rgba(255,255,255,0.08); margin-top: 10px; }
-
-      .search-box { display: flex; align-items: center; gap: 8px; padding: 9px 10px; margin-bottom: 14px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); }
-      .search-box input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: inherit; font-size: 12.5px; min-width: 0; }
-      .search-box input::placeholder { color: rgba(255,255,255,0.3); }
-      .kbd { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); flex-shrink: 0; }
-
-      .nav-group-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.6); margin-bottom: 4px; transition: background 0.15s, color 0.15s; }
-      .nav-group-header:hover { background: rgba(255,255,255,0.06); color: #fff; }
-      .nav-group-header.active { color: #fff; }
-      .nav-group-body { display: flex; flex-direction: column; margin-bottom: 6px; }
-      .nav-subitem { text-align: left; padding: 7px 10px 7px 38px; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 12.5px; color: rgba(255,255,255,0.4); border-radius: 7px; transition: color 0.15s, background 0.15s; }
-      .nav-subitem:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.03); }
-      .nav-subitem.active { color: #fff; font-weight: 600; }
-
-      .help-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-      .help-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; border-radius: 8px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12.5px; font-weight: 600; box-sizing: border-box; transition: transform 0.15s, background 0.15s; }
-      .help-btn:hover { transform: translateY(-1px); }
-
-      .share-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; border-radius: 10px; border: 0.5px solid; color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: transform 0.15s; }
-      .share-btn:hover { transform: translateY(-1px); }
-
-      .editor-col { flex: 1; min-width: 0; padding: 32px 36px; overflow-y: auto; max-height: 100vh; }
-      .preview-col { width: 400px; flex-shrink: 0; padding: 32px 28px; border-left: 0.5px solid rgba(255,255,255,0.08); background: rgba(8,8,14,0.4); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
-
-      .card { background: rgba(12,12,22,0.7); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 22px 24px; margin-bottom: 18px; backdrop-filter: blur(16px); transition: border-color 0.2s, transform 0.2s; animation: rise 0.45s cubic-bezier(.2,.8,.2,1) both; }
-      .card:hover { border-color: rgba(255,255,255,0.18); }
-
-      .section-enter { animation: sectionIn 0.4s cubic-bezier(.2,.8,.2,1); }
-      @keyframes sectionIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-      @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-
-      .save-btn { position: relative; padding: 9px 18px; background: rgba(255,255,255,0.9); color: #06060f; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; overflow: hidden; transition: transform 0.1s, box-shadow 0.2s; }
-      .save-btn:hover { box-shadow: 0 6px 20px rgba(255,255,255,0.2); }
-      .save-btn:active { transform: scale(0.96); }
-      .save-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%); transform: translateX(-120%); }
-      .save-btn:hover::after { animation: shine 0.7s; }
-      @keyframes shine { to { transform: translateX(120%); } }
-
-      .effect-chip { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border-radius: 12px; border: 1px solid; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-      .effect-chip:hover { transform: translateY(-2px); }
-      .effect-glow { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; transition: all 0.25s; }
-
-      .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; cursor: pointer; border-radius: 6px; transition: background 0.15s; }
-      .toggle-row:hover { background: rgba(255,255,255,0.02); }
-
-      .range { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer; }
-      .range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 0 10px ${accent}, 0 2px 4px rgba(0,0,0,0.4); transition: transform 0.15s; }
-      .range::-webkit-slider-thumb:hover { transform: scale(1.25); }
-      .range::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: #fff; cursor: pointer; }
-
-      .color-swatch { width: 40px; height: 38px; padding: 0; border: 0.5px solid rgba(255,255,255,0.15); border-radius: 8px; background: none; cursor: pointer; }
-      .color-swatch::-webkit-color-swatch { border: none; border-radius: 6px; }
-      .color-swatch::-webkit-color-swatch-wrapper { padding: 3px; }
-
-      .social-row { display: flex; gap: 8px; animation: rise 0.3s ease both; }
-
-      .badge-row { display: flex; align-items: center; gap: 10px; padding: 11px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); transition: border-color 0.15s, transform 0.15s; }
-      .badge-row:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
-      .badge-icon { width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-      .badge-action { flex-shrink: 0; padding: 5px 10px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
-      .badge-action:hover { background: rgba(255,255,255,0.1); }
-
-      .stat-tile { background: rgba(12,12,22,0.7); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; backdrop-filter: blur(16px); animation: rise 0.5s cubic-bezier(.2,.8,.2,1) both; transition: transform 0.2s, border-color 0.2s; }
-      .stat-tile:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
-
-      .preview-col .live-dot, .live-dot { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: ${accent}; display: flex; align-items: center; gap: 5px; }
-      .live-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: ${accent}; box-shadow: 0 0 8px ${accent}; animation: pulse 1.4s infinite; }
-      @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-      .pfp { animation: floaty 5s ease-in-out infinite; }
-      @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-      .soc-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 0.5px solid rgba(255,255,255,0.12); transition: transform 0.15s; cursor: pointer; }
-      .soc-icon:hover { transform: translateY(-3px) scale(1.08); }
-      .caret { animation: blink 1s step-end infinite; }
-      @keyframes blink { 50% { opacity: 0; } }
-
-      .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
-      .eq i { width: 2px; background: ${accent}; border-radius: 1px; animation: eq 0.8s ease-in-out infinite; }
-      .eq i:nth-child(1){ height: 40%; animation-delay: 0s; }
-      .eq i:nth-child(2){ height: 100%; animation-delay: 0.2s; }
-      .eq i:nth-child(3){ height: 60%; animation-delay: 0.4s; }
-      @keyframes eq { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
-
-      .toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 50; background: rgba(18,18,28,0.95); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 20px; font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(16px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s cubic-bezier(.34,1.56,.64,1); }
-      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-      input:focus, textarea:focus, select:focus { border-color: rgba(255,255,255,0.4) !important; background: rgba(255,255,255,0.06) !important; }
-    `}</style>
-  )
-}
-
-/* inline style tokens */
-const inp = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 12px', fontSize: '13.5px', color: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border 0.15s, background 0.15s' }
-const lbl = { display: 'block', fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '7px' }
-const prefix = { position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontWeight: 500 }
-const ghostBtn = { padding: '10px 14px', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }
-const iconBtn = { width: '38px', flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px' }
