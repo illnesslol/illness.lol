@@ -7,27 +7,38 @@ const TransitionContext = createContext(null)
 
 export function PageTransitionProvider({ children }) {
   const router = useRouter()
+
   const [active, setActive] = useState(false)
+  const [fadingOut, setFadingOut] = useState(false)
 
   const navigate = (href) => {
     if (active) return
 
     setActive(true)
+    setFadingOut(false)
 
+    // Let the transition play before navigating
     setTimeout(() => {
       router.push(href)
     }, 420)
 
+    // Give the new page time to render,
+    // then smoothly reveal it
+    setTimeout(() => {
+      setFadingOut(true)
+    }, 620)
+
+    // Remove the transition completely
     setTimeout(() => {
       setActive(false)
-    }, 820)
+      setFadingOut(false)
+    }, 980)
   }
 
   return (
     <TransitionContext.Provider value={{ navigate }}>
       {children}
 
-      {/* Full-screen transition */}
       <div
         style={{
           position: 'fixed',
@@ -38,18 +49,26 @@ export function PageTransitionProvider({ children }) {
           alignItems: 'center',
           justifyContent: 'center',
 
-          // Completely opaque — previous page cannot show through
+          // Deep Halloween black
           background: '#050202',
 
           pointerEvents: active ? 'auto' : 'none',
 
-          // No fade-in / fade-out
+          // Completely hidden when inactive
           visibility: active ? 'visible' : 'hidden',
+
+          // This is the important part:
+          // fade the entire transition OUT over the new page
+          opacity: fadingOut ? 0 : 1,
+
+          transition: fadingOut
+            ? 'opacity 0.36s cubic-bezier(0.22, 1, 0.36, 1)'
+            : 'none',
 
           overflow: 'hidden',
         }}
       >
-        {/* Main orange atmosphere */}
+        {/* Main Halloween atmosphere */}
         <div
           style={{
             position: 'absolute',
@@ -58,10 +77,10 @@ export function PageTransitionProvider({ children }) {
             background: `
               radial-gradient(
                 circle at 50% 50%,
-                rgba(255, 72, 0, 0.22) 0%,
-                rgba(255, 55, 0, 0.10) 20%,
-                rgba(40, 8, 2, 0.35) 45%,
-                rgba(5, 2, 2, 1) 78%
+                rgba(255, 75, 0, 0.20) 0%,
+                rgba(255, 55, 0, 0.09) 22%,
+                rgba(40, 7, 2, 0.45) 48%,
+                #050202 82%
               )
             `,
 
@@ -78,18 +97,47 @@ export function PageTransitionProvider({ children }) {
           style={{
             position: 'absolute',
 
-            width: '500px',
-            height: '500px',
+            width: '520px',
+            height: '520px',
 
             borderRadius: '50%',
 
-            background:
-              'radial-gradient(circle, rgba(255, 75, 0, 0.20) 0%, rgba(255, 45, 0, 0.08) 35%, transparent 70%)',
+            background: `
+              radial-gradient(
+                circle,
+                rgba(255, 75, 0, 0.22) 0%,
+                rgba(255, 55, 0, 0.08) 35%,
+                transparent 70%
+              )
+            `,
 
             filter: 'blur(35px)',
 
             animation: active
               ? 'orangePulse 0.82s ease forwards'
+              : 'none',
+
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Subtle inner glow */}
+        <div
+          style={{
+            position: 'absolute',
+
+            width: '220px',
+            height: '220px',
+
+            borderRadius: '50%',
+
+            background:
+              'radial-gradient(circle, rgba(255, 120, 20, 0.08), transparent 70%)',
+
+            filter: 'blur(20px)',
+
+            animation: active
+              ? 'innerGlow 0.82s ease forwards'
               : 'none',
 
             pointerEvents: 'none',
@@ -105,9 +153,9 @@ export function PageTransitionProvider({ children }) {
             background: `
               radial-gradient(
                 ellipse at center,
-                transparent 20%,
-                rgba(0, 0, 0, 0.35) 55%,
-                rgba(0, 0, 0, 0.85) 100%
+                transparent 15%,
+                rgba(0, 0, 0, 0.25) 50%,
+                rgba(0, 0, 0, 0.82) 100%
               )
             `,
 
@@ -151,13 +199,13 @@ export function PageTransitionProvider({ children }) {
       <style jsx global>{`
 
         /* =========================================
-           BACKGROUND ATMOSPHERE
+           BACKGROUND
         ========================================= */
 
         @keyframes halloweenAtmosphere {
           0% {
             opacity: 0;
-            transform: scale(1.15);
+            transform: scale(1.08);
           }
 
           18% {
@@ -165,9 +213,9 @@ export function PageTransitionProvider({ children }) {
             transform: scale(1);
           }
 
-          45% {
+          50% {
             opacity: 0.85;
-            transform: scale(1.03);
+            transform: scale(1.02);
           }
 
           100% {
@@ -178,7 +226,7 @@ export function PageTransitionProvider({ children }) {
 
 
         /* =========================================
-           ORANGE AMBIENT GLOW
+           OUTER ORANGE GLOW
         ========================================= */
 
         @keyframes orangePulse {
@@ -203,12 +251,44 @@ export function PageTransitionProvider({ children }) {
           }
 
           80% {
-            opacity: 0.45;
+            opacity: 0.4;
             transform: scale(0.95);
           }
 
           100% {
             opacity: 0.25;
+            transform: scale(1);
+          }
+        }
+
+
+        /* =========================================
+           INNER GLOW
+        ========================================= */
+
+        @keyframes innerGlow {
+          0% {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+
+          20% {
+            opacity: 1;
+            transform: scale(1);
+          }
+
+          45% {
+            opacity: 0.35;
+            transform: scale(0.8);
+          }
+
+          55% {
+            opacity: 0.9;
+            transform: scale(1.15);
+          }
+
+          100% {
+            opacity: 0.15;
             transform: scale(1);
           }
         }
@@ -238,7 +318,6 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 0 rgba(255, 70, 0, 0));
           }
 
-
           18% {
             opacity: 1;
 
@@ -260,7 +339,6 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 100px rgba(255, 40, 0, 0.65));
           }
 
-
           36% {
             opacity: 1;
 
@@ -280,7 +358,6 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 7px rgba(255, 90, 0, 0.45))
               drop-shadow(0 0 20px rgba(255, 60, 0, 0.3));
           }
-
 
           54% {
             opacity: 1;
@@ -303,7 +380,6 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 120px rgba(255, 35, 0, 0.7));
           }
 
-
           80% {
             opacity: 1;
 
@@ -323,7 +399,6 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 9px rgba(255, 90, 0, 0.45))
               drop-shadow(0 0 22px rgba(255, 60, 0, 0.3));
           }
-
 
           100% {
             opacity: 1;
