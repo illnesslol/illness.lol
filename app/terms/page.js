@@ -21,6 +21,7 @@ const COLORS = {
 
 export default function TermsPage() {
   const canvasRef = useRef(null)
+
   const [authChecked, setAuthChecked] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
 
@@ -31,7 +32,9 @@ export default function TermsPage() {
         setLoggedIn(Boolean(data.loggedIn))
         setAuthChecked(true)
       })
-      .catch(() => setAuthChecked(true))
+      .catch(() => {
+        setAuthChecked(true)
+      })
 
     const canvas = canvasRef.current
     if (!canvas) return
@@ -114,24 +117,51 @@ export default function TermsPage() {
           outline-offset: 3px;
         }
 
-        /* NAV LINKS */
+        /*
+         * NAV HOVER
+         *
+         * The hovered navigation item gets a small
+         * orange glowing line underneath it.
+         *
+         * There is intentionally NO box/background.
+         */
 
         .nav-link {
+          position: relative;
+          transition: color .2s ease;
+        }
+
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          bottom: 3px;
+          width: 0;
+          height: 2px;
+          border-radius: 999px;
+          background: #ff6a1a;
+          box-shadow: 0 0 10px rgba(255,106,26,.8);
+          transform: translateX(-50%);
+          opacity: 0;
           transition:
-            color .2s ease,
-            background .2s ease,
-            box-shadow .2s ease;
+            width .2s ease,
+            opacity .2s ease;
         }
 
         .nav-link:hover {
           color: #fff !important;
-          background: rgba(255,106,26,.10);
-          box-shadow: inset 0 0 0 1px rgba(255,106,26,.12);
         }
 
-        /* BRAND
-           Intentionally no box/background hover.
-        */
+        .nav-link:hover::after {
+          width: 22px;
+          opacity: 1;
+        }
+
+        /*
+         * BRAND
+         *
+         * No orange underline or box.
+         */
 
         .brand-link {
           transition: color .2s ease;
@@ -145,13 +175,14 @@ export default function TermsPage() {
           filter: drop-shadow(0 0 12px rgba(255,106,26,.65));
         }
 
-        /* BUTTONS */
+        /*
+         * BUTTONS
+         */
 
         .hero-button {
           transition:
             transform .2s ease,
-            box-shadow .2s ease,
-            background .2s ease;
+            box-shadow .2s ease;
         }
 
         .hero-button:hover {
@@ -162,7 +193,9 @@ export default function TermsPage() {
           box-shadow: 0 0 30px rgba(255,106,26,.5) !important;
         }
 
-        /* CONTENT */
+        /*
+         * TERMS CARD
+         */
 
         .terms-card {
           transition:
@@ -170,12 +203,9 @@ export default function TermsPage() {
             box-shadow .25s ease;
         }
 
-        .terms-card:hover {
-          border-color: rgba(255,106,26,.32) !important;
-          box-shadow:
-            0 20px 70px rgba(0,0,0,.55),
-            0 0 45px rgba(255,106,26,.08) !important;
-        }
+        /*
+         * LINKS INSIDE TERMS
+         */
 
         .terms-link {
           transition:
@@ -223,6 +253,7 @@ export default function TermsPage() {
       `}</style>
 
       {/* PARTICLES */}
+
       <canvas
         ref={canvasRef}
         aria-hidden="true"
@@ -237,6 +268,7 @@ export default function TermsPage() {
       />
 
       {/* DOT GRID */}
+
       <div
         aria-hidden="true"
         style={{
@@ -255,6 +287,7 @@ export default function TermsPage() {
       />
 
       {/* ORANGE GLOW */}
+
       <div
         aria-hidden="true"
         style={{
@@ -273,6 +306,7 @@ export default function TermsPage() {
       />
 
       {/* NAV */}
+
       <nav
         className="nav"
         style={{
@@ -293,6 +327,7 @@ export default function TermsPage() {
         }}
       >
         {/* BRAND */}
+
         <TransitionLink
           href="/"
           className="brand-link"
@@ -312,7 +347,8 @@ export default function TermsPage() {
             height={30}
             style={{
               display: 'block',
-              filter: 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
+              filter:
+                'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
           />
 
@@ -330,6 +366,7 @@ export default function TermsPage() {
         </TransitionLink>
 
         {/* CENTER LINKS */}
+
         <div
           className="desktop-links"
           style={{
@@ -358,7 +395,6 @@ export default function TermsPage() {
                 fontSize: 14,
                 padding: '10px 12px',
                 whiteSpace: 'nowrap',
-                borderRadius: 12,
               }}
             >
               {label}
@@ -367,6 +403,7 @@ export default function TermsPage() {
         </div>
 
         {/* RIGHT */}
+
         <div
           style={{
             marginLeft: 'auto',
@@ -384,7 +421,6 @@ export default function TermsPage() {
                 textDecoration: 'none',
                 fontSize: 14,
                 padding: '11px 14px',
-                borderRadius: 12,
               }}
             >
               Log in
@@ -420,7 +456,8 @@ export default function TermsPage() {
                 fontWeight: 600,
                 padding: '12px 19px',
                 borderRadius: 25,
-                boxShadow: '0 0 18px rgba(255,106,26,.25)',
+                boxShadow:
+                  '0 0 18px rgba(255,106,26,.25)',
               }}
             >
               Sign up
@@ -430,6 +467,7 @@ export default function TermsPage() {
       </nav>
 
       {/* CONTENT */}
+
       <div
         style={{
           position: 'relative',
@@ -452,6 +490,7 @@ export default function TermsPage() {
           }}
         >
           {/* ICON */}
+
           <div
             style={{
               display: 'flex',
@@ -475,6 +514,7 @@ export default function TermsPage() {
           </div>
 
           {/* TITLE */}
+
           <h1
             className="terms-title"
             style={{
@@ -585,9 +625,9 @@ export default function TermsPage() {
             </p>
 
             <p style={paragraphStyle}>
-              Patterns like coordinated abuse, ban evasion, or
-              payment-method recycling usually trigger action across every
-              account we can tie to the same activity.
+              Patterns like coordinated abuse, ban evasion, or payment-method
+              recycling usually trigger action across every account we can tie
+              to the same activity.
             </p>
           </Section>
 
