@@ -27,74 +27,109 @@ export function PageTransitionProvider({ children }) {
     <TransitionContext.Provider value={{ navigate }}>
       {children}
 
+      {/* Full-screen transition */}
       <div
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
+
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
 
-          // Halloween background
-          background: `
-            radial-gradient(
-              circle at center,
-              rgba(255, 85, 0, 0.16) 0%,
-              rgba(180, 45, 0, 0.08) 22%,
-              rgba(20, 7, 3, 0.96) 58%,
-              #050203 100%
-            )
-          `,
+          // Completely opaque — previous page cannot show through
+          background: '#050202',
 
           pointerEvents: active ? 'auto' : 'none',
-          opacity: active ? 1 : 0,
-          transition: 'opacity 0.32s ease',
+
+          // No fade-in / fade-out
+          visibility: active ? 'visible' : 'hidden',
 
           overflow: 'hidden',
         }}
       >
-        {/* Atmospheric orange glow */}
+        {/* Main orange atmosphere */}
         <div
           style={{
             position: 'absolute',
-            width: '420px',
-            height: '420px',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(255, 90, 0, 0.18) 0%, rgba(255, 60, 0, 0.06) 35%, transparent 70%)',
-            filter: 'blur(25px)',
-            animation: active ? 'halloweenGlow 0.82s ease forwards' : 'none',
+            inset: 0,
+
+            background: `
+              radial-gradient(
+                circle at 50% 50%,
+                rgba(255, 72, 0, 0.22) 0%,
+                rgba(255, 55, 0, 0.10) 20%,
+                rgba(40, 8, 2, 0.35) 45%,
+                rgba(5, 2, 2, 1) 78%
+              )
+            `,
+
+            animation: active
+              ? 'halloweenAtmosphere 0.82s ease forwards'
+              : 'none',
+
             pointerEvents: 'none',
           }}
         />
 
-        {/* Secondary darker orange glow */}
+        {/* Large soft orange glow */}
         <div
           style={{
             position: 'absolute',
-            width: '700px',
-            height: '700px',
+
+            width: '500px',
+            height: '500px',
+
             borderRadius: '50%',
+
             background:
-              'radial-gradient(circle, rgba(255, 60, 0, 0.06) 0%, transparent 65%)',
-            filter: 'blur(40px)',
+              'radial-gradient(circle, rgba(255, 75, 0, 0.20) 0%, rgba(255, 45, 0, 0.08) 35%, transparent 70%)',
+
+            filter: 'blur(35px)',
+
+            animation: active
+              ? 'orangePulse 0.82s ease forwards'
+              : 'none',
+
             pointerEvents: 'none',
           }}
         />
 
+        {/* Dark vignette */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+
+            background: `
+              radial-gradient(
+                ellipse at center,
+                transparent 20%,
+                rgba(0, 0, 0, 0.35) 55%,
+                rgba(0, 0, 0, 0.85) 100%
+              )
+            `,
+
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Icon */}
         <img
           src="/icon.png"
           alt=""
           style={{
             position: 'relative',
-            zIndex: 2,
+            zIndex: 5,
 
             width: '110px',
             height: '110px',
+
             objectFit: 'contain',
 
-            // Deep Halloween orange
+            opacity: 0,
+
             filter: `
               brightness(0)
               saturate(100%)
@@ -106,8 +141,6 @@ export function PageTransitionProvider({ children }) {
               contrast(105%)
             `,
 
-            opacity: 0,
-
             animation: active
               ? 'illnessFlash 0.82s ease forwards'
               : 'none',
@@ -116,42 +149,82 @@ export function PageTransitionProvider({ children }) {
       </div>
 
       <style jsx global>{`
-        @keyframes halloweenGlow {
+
+        /* =========================================
+           BACKGROUND ATMOSPHERE
+        ========================================= */
+
+        @keyframes halloweenAtmosphere {
           0% {
             opacity: 0;
-            transform: scale(0.5);
+            transform: scale(1.15);
           }
 
-          20% {
+          18% {
             opacity: 1;
             transform: scale(1);
           }
 
-          40% {
-            opacity: 0.45;
-            transform: scale(0.9);
-          }
-
-          55% {
-            opacity: 1;
-            transform: scale(1.05);
-          }
-
-          80% {
-            opacity: 0.5;
-            transform: scale(0.95);
+          45% {
+            opacity: 0.85;
+            transform: scale(1.03);
           }
 
           100% {
-            opacity: 0.2;
+            opacity: 1;
             transform: scale(1);
           }
         }
 
+
+        /* =========================================
+           ORANGE AMBIENT GLOW
+        ========================================= */
+
+        @keyframes orangePulse {
+          0% {
+            opacity: 0;
+            transform: scale(0.45);
+          }
+
+          18% {
+            opacity: 1;
+            transform: scale(1);
+          }
+
+          36% {
+            opacity: 0.35;
+            transform: scale(0.85);
+          }
+
+          54% {
+            opacity: 1;
+            transform: scale(1.12);
+          }
+
+          80% {
+            opacity: 0.45;
+            transform: scale(0.95);
+          }
+
+          100% {
+            opacity: 0.25;
+            transform: scale(1);
+          }
+        }
+
+
+        /* =========================================
+           ICON
+        ========================================= */
+
         @keyframes illnessFlash {
           0% {
             opacity: 0;
-            transform: translateY(40px) scale(0.5);
+
+            transform:
+              translateY(40px)
+              scale(0.5);
 
             filter:
               brightness(0)
@@ -165,44 +238,13 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 0 rgba(255, 70, 0, 0));
           }
 
+
           18% {
             opacity: 1;
-            transform: translateY(0) scale(1);
 
-            filter:
-              brightness(0)
-              saturate(100%)
-              invert(48%)
-              sepia(99%)
-              saturate(4500%)
-              hue-rotate(359deg)
-              brightness(110%)
-              contrast(105%)
-              drop-shadow(0 0 20px rgba(255, 110, 0, 1))
-              drop-shadow(0 0 50px rgba(255, 70, 0, 0.95))
-              drop-shadow(0 0 100px rgba(255, 45, 0, 0.7));
-          }
-
-          36% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-
-            filter:
-              brightness(0)
-              saturate(100%)
-              invert(48%)
-              sepia(99%)
-              saturate(4500%)
-              hue-rotate(359deg)
-              brightness(105%)
-              contrast(105%)
-              drop-shadow(0 0 8px rgba(255, 90, 0, 0.5))
-              drop-shadow(0 0 22px rgba(255, 60, 0, 0.35));
-          }
-
-          54% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+            transform:
+              translateY(0)
+              scale(1);
 
             filter:
               brightness(0)
@@ -212,15 +254,19 @@ export function PageTransitionProvider({ children }) {
               saturate(4500%)
               hue-rotate(359deg)
               brightness(115%)
-              contrast(105%)
-              drop-shadow(0 0 25px rgba(255, 120, 0, 1))
-              drop-shadow(0 0 60px rgba(255, 70, 0, 0.95))
-              drop-shadow(0 0 120px rgba(255, 40, 0, 0.7));
+              contrast(110%)
+              drop-shadow(0 0 18px rgba(255, 110, 0, 1))
+              drop-shadow(0 0 45px rgba(255, 70, 0, 0.95))
+              drop-shadow(0 0 100px rgba(255, 40, 0, 0.65));
           }
 
-          80% {
+
+          36% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+
+            transform:
+              translateY(0)
+              scale(1);
 
             filter:
               brightness(0)
@@ -231,13 +277,60 @@ export function PageTransitionProvider({ children }) {
               hue-rotate(359deg)
               brightness(105%)
               contrast(105%)
-              drop-shadow(0 0 10px rgba(255, 90, 0, 0.45))
-              drop-shadow(0 0 25px rgba(255, 60, 0, 0.3));
+              drop-shadow(0 0 7px rgba(255, 90, 0, 0.45))
+              drop-shadow(0 0 20px rgba(255, 60, 0, 0.3));
           }
+
+
+          54% {
+            opacity: 1;
+
+            transform:
+              translateY(0)
+              scale(1);
+
+            filter:
+              brightness(0)
+              saturate(100%)
+              invert(48%)
+              sepia(99%)
+              saturate(4500%)
+              hue-rotate(359deg)
+              brightness(120%)
+              contrast(110%)
+              drop-shadow(0 0 25px rgba(255, 120, 0, 1))
+              drop-shadow(0 0 60px rgba(255, 70, 0, 0.95))
+              drop-shadow(0 0 120px rgba(255, 35, 0, 0.7));
+          }
+
+
+          80% {
+            opacity: 1;
+
+            transform:
+              translateY(0)
+              scale(1);
+
+            filter:
+              brightness(0)
+              saturate(100%)
+              invert(48%)
+              sepia(99%)
+              saturate(4500%)
+              hue-rotate(359deg)
+              brightness(105%)
+              contrast(105%)
+              drop-shadow(0 0 9px rgba(255, 90, 0, 0.45))
+              drop-shadow(0 0 22px rgba(255, 60, 0, 0.3));
+          }
+
 
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+
+            transform:
+              translateY(0)
+              scale(1);
 
             filter:
               brightness(0)
@@ -251,10 +344,12 @@ export function PageTransitionProvider({ children }) {
               drop-shadow(0 0 0 rgba(255, 70, 0, 0));
           }
         }
+
       `}</style>
     </TransitionContext.Provider>
   )
 }
+
 
 export function useTransition() {
   const ctx = useContext(TransitionContext)
@@ -269,6 +364,7 @@ export function useTransition() {
 
   return ctx
 }
+
 
 // Drop-in replacement for <a href="...">
 export function TransitionLink({
@@ -313,4 +409,3 @@ export function TransitionLink({
     </a>
   )
 }
-
