@@ -750,9 +750,9 @@ export default function HomePage() {
           {[
             ['Help Center', '/help'],
             ['Discord', 'https://discord.gg/illness'],
-            ['Compare', '/compare'],
             ['Leaderboard', '/leaderboard'],
             ['Pricing', '/pricing'],
+            ['Questions', '/questions'],
           ].map(([label, href]) => (
             <TransitionLink
               key={label}
