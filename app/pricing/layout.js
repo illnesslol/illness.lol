@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'illness.lol | pricing',
+  title: 'illness.lol | Pricing',
 }
 
 export default function PricingLayout({ children }) {

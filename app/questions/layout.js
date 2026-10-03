@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'illness.lol | questions',
+  title: 'illness.lol | Questions',
 }
 
 export default function QuestionsLayout({ children }) {
