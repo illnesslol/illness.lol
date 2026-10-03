@@ -1187,7 +1187,7 @@ export default function HomePage() {
             ['Help Center', '/help'],
             [
               'Discord',
-              'https://discord.gg/illness',
+              'https://discord.gg/R4tyQ4h3K5',
             ],
             [
               'Leaderboard',
