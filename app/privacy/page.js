@@ -851,7 +851,7 @@ export default function PrivacyPage() {
             Got a question or something to flag? Reach us on
             our Discord server at{' '}
             <a
-              href="https://discord.gg/illness"
+              href="https://discord.gg/R4tyQ4h3K5"
               target="_blank"
               rel="noreferrer"
               className="terms-link"
