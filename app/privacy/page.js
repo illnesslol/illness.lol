@@ -406,7 +406,7 @@ export default function PrivacyPage() {
         >
           {[
             ['Help Center', '/help'],
-            ['Discord', 'https://discord.gg/illness'],
+            ['Discord', 'https://discord.gg/R4tyQ4h3K5'],
             ['Leaderboard', '/leaderboard'],
             ['Pricing', '/pricing'],
             ['Questions', '/questions'],
