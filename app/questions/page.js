@@ -112,10 +112,10 @@ function drawLeaf(ctx, size, color, opacity) {
 }
 
 /* =========================================================
-   PRICING PAGE
+   QUESTIONS PAGE
 ========================================================= */
 
-export default function PricingPage() {
+export default function QuestionsPage() {
   const canvasRef = useRef(null)
 
   const [visible, setVisible] = useState(false)
@@ -376,11 +376,11 @@ export default function PricingPage() {
             display: none !important;
           }
 
-          .pricing-title {
+          .questions-title {
             font-size: 42px !important;
           }
 
-          .pricing-subtitle {
+          .questions-subtitle {
             font-size: 15px !important;
           }
         }
@@ -398,11 +398,11 @@ export default function PricingPage() {
             display: none !important;
           }
 
-          .pricing-title {
+          .questions-title {
             font-size: 35px !important;
           }
 
-          .pricing-subtitle {
+          .questions-subtitle {
             max-width: 330px !important;
           }
         }
@@ -769,7 +769,7 @@ export default function PricingPage() {
 
 
       {/* =====================================================
-          PRICING CONTENT
+          QUESTIONS CONTENT
       ===================================================== */}
 
       <section
@@ -835,7 +835,7 @@ export default function PricingPage() {
           />
 
           <h1
-            className="pricing-title"
+            className="questions-title"
             style={{
               fontFamily:
                 "'Space Grotesk', sans-serif",
@@ -857,11 +857,11 @@ export default function PricingPage() {
                 '0 0 35px rgba(255,106,26,.12)',
             }}
           >
-            Pricing
+            Questions
           </h1>
 
           <p
-            className="pricing-subtitle"
+            className="questions-subtitle"
             style={{
               margin:
                 '18px 0 0',
@@ -876,8 +876,8 @@ export default function PricingPage() {
               lineHeight: 1.6,
             }}
           >
-            Pricing plans for illness.lol
-            are currently under development.
+            The illness.lol Questions
+            page is currently under development.
           </p>
 
           <AccentLink
