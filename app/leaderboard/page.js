@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { TransitionLink } from '../components/PageTransition'
+import { TransitionLink } from '../../components/PageTransition'
 
 const COLORS = {
   bg: '#000000',
@@ -117,6 +117,7 @@ function drawLeaf(ctx, size, color, opacity) {
 
 export default function LeaderboardPage() {
   const canvasRef = useRef(null)
+
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -152,28 +153,42 @@ export default function LeaderboardPage() {
       '#ffffff',
     ]
 
-    const makeLeaf = () => ({
+    const makeLeaf = (spreadY = false) => ({
       x: Math.random() * window.innerWidth,
-      y:
-        Math.random() * window.innerHeight,
+
+      y: spreadY
+        ? Math.random() * window.innerHeight
+        : -30 - Math.random() * 120,
+
       size: Math.random() * 6 + 9,
+
       speed: Math.random() * 0.35 + 0.35,
+
       swayAmp: Math.random() * 30 + 20,
+
       swaySpeed: Math.random() * 0.012 + 0.006,
+
       phase: Math.random() * Math.PI * 2,
+
       rotation: Math.random() * Math.PI * 2,
+
       spin: (Math.random() - 0.5) * 0.012,
+
       opacity: Math.random() * 0.2 + 0.22,
+
       color:
         leafColors[
-          Math.floor(Math.random() * leafColors.length)
+          Math.floor(
+            Math.random() * leafColors.length
+          )
         ],
+
       baseX: 0,
     })
 
     const leaves = Array.from(
       { length: 7 },
-      makeLeaf
+      () => makeLeaf(true)
     )
 
     leaves.forEach((leaf) => {
@@ -202,7 +217,8 @@ export default function LeaderboardPage() {
         const sway = reduceMotion
           ? 0
           : Math.sin(
-              tick * leaf.swaySpeed +
+              tick *
+                leaf.swaySpeed +
                 leaf.phase
             ) * leaf.swayAmp
 
@@ -210,21 +226,25 @@ export default function LeaderboardPage() {
 
         if (leaf.y > canvas.height + 40) {
           leaf.y = -30
+
           leaf.baseX =
             Math.random() * canvas.width
         }
 
         ctx.save()
 
-        ctx.translate(x, leaf.y)
+        ctx.translate(
+          x,
+          leaf.y
+        )
 
         ctx.rotate(
           leaf.rotation +
             Math.sin(
-              tick * leaf.swaySpeed +
+              tick *
+                leaf.swaySpeed +
                 leaf.phase
-            ) *
-              0.5
+            ) * 0.5
         )
 
         drawLeaf(
@@ -245,7 +265,10 @@ export default function LeaderboardPage() {
 
     return () => {
       clearTimeout(timer)
-      cancelAnimationFrame(animationFrame)
+
+      cancelAnimationFrame(
+        animationFrame
+      )
 
       window.removeEventListener(
         'resize',
@@ -258,11 +281,17 @@ export default function LeaderboardPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: COLORS.bg,
+
+        background:
+          COLORS.bg,
+
         color: '#fff',
+
         fontFamily:
           "'Inter', system-ui, sans-serif",
+
         position: 'relative',
+
         overflow: 'hidden',
       }}
     >
@@ -313,6 +342,10 @@ export default function LeaderboardPage() {
           .coming-soon-title {
             font-size: 42px !important;
           }
+
+          .coming-soon-subtitle {
+            font-size: 15px !important;
+          }
         }
 
         @media (max-width: 520px) {
@@ -333,7 +366,7 @@ export default function LeaderboardPage() {
           }
 
           .coming-soon-subtitle {
-            font-size: 14px !important;
+            max-width: 330px !important;
           }
         }
       `}</style>
@@ -347,10 +380,15 @@ export default function LeaderboardPage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           inset: 0,
+
           width: '100%',
+
           height: '100%',
+
           pointerEvents: 'none',
+
           zIndex: 1,
         }}
       />
@@ -363,14 +401,18 @@ export default function LeaderboardPage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           inset: 0,
+
           zIndex: 0,
+
           pointerEvents: 'none',
 
           backgroundImage:
             'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
 
-          backgroundSize: '28px 28px',
+          backgroundSize:
+            '28px 28px',
 
           maskImage:
             'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
@@ -387,11 +429,16 @@ export default function LeaderboardPage() {
       <div
         style={{
           position: 'fixed',
+
           top: -380,
+
           left: '50%',
-          transform: 'translateX(-50%)',
+
+          transform:
+            'translateX(-50%)',
 
           width: 1000,
+
           height: 700,
 
           borderRadius: '50%',
@@ -400,6 +447,7 @@ export default function LeaderboardPage() {
             'radial-gradient(circle,rgba(255,106,26,.16),transparent 68%)',
 
           pointerEvents: 'none',
+
           zIndex: 0,
         }}
       />
@@ -412,9 +460,13 @@ export default function LeaderboardPage() {
         className="nav"
         style={{
           position: 'absolute',
+
           top: 21,
+
           left: '50%',
-          transform: 'translateX(-50%)',
+
+          transform:
+            'translateX(-50%)',
 
           width:
             'min(1180px, calc(100% - 40px))',
@@ -433,23 +485,30 @@ export default function LeaderboardPage() {
             '0 15px 50px rgba(0,0,0,.4)',
 
           display: 'flex',
+
           alignItems: 'center',
 
-          padding: '0 22px 0 28px',
+          padding:
+            '0 22px 0 28px',
 
           zIndex: 20,
         }}
       >
-        {/* BRAND */}
+        {/* =================================================
+            BRAND
+        ================================================= */}
 
         <TransitionLink
           href="/"
           style={{
             display: 'flex',
+
             alignItems: 'center',
+
             gap: 12,
 
             color: '#fff',
+
             textDecoration: 'none',
 
             minWidth: 200,
@@ -462,6 +521,7 @@ export default function LeaderboardPage() {
             height={30}
             style={{
               display: 'block',
+
               filter:
                 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
@@ -474,7 +534,9 @@ export default function LeaderboardPage() {
                 "'Space Grotesk', sans-serif",
 
               fontSize: 21,
+
               fontWeight: 600,
+
               letterSpacing: '-.7px',
             }}
           >
@@ -482,69 +544,113 @@ export default function LeaderboardPage() {
           </span>
         </TransitionLink>
 
-        {/* CENTER LINKS */}
+        {/* =================================================
+            CENTER LINKS
+        ================================================= */}
 
         <div
           className="desktop-links"
           style={{
             position: 'absolute',
+
             left: '50%',
-            transform: 'translateX(-50%)',
+
+            transform:
+              'translateX(-50%)',
 
             display: 'flex',
+
             alignItems: 'center',
+
             gap: 5,
           }}
         >
           {[
             ['Help Center', '/help'],
+
             [
               'Discord',
               'https://discord.gg/R4tyQ4h3K5',
             ],
-            ['Leaderboard', '/leaderboard'],
-            ['Pricing', '/pricing'],
-            ['Questions', '/questions'],
-          ].map(([label, href]) => (
-            <AccentLink
-              key={label}
-              href={href}
-              className="nav-link"
-              target={
-                label === 'Discord'
-                  ? '_blank'
-                  : undefined
-              }
-              rel={
-                label === 'Discord'
-                  ? 'noopener noreferrer'
-                  : undefined
-              }
-              style={{
-                color: COLORS.muted,
-                textDecoration: 'none',
-                fontSize: 14,
-                padding: '9px 13px',
-                whiteSpace: 'nowrap',
-                border:
-                  '1px solid transparent',
-                borderRadius: 12,
-                background: 'transparent',
-                boxShadow: 'none',
-              }}
-            >
-              {label}
-            </AccentLink>
-          ))}
+
+            [
+              'Leaderboard',
+              '/leaderboard',
+            ],
+
+            [
+              'Pricing',
+              '/pricing',
+            ],
+
+            [
+              'Questions',
+              '/questions',
+            ],
+          ].map(
+            ([label, href]) => (
+              <AccentLink
+                key={label}
+                href={href}
+                className="nav-link"
+
+                target={
+                  label === 'Discord'
+                    ? '_blank'
+                    : undefined
+                }
+
+                rel={
+                  label === 'Discord'
+                    ? 'noopener noreferrer'
+                    : undefined
+                }
+
+                style={{
+                  color:
+                    COLORS.muted,
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+
+                  padding:
+                    '9px 13px',
+
+                  whiteSpace:
+                    'nowrap',
+
+                  border:
+                    '1px solid transparent',
+
+                  borderRadius: 12,
+
+                  background:
+                    'transparent',
+
+                  boxShadow:
+                    'none',
+                }}
+              >
+                {label}
+              </AccentLink>
+            )
+          )}
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* =================================================
+            RIGHT SIDE
+        ================================================= */}
 
         <div
           style={{
             marginLeft: 'auto',
+
             display: 'flex',
+
             alignItems: 'center',
+
             gap: 8,
           }}
         >
@@ -552,15 +658,27 @@ export default function LeaderboardPage() {
             href="/login"
             className="nav-login nav-link"
             style={{
-              color: COLORS.muted,
-              textDecoration: 'none',
+              color:
+                COLORS.muted,
+
+              textDecoration:
+                'none',
+
               fontSize: 14,
-              padding: '9px 13px',
+
+              padding:
+                '9px 13px',
+
               border:
                 '1px solid transparent',
+
               borderRadius: 12,
-              background: 'transparent',
-              boxShadow: 'none',
+
+              background:
+                'transparent',
+
+              boxShadow:
+                'none',
             }}
           >
             Log in
@@ -571,14 +689,25 @@ export default function LeaderboardPage() {
             className="nav-link"
             style={{
               color: '#000',
-              background: COLORS.orange,
-              textDecoration: 'none',
+
+              background:
+                COLORS.orange,
+
+              textDecoration:
+                'none',
+
               fontSize: 14,
+
               fontWeight: 600,
-              padding: '12px 19px',
+
+              padding:
+                '12px 19px',
+
               borderRadius: 25,
+
               border:
                 '1px solid transparent',
+
               boxShadow:
                 '0 0 18px rgba(255,106,26,.25)',
             }}
@@ -595,11 +724,15 @@ export default function LeaderboardPage() {
       <section
         style={{
           minHeight: '100vh',
+
           position: 'relative',
+
           zIndex: 2,
 
           display: 'flex',
+
           alignItems: 'center',
+
           justifyContent: 'center',
 
           textAlign: 'center',
@@ -607,11 +740,13 @@ export default function LeaderboardPage() {
           padding:
             '120px 24px 80px',
 
-          opacity: visible ? 1 : 0,
+          opacity:
+            visible ? 1 : 0,
 
-          transform: visible
-            ? 'translateY(0)'
-            : 'translateY(14px)',
+          transform:
+            visible
+              ? 'translateY(0)'
+              : 'translateY(14px)',
 
           transition:
             'opacity .7s ease, transform .7s ease',
@@ -620,15 +755,22 @@ export default function LeaderboardPage() {
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+
+            flexDirection:
+              'column',
+
+            alignItems:
+              'center',
           }}
         >
           <div
             style={{
               width: 64,
+
               height: 3,
+
               borderRadius: 10,
+
               background:
                 'linear-gradient(90deg, #ff6a1a, #ff8a3d)',
 
@@ -646,9 +788,12 @@ export default function LeaderboardPage() {
                 "'Space Grotesk', sans-serif",
 
               fontSize: 58,
+
               lineHeight: 1.1,
 
-              letterSpacing: '-2px',
+              letterSpacing:
+                '-2px',
+
               fontWeight: 600,
 
               margin: 0,
@@ -670,9 +815,11 @@ export default function LeaderboardPage() {
 
               maxWidth: 500,
 
-              color: COLORS.muted,
+              color:
+                COLORS.muted,
 
               fontSize: 16,
+
               lineHeight: 1.6,
             }}
           >
@@ -685,11 +832,17 @@ export default function LeaderboardPage() {
             style={{
               marginTop: 28,
 
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display:
+                'inline-flex',
 
-              padding: '12px 18px',
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
+              padding:
+                '12px 18px',
 
               borderRadius: 14,
 
@@ -701,9 +854,11 @@ export default function LeaderboardPage() {
               border:
                 '1px solid rgba(255,255,255,.14)',
 
-              textDecoration: 'none',
+              textDecoration:
+                'none',
 
               fontSize: 14,
+
               fontWeight: 500,
             }}
           >
