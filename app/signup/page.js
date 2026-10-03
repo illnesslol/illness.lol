@@ -17,14 +17,16 @@ export default function SignupPage() {
 
   const [usernameStatus, setUsernameStatus] = useState('idle')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState('')
   const [agreed, setAgreed] = useState(false)
 
   /*
    * Username availability
-   * 1–24 characters
-   * Letters, numbers and underscores
+   * 1–24 characters, letters / numbers / underscores
+   * Uses the username_available() database function so the
+   * profiles table doesn't need a public read policy.
    */
   useEffect(() => {
     const clean = username.trim().toLowerCase()
@@ -34,12 +36,7 @@ export default function SignupPage() {
       return
     }
 
-    if (clean.length < 1 || clean.length > 24) {
-      setUsernameStatus('invalid')
-      return
-    }
-
-    if (!/^[a-z0-9_]+$/.test(clean)) {
+    if (clean.length > 24 || !/^[a-z0-9_]+$/.test(clean)) {
       setUsernameStatus('invalid')
       return
     }
@@ -49,21 +46,19 @@ export default function SignupPage() {
     const timer = setTimeout(async () => {
       setUsernameStatus('checking')
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', clean)
-        .maybeSingle()
+      const { data, error } = await supabase.rpc('username_available', {
+        name: clean,
+      })
 
       if (cancelled) return
 
       if (error) {
-        console.error(error)
+        console.error('Username check failed:', error)
         setUsernameStatus('error')
         return
       }
 
-      setUsernameStatus(data ? 'taken' : 'available')
+      setUsernameStatus(data ? 'available' : 'taken')
     }, 350)
 
     return () => {
@@ -78,13 +73,17 @@ export default function SignupPage() {
     /[a-z]/.test(password) &&
     /\d/.test(password)
 
-  const emailValid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+
+  // 'error' means the check itself failed. We let the user continue and
+  // the database (unique constraint) has the final say on duplicates.
+  const usernameOk =
+    usernameStatus === 'available' || usernameStatus === 'error'
 
   const canSubmit =
     username.trim().length >= 1 &&
     username.trim().length <= 24 &&
-    usernameStatus === 'available' &&
+    usernameOk &&
     emailValid &&
     passwordStrong &&
     password === confirmPassword &&
@@ -96,14 +95,13 @@ export default function SignupPage() {
     e.preventDefault()
 
     setError('')
+    setNotice('')
 
     const cleanUsername = username.trim().toLowerCase()
     const cleanEmail = email.trim().toLowerCase()
 
     if (!agreed) {
-      setError(
-        'Please agree to the Terms of Service and Privacy Policy.'
-      )
+      setError('Please agree to the Terms of Service and Privacy Policy.')
       return
     }
 
@@ -118,7 +116,7 @@ export default function SignupPage() {
       return
     }
 
-    if (usernameStatus !== 'available') {
+    if (!usernameOk) {
       setError('Please choose an available username.')
       return
     }
@@ -150,11 +148,31 @@ export default function SignupPage() {
           data: {
             username: cleanUsername,
           },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       })
 
       if (error) {
-        setError(error.message)
+        console.error('Signup failed:', error)
+
+        const msg = (error.message || '').toLowerCase()
+
+        if (msg.includes('database error')) {
+          setError(
+            'That username may already be taken, or the profile could not be created. Try a different username.'
+          )
+        } else {
+          setError(error.message)
+        }
+
+        setLoading(false)
+        return
+      }
+
+      // Supabase returns a user with no identities when the email is
+      // already registered (to avoid leaking which emails exist).
+      if (data.user && data.user.identities?.length === 0) {
+        setError('An account with this email already exists. Try signing in.')
         setLoading(false)
         return
       }
@@ -164,8 +182,8 @@ export default function SignupPage() {
         return
       }
 
-      setError(
-        'Account created! Check your email to confirm your account, then log in.'
+      setNotice(
+        'Account created! Check your email to confirm your account, then sign in.'
       )
 
       setLoading(false)
@@ -178,6 +196,7 @@ export default function SignupPage() {
 
   const handleOAuth = async (provider) => {
     setError('')
+    setNotice('')
     setOauthLoading(provider)
 
     try {
@@ -195,38 +214,6 @@ export default function SignupPage() {
     } catch (err) {
       console.error(err)
       setError('Unable to continue with that provider.')
-      setOauthLoading('')
-    }
-  }
-
-  const handlePasskey = async () => {
-    setError('')
-    setOauthLoading('passkey')
-
-    try {
-      if (!supabase.auth.signInWithPasskey) {
-        setError(
-          'Passkeys are not available yet. Enable Passkeys in your Supabase project first.'
-        )
-        setOauthLoading('')
-        return
-      }
-
-      const { data, error } =
-        await supabase.auth.signInWithPasskey()
-
-      if (error) {
-        setError(error.message)
-        setOauthLoading('')
-        return
-      }
-
-      if (data?.session) {
-        navigate('/dashboard')
-      }
-    } catch (err) {
-      console.error(err)
-      setError('Passkey sign in was cancelled or failed.')
       setOauthLoading('')
     }
   }
@@ -256,9 +243,7 @@ export default function SignupPage() {
 
         <h1>Create account</h1>
 
-        <p className="subtitle">
-          Create your illness.lol account
-        </p>
+        <p className="subtitle">Create your illness.lol account</p>
 
         {/* SOCIAL */}
 
@@ -271,9 +256,7 @@ export default function SignupPage() {
           >
             <DiscordIcon />
             <span>
-              {oauthLoading === 'discord'
-                ? 'Connecting...'
-                : 'Discord'}
+              {oauthLoading === 'discord' ? 'Connecting...' : 'Discord'}
             </span>
           </button>
 
@@ -285,29 +268,10 @@ export default function SignupPage() {
           >
             <GoogleIcon />
             <span>
-              {oauthLoading === 'google'
-                ? 'Connecting...'
-                : 'Google'}
+              {oauthLoading === 'google' ? 'Connecting...' : 'Google'}
             </span>
           </button>
         </div>
-
-        {/* PASSKEY */}
-
-        <button
-          type="button"
-          className="passkey-button"
-          onClick={handlePasskey}
-          disabled={!!oauthLoading || loading}
-        >
-          <LockIcon />
-
-          <span>
-            {oauthLoading === 'passkey'
-              ? 'Opening passkey...'
-              : 'Continue with passkey'}
-          </span>
-        </button>
 
         {/* DIVIDER */}
 
@@ -321,16 +285,13 @@ export default function SignupPage() {
           {/* USERNAME */}
 
           <div className="field">
-            <label htmlFor="username">
-              Username
-            </label>
+            <label htmlFor="username">Username</label>
 
             <div
               className={`input-wrap ${
                 usernameStatus === 'available'
                   ? 'success'
-                  : usernameStatus === 'taken' ||
-                      usernameStatus === 'invalid'
+                  : usernameStatus === 'taken' || usernameStatus === 'invalid'
                     ? 'danger'
                     : ''
               }`}
@@ -346,39 +307,33 @@ export default function SignupPage() {
                 autoComplete="username"
                 onChange={(e) =>
                   setUsername(
-                    e.target.value
-                      .toLowerCase()
-                      .replace(/[^a-z0-9_]/g, '')
+                    e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
                   )
                 }
               />
 
               {usernameStatus === 'checking' && (
-                <span className="status checking">
-                  Checking...
-                </span>
+                <span className="status checking">Checking...</span>
               )}
 
               {usernameStatus === 'available' && (
-                <span className="status available">
-                  ✓ Available
-                </span>
+                <span className="status available">✓ Available</span>
               )}
 
               {usernameStatus === 'taken' && (
-                <span className="status taken">
-                  Taken
-                </span>
+                <span className="status taken">Taken</span>
+              )}
+
+              {usernameStatus === 'error' && (
+                <span className="status checking">Couldn't check</span>
               )}
             </div>
 
-            {usernameStatus === 'invalid' &&
-              username.length > 0 && (
-                <small className="hint">
-                  1–24 characters. Letters, numbers, and
-                  underscores only.
-                </small>
-              )}
+            {usernameStatus === 'invalid' && username.length > 0 && (
+              <small className="hint">
+                1–24 characters. Letters, numbers, and underscores only.
+              </small>
+            )}
           </div>
 
           {/* EMAIL */}
@@ -395,9 +350,7 @@ export default function SignupPage() {
                 placeholder="you@example.com"
                 value={email}
                 autoComplete="email"
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -405,56 +358,37 @@ export default function SignupPage() {
           {/* PASSWORD */}
 
           <div className="field">
-            <label htmlFor="password">
-              Password
-            </label>
+            <label htmlFor="password">Password</label>
 
             <div className="input-wrap">
               <LockIcon />
 
               <input
                 id="password"
-                type={
-                  showPassword ? 'text' : 'password'
-                }
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Create a strong password"
                 value={password}
                 autoComplete="new-password"
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
               />
 
               <button
                 type="button"
                 className="eye-button"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
-                aria-label={
-                  showPassword
-                    ? 'Hide password'
-                    : 'Show password'
-                }
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? (
-                  <EyeOffIcon />
-                ) : (
-                  <EyeIcon />
-                )}
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
 
             {password.length > 0 && (
               <div className="password-hint">
                 {passwordStrong ? (
-                  <span className="good">
-                    ✓ Strong password
-                  </span>
+                  <span className="good">✓ Strong password</span>
                 ) : (
                   <span>
-                    Use 8+ characters with uppercase,
-                    lowercase, and a number.
+                    Use 8+ characters with uppercase, lowercase, and a number.
                   </span>
                 )}
               </div>
@@ -464,9 +398,7 @@ export default function SignupPage() {
           {/* CONFIRM PASSWORD */}
 
           <div className="field">
-            <label htmlFor="confirmPassword">
-              Confirm password
-            </label>
+            <label htmlFor="confirmPassword">Confirm password</label>
 
             <div
               className={`input-wrap ${
@@ -481,51 +413,31 @@ export default function SignupPage() {
 
               <input
                 id="confirmPassword"
-                type={
-                  showConfirmPassword
-                    ? 'text'
-                    : 'password'
-                }
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Repeat your password"
                 value={confirmPassword}
                 autoComplete="new-password"
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
 
               <button
                 type="button"
                 className="eye-button"
-                onClick={() =>
-                  setShowConfirmPassword(
-                    !showConfirmPassword
-                  )
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label={
-                  showConfirmPassword
-                    ? 'Hide password'
-                    : 'Show password'
+                  showConfirmPassword ? 'Hide password' : 'Show password'
                 }
               >
-                {showConfirmPassword ? (
-                  <EyeOffIcon />
-                ) : (
-                  <EyeIcon />
-                )}
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
 
             {confirmPassword.length > 0 && (
               <div className="password-hint">
                 {password === confirmPassword ? (
-                  <span className="good">
-                    ✓ Passwords match
-                  </span>
+                  <span className="good">✓ Passwords match</span>
                 ) : (
-                  <span className="bad">
-                    Passwords don't match
-                  </span>
+                  <span className="bad">Passwords don't match</span>
                 )}
               </div>
             )}
@@ -537,50 +449,34 @@ export default function SignupPage() {
             <input
               type="checkbox"
               checked={agreed}
-              onChange={(e) =>
-                setAgreed(e.target.checked)
-              }
+              onChange={(e) => setAgreed(e.target.checked)}
             />
 
-            <span className="custom-check">
-              {agreed ? '✓' : ''}
-            </span>
+            <span className="custom-check">{agreed ? '✓' : ''}</span>
 
             <span className="terms-text">
               I agree to the{' '}
-              <a
-                href="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href="/terms" target="_blank" rel="noopener noreferrer">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">
                 Privacy Policy
               </a>
             </span>
           </label>
 
-          {/* ERROR */}
+          {/* ERROR / NOTICE */}
 
-          {error && (
-            <div className="error-box">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-box">{error}</div>}
+
+          {notice && <div className="notice-box">{notice}</div>}
 
           {/* SIGN UP */}
 
           <button
             type="submit"
-            className={`continue-button ${
-              canSubmit ? 'ready' : ''
-            }`}
+            className={`continue-button ${canSubmit ? 'ready' : ''}`}
             disabled={!canSubmit}
           >
             {loading ? (
@@ -595,8 +491,7 @@ export default function SignupPage() {
         </form>
 
         <p className="login-text">
-          Already have an account?{' '}
-          <a href="/login">Sign in</a>
+          Already have an account? <a href="/login">Sign in</a>
         </p>
       </section>
 
@@ -621,33 +516,30 @@ export default function SignupPage() {
             system-ui,
             -apple-system,
             BlinkMacSystemFont,
-            "Segoe UI",
+            'Segoe UI',
             sans-serif;
         }
 
         .signup-page::before {
-          content: "";
+          content: '';
           position: fixed;
           inset: 0;
           pointer-events: none;
-          background-image:
-            radial-gradient(
-              rgba(255, 255, 255, 0.1) 1px,
-              transparent 1px
-            );
+          background-image: radial-gradient(
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px
+          );
           background-size: 28px 28px;
-          mask-image:
-            radial-gradient(
-              ellipse 75% 70% at 50% 40%,
-              #000 15%,
-              transparent 80%
-            );
-          -webkit-mask-image:
-            radial-gradient(
-              ellipse 75% 70% at 50% 40%,
-              #000 15%,
-              transparent 80%
-            );
+          mask-image: radial-gradient(
+            ellipse 75% 70% at 50% 40%,
+            #000 15%,
+            transparent 80%
+          );
+          -webkit-mask-image: radial-gradient(
+            ellipse 75% 70% at 50% 40%,
+            #000 15%,
+            transparent 80%
+          );
           opacity: 0.65;
         }
 
@@ -673,10 +565,7 @@ export default function SignupPage() {
           gap: 9px;
           margin-bottom: 20px;
           color: #fff;
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
+          font-family: 'Space Grotesk', Inter, sans-serif;
           font-size: 20px;
           font-weight: 600;
           letter-spacing: -0.5px;
@@ -685,19 +574,13 @@ export default function SignupPage() {
         .brand-icon {
           display: block;
           object-fit: contain;
-          filter:
-            drop-shadow(
-              0 0 10px rgba(255, 106, 26, 0.35)
-            );
+          filter: drop-shadow(0 0 10px rgba(255, 106, 26, 0.35));
         }
 
         h1 {
           margin: 0;
           text-align: center;
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
+          font-family: 'Space Grotesk', Inter, sans-serif;
           font-size: 29px;
           line-height: 1.15;
           letter-spacing: -1px;
@@ -718,8 +601,14 @@ export default function SignupPage() {
           gap: 10px;
         }
 
-        .social-button,
-        .passkey-button {
+        .social-button {
+          height: 45px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          font-size: 13px;
+          font-weight: 500;
           border: 1px solid rgba(255, 255, 255, 0.1);
           background: rgba(255, 255, 255, 0.035);
           color: #fff;
@@ -733,42 +622,16 @@ export default function SignupPage() {
             box-shadow 0.18s ease;
         }
 
-        .social-button {
-          height: 45px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          font-size: 13px;
-          font-weight: 500;
-        }
-
-        .social-button:hover:not(:disabled),
-        .passkey-button:hover:not(:disabled) {
+        .social-button:hover:not(:disabled) {
           background: rgba(255, 106, 26, 0.08);
           border-color: rgba(255, 106, 26, 0.35);
           transform: translateY(-1px);
-          box-shadow:
-            0 0 20px rgba(255, 106, 26, 0.06);
+          box-shadow: 0 0 20px rgba(255, 106, 26, 0.06);
         }
 
-        .social-button:disabled,
-        .passkey-button:disabled {
+        .social-button:disabled {
           opacity: 0.55;
           cursor: default;
-        }
-
-        .passkey-button {
-          width: 100%;
-          height: 45px;
-          margin-top: 9px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #fff;
         }
 
         .divider {
@@ -825,9 +688,7 @@ export default function SignupPage() {
         .input-wrap:focus-within {
           border-color: rgba(255, 106, 26, 0.65);
           background: rgba(255, 255, 255, 0.045);
-          box-shadow:
-            0 0 0 3px
-              rgba(255, 106, 26, 0.08);
+          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.08);
         }
 
         .input-wrap.success {
@@ -838,7 +699,8 @@ export default function SignupPage() {
           border-color: rgba(235, 78, 69, 0.6);
         }
 
-        .input-icon {
+        /* Icons are separate components, so their classes must be global */
+        :global(.input-icon) {
           width: 42px;
           flex: 0 0 42px;
           display: flex;
@@ -918,6 +780,7 @@ export default function SignupPage() {
         }
 
         .terms {
+          position: relative;
           display: flex;
           align-items: flex-start;
           gap: 9px;
@@ -955,6 +818,10 @@ export default function SignupPage() {
           border-color: #ff6a1a;
         }
 
+        .terms input:focus-visible + .custom-check {
+          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.25);
+        }
+
         .terms-text {
           color: rgba(255, 255, 255, 0.5);
           font-size: 11px;
@@ -976,6 +843,17 @@ export default function SignupPage() {
           border: 1px solid rgba(235, 78, 69, 0.3);
           background: rgba(235, 78, 69, 0.08);
           color: #f18a83;
+          border-radius: 9px;
+          padding: 9px 11px;
+          font-size: 11px;
+          line-height: 1.4;
+          margin-bottom: 11px;
+        }
+
+        .notice-box {
+          border: 1px solid rgba(72, 196, 112, 0.3);
+          background: rgba(72, 196, 112, 0.08);
+          color: #7fdc9f;
           border-radius: 9px;
           padding: 9px 11px;
           font-size: 11px;
@@ -1005,21 +883,21 @@ export default function SignupPage() {
         .continue-button.ready {
           cursor: pointer;
           opacity: 1;
-          box-shadow:
-            0 0 20px
-              rgba(255, 106, 26, 0.25);
+          box-shadow: 0 0 20px rgba(255, 106, 26, 0.25);
         }
 
         .continue-button.ready:hover {
           filter: brightness(1.1);
           transform: translateY(-1px);
-          box-shadow:
-            0 0 28px
-              rgba(255, 106, 26, 0.38);
+          box-shadow: 0 0 28px rgba(255, 106, 26, 0.38);
         }
 
         .continue-button:disabled {
           cursor: not-allowed;
+        }
+
+        .continue-button.ready:disabled {
+          cursor: default;
         }
 
         .spinner {
@@ -1084,7 +962,8 @@ export default function SignupPage() {
           background: rgba(255, 106, 26, 0.07);
         }
 
-        .leaves-canvas {
+        /* Canvas is created with document.createElement, so it must be global */
+        :global(.leaves-canvas) {
           position: fixed;
           inset: 0;
           width: 100%;
@@ -1112,10 +991,6 @@ export default function SignupPage() {
 
           h1 {
             font-size: 26px;
-          }
-
-          .social-button span {
-            display: inline;
           }
         }
       `}</style>
@@ -1155,119 +1030,53 @@ function FallingLeaves() {
     ).matches
 
     const resize = () => {
-      const dpr = Math.min(
-        window.devicePixelRatio || 1,
-        2
-      )
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
-      canvas.width =
-        window.innerWidth * dpr
-
-      canvas.height =
-        window.innerHeight * dpr
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
 
       canvas.style.width = '100%'
       canvas.style.height = '100%'
 
-      ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-      )
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
     resize()
 
-    window.addEventListener(
-      'resize',
-      resize
-    )
+    window.addEventListener('resize', resize)
 
-    const colors = [
-      '#ff6a1a',
-      '#ff8a3d',
-      '#e85a0c',
-      '#ffffff',
-    ]
+    const colors = ['#ff6a1a', '#ff8a3d', '#e85a0c', '#ffffff']
 
     const makeLeaf = () => ({
-      x:
-        Math.random() *
-        window.innerWidth,
-
-      y:
-        -40 -
-        Math.random() *
-          window.innerHeight,
-
-      size:
-        Math.random() * 5 + 8,
-
-      speed:
-        Math.random() * 0.35 + 0.3,
-
-      swayAmp:
-        Math.random() * 30 + 20,
-
-      swaySpeed:
-        Math.random() * 0.012 + 0.006,
-
-      phase:
-        Math.random() *
-        Math.PI *
-        2,
-
-      rotation:
-        Math.random() *
-        Math.PI *
-        2,
-
-      spin:
-        (Math.random() - 0.5) *
-        0.012,
-
-      opacity:
-        Math.random() * 0.18 + 0.18,
-
-      color:
-        colors[
-          Math.floor(
-            Math.random() *
-              colors.length
-          )
-        ],
-
+      x: Math.random() * window.innerWidth,
+      y: -40 - Math.random() * window.innerHeight,
+      size: Math.random() * 5 + 8,
+      speed: Math.random() * 0.35 + 0.3,
+      swayAmp: Math.random() * 30 + 20,
+      swaySpeed: Math.random() * 0.012 + 0.006,
+      phase: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.012,
+      opacity: Math.random() * 0.18 + 0.18,
+      color: colors[Math.floor(Math.random() * colors.length)],
       baseX: 0,
     })
 
-    const leaves = Array.from(
-      { length: 12 },
-      makeLeaf
-    )
+    const leaves = Array.from({ length: 12 }, makeLeaf)
 
     leaves.forEach((leaf) => {
       leaf.baseX = leaf.x
-      leaf.y =
-        Math.random() *
-        window.innerHeight
+      leaf.y = Math.random() * window.innerHeight
     })
 
     let animationFrame
     let tick = 0
 
-    const drawLeaf = (
-      size,
-      color,
-      opacity
-    ) => {
+    const drawLeaf = (size, color, opacity) => {
       ctx.globalAlpha = opacity
       ctx.fillStyle = color
 
       ctx.beginPath()
-
       ctx.moveTo(0, -size)
 
       ctx.bezierCurveTo(
@@ -1290,36 +1099,20 @@ function FallingLeaves() {
 
       ctx.fill()
 
-      ctx.globalAlpha =
-        opacity * 0.85
-
+      ctx.globalAlpha = opacity * 0.85
       ctx.strokeStyle = '#000'
       ctx.lineWidth = 1
 
       ctx.beginPath()
-
-      ctx.moveTo(
-        0,
-        -size * 0.85
-      )
-
-      ctx.lineTo(
-        0,
-        size * 1.15
-      )
-
+      ctx.moveTo(0, -size * 0.85)
+      ctx.lineTo(0, size * 1.15)
       ctx.stroke()
 
       ctx.globalAlpha = 1
     }
 
     const draw = () => {
-      ctx.clearRect(
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-      )
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
       tick += 1
 
@@ -1331,67 +1124,36 @@ function FallingLeaves() {
 
         const sway = reduceMotion
           ? 0
-          : Math.sin(
-              tick *
-                leaf.swaySpeed +
-                leaf.phase
-            ) * leaf.swayAmp
+          : Math.sin(tick * leaf.swaySpeed + leaf.phase) * leaf.swayAmp
 
-        const x =
-          leaf.baseX + sway
+        const x = leaf.baseX + sway
 
-        if (
-          leaf.y >
-          window.innerHeight + 50
-        ) {
+        if (leaf.y > window.innerHeight + 50) {
           leaf.y = -40
-
-          leaf.baseX =
-            Math.random() *
-            window.innerWidth
+          leaf.baseX = Math.random() * window.innerWidth
         }
 
         ctx.save()
-
-        ctx.translate(
-          x,
-          leaf.y
-        )
+        ctx.translate(x, leaf.y)
 
         ctx.rotate(
           leaf.rotation +
-            Math.sin(
-              tick *
-                leaf.swaySpeed +
-                leaf.phase
-            ) *
-              0.5
+            Math.sin(tick * leaf.swaySpeed + leaf.phase) * 0.5
         )
 
-        drawLeaf(
-          leaf.size,
-          leaf.color,
-          leaf.opacity
-        )
+        drawLeaf(leaf.size, leaf.color, leaf.opacity)
 
         ctx.restore()
       })
 
-      animationFrame =
-        requestAnimationFrame(draw)
+      animationFrame = requestAnimationFrame(draw)
     }
 
     draw()
 
     return () => {
-      cancelAnimationFrame(
-        animationFrame
-      )
-
-      window.removeEventListener(
-        'resize',
-        resize
-      )
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('resize', resize)
     }
   }, [canvas])
 
@@ -1415,14 +1177,7 @@ function LockIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <rect
-          x="4"
-          y="10"
-          width="16"
-          height="11"
-          rx="2"
-        />
-
+        <rect x="4" y="10" width="16" height="11" rx="2" />
         <path d="M8 10V7a4 4 0 0 1 8 0v3" />
       </svg>
     </span>
@@ -1442,12 +1197,7 @@ function UserIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle
-          cx="12"
-          cy="8"
-          r="4"
-        />
-
+        <circle cx="12" cy="8" r="4" />
         <path d="M4 21a8 8 0 0 1 16 0" />
       </svg>
     </span>
@@ -1467,14 +1217,7 @@ function MailIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <rect
-          x="3"
-          y="5"
-          width="18"
-          height="14"
-          rx="2"
-        />
-
+        <rect x="3" y="5" width="18" height="14" rx="2" />
         <path d="m3 7 9 6 9-6" />
       </svg>
     </span>
@@ -1521,26 +1264,19 @@ function EyeOffIcon() {
 
 function GoogleIcon() {
   return (
-    <svg
-      width="17"
-      height="17"
-      viewBox="0 0 24 24"
-    >
+    <svg width="17" height="17" viewBox="0 0 24 24">
       <path
         fill="#4285F4"
         d="M21.35 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.22a4.46 4.46 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.93-4.18 2.93-7.4Z"
       />
-
       <path
         fill="#34A853"
         d="M12 21.6c2.63 0 4.84-.87 6.45-2.37l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.29v2.52A9.75 9.75 0 0 0 12 21.6Z"
       />
-
       <path
         fill="#FBBC05"
         d="M6.53 13.68A5.86 5.86 0 0 1 6.22 12c0-.58.1-1.14.31-1.68V7.8H3.29A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.2l3.24-2.52Z"
       />
-
       <path
         fill="#EA4335"
         d="M12 6.29c1.43 0 2.72.49 3.74 1.46l2.8-2.8C16.84 3.38 14.63 2.4 12 2.4a9.75 9.75 0 0 0-8.71 5.4l3.24 2.52C7.3 8.01 9.46 6.29 12 6.29Z"
@@ -1551,12 +1287,7 @@ function GoogleIcon() {
 
 function DiscordIcon() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path
         fill="#fff"
         d="M19.54 5.27A16.2 16.2 0 0 0 15.57 4l-.5 1.02a14.7 14.7 0 0 0-6.14 0L8.43 4a16.2 16.2 0 0 0-3.97 1.27C1.95 9.08 1.27 12.8 1.61 16.47a16.3 16.3 0 0 0 4.88 2.5l1.18-1.62c-.65-.24-1.28-.55-1.86-.9l.45-.35c3.59 1.68 7.49 1.68 11.03 0l.45.35c-.59.35-1.21.65-1.86.9l1.18 1.62a16.3 16.3 0 0 0 4.88-2.5c.4-4.28-.68-7.97-2.4-11.2ZM8.03 14.05c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Zm7.94 0c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Z"
