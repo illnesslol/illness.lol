@@ -245,7 +245,7 @@ export default function LoginPage() {
               <input
                 id="identifier"
                 type="text"
-                placeholder="your_username or you@example.com"
+                placeholder="you@example.com"
                 value={identifier}
                 autoComplete="username"
                 onChange={(e) => setIdentifier(e.target.value)}
