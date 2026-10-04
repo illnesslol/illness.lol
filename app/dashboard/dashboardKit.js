@@ -23,46 +23,56 @@ export const fmt = (n) =>
 
 export function trend(cur, prev) {
   if (!prev) {
-    return cur > 0
-      ? '↗ New'
-      : '— 0%'
+    return cur > 0 ? '↗ New' : '— 0%'
   }
 
-  const pct =
-    ((cur - prev) / prev) * 100
+  const pct = ((cur - prev) / prev) * 100
 
-  return `${
-    pct >= 0 ? '↗' : '↘'
-  } ${Math.abs(pct).toFixed(1)}%`
+  return `${pct >= 0 ? '↗' : '↘'} ${Math.abs(pct).toFixed(1)}%`
 }
 
-function smoothPath(values, w, h, max) {
-  const n = values.length
+/* -------------------------------------------------------
+   SMOOTH SVG PATH
+------------------------------------------------------- */
 
-  if (n < 2) {
-    return `M0 ${h} L${w} ${h}`
+export function smoothPath(values, width, height, max) {
+  const clean = values.map((v) => Number(v || 0))
+  const n = clean.length
+
+  if (n === 0) {
+    return `M0 ${height} L${width} ${height}`
   }
 
-  const pts = values.map(
-    (v, i) => [
-      (i * w) / (n - 1),
-      h - (v / max) * h,
-    ]
-  )
-
-  let d = `M${pts[0][0]} ${pts[0][1]}`
-
-  for (let i = 1; i < n; i++) {
-    const [x0, y0] = pts[i - 1]
-    const [x1, y1] = pts[i]
-
-    const mx = (x0 + x1) / 2
-
-    d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
+  if (n === 1) {
+    return `M0 ${height} L${width} ${height}`
   }
 
-  return d
+  const safeMax = Math.max(Number(max || 0), 1)
+
+  const points = clean.map((value, index) => {
+    const x = (index * width) / (n - 1)
+    const y = height - (value / safeMax) * height
+
+    return [x, y]
+  })
+
+  let path = `M${points[0][0]} ${points[0][1]}`
+
+  for (let i = 1; i < points.length; i++) {
+    const [x0, y0] = points[i - 1]
+    const [x1, y1] = points[i]
+
+    const midpoint = (x0 + x1) / 2
+
+    path += ` C${midpoint} ${y0} ${midpoint} ${y1} ${x1} ${y1}`
+  }
+
+  return path
 }
+
+/* -------------------------------------------------------
+   DASHBOARD DATA
+------------------------------------------------------- */
 
 export function useDashboardData(days = 7) {
   const [user, setUser] = useState(null)
@@ -70,35 +80,31 @@ export function useDashboardData(days = 7) {
   const [stats, setStats] = useState(EMPTY)
   const [loading, setLoading] = useState(true)
 
-  const [profilePublic, setPublic] =
-    useState(true)
+  const [profilePublic, setPublic] = useState(true)
 
-  const [greeting, setGreeting] =
-    useState('Welcome')
+  const [greeting, setGreeting] = useState('Welcome')
 
   useEffect(() => {
-    const h = new Date().getHours()
+    const hour = new Date().getHours()
 
-    setGreeting(
-      h < 12
-        ? 'Good morning'
-        : h < 18
-        ? 'Good afternoon'
-        : 'Good evening'
-    )
+    if (hour < 12) {
+      setGreeting('Good morning')
+    } else if (hour < 18) {
+      setGreeting('Good afternoon')
+    } else {
+      setGreeting('Good evening')
+    }
   }, [])
 
   useEffect(() => {
     let cancelled = false
 
-    ;(async () => {
+    async function loadDashboard() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
 
-      if (cancelled) {
-        return
-      }
+      if (cancelled) return
 
       if (!user) {
         window.location.replace('/login')
@@ -107,65 +113,65 @@ export function useDashboardData(days = 7) {
 
       setUser(user)
 
-      const [p, s] =
-        await Promise.all([
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle(),
+      const [profileResponse, statsResponse] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle(),
 
-          supabase.rpc(
-            'dashboard_stats',
-            { days }
-          ),
-        ])
+        supabase.rpc('dashboard_stats', {
+          days,
+        }),
+      ])
 
-      if (cancelled) {
-        return
-      }
+      if (cancelled) return
 
-      if (p.error) {
+      if (profileResponse.error) {
         console.error(
           'Profile load failed:',
-          p.error
+          profileResponse.error
         )
       }
 
-      if (p.data) {
-        setProfile(p.data)
+      if (profileResponse.data) {
+        setProfile(profileResponse.data)
 
         setPublic(
-          p.data.is_public !== false
+          profileResponse.data.is_public !== false
         )
       }
 
-      if (s.error) {
+      if (statsResponse.error) {
         console.error(
           'Stats load failed:',
-          s.error
+          statsResponse.error
         )
-      } else if (s.data) {
-        const d = s.data
+      } else if (statsResponse.data) {
+        const data = statsResponse.data
 
         setStats({
-          views: d.views,
-          clicks: d.clicks,
-          visitors: d.visitors,
-          activeLinks: d.active_links,
+          views: Number(data.views || 0),
+          clicks: Number(data.clicks || 0),
+          visitors: Number(data.visitors || 0),
+          activeLinks: Number(data.active_links || 0),
 
           prev: {
-            views: d.prev_views,
-            clicks: d.prev_clicks,
-            visitors: d.prev_visitors,
+            views: Number(data.prev_views || 0),
+            clicks: Number(data.prev_clicks || 0),
+            visitors: Number(data.prev_visitors || 0),
           },
 
-          daily: d.daily || [],
+          daily: Array.isArray(data.daily)
+            ? data.daily
+            : [],
         })
       }
 
       setLoading(false)
-    })()
+    }
+
+    loadDashboard()
 
     return () => {
       cancelled = true
@@ -180,17 +186,14 @@ export function useDashboardData(days = 7) {
 
     setPublic(value)
 
-    if (!user) {
-      return
-    }
+    if (!user) return
 
-    const { error } =
-      await supabase
-        .from('profiles')
-        .update({
-          is_public: value,
-        })
-        .eq('id', user.id)
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_public: value,
+      })
+      .eq('id', user.id)
 
     if (error) {
       console.error(
@@ -210,30 +213,47 @@ export function useDashboardData(days = 7) {
 
   return {
     loading,
+
     username,
-    initial: (
-      username[0] || '?'
-    ).toUpperCase(),
+
+    initial: (username?.[0] || '?').toUpperCase(),
+
     bio: profile?.bio,
+
     greeting,
+
     stats,
+
     profilePublic,
+
     setProfilePublic,
   }
 }
 
-/* ============================================================
-   SMALL TREND LINE
-============================================================ */
+/* -------------------------------------------------------
+   SPARKLINE
+------------------------------------------------------- */
 
 export function Spark({
-  values,
+  values = [],
   className = '',
 }) {
-  const v =
+  const safeValues =
     values.length > 1
       ? values
       : [0, 0]
+
+  const max = Math.max(
+    ...safeValues,
+    1
+  )
+
+  const path = smoothPath(
+    safeValues,
+    220,
+    38,
+    max
+  )
 
   return (
     <div
@@ -242,116 +262,114 @@ export function Spark({
       <svg
         viewBox="0 0 220 38"
         preserveAspectRatio="none"
+        aria-hidden="true"
       >
-        <path
-          d={smoothPath(
-            v,
-            220,
-            36,
-            Math.max(...v, 1)
-          )}
-        />
+        <path d={path} />
       </svg>
     </div>
   )
 }
 
-/* ============================================================
-   BIG VIEWS + CLICKS CHART
-============================================================ */
+/* -------------------------------------------------------
+   ACTIVITY CHART
+------------------------------------------------------- */
 
 export function ActivityChart({
-  daily,
+  daily = [],
 }) {
-  const views = daily.map(
-    (d) => d.views
+  const views = daily.map((item) =>
+    Number(item.views || 0)
   )
 
-  const clicks = daily.map(
-    (d) => d.clicks
+  const clicks = daily.map((item) =>
+    Number(item.clicks || 0)
   )
 
-  const max = Math.max(
+  const rawMax = Math.max(
     ...views,
     ...clicks,
     0
   )
 
-  const top = Math.max(
-    5,
-    Math.ceil(max / 5) * 5
-  )
+  const top =
+    rawMax <= 5
+      ? 5
+      : Math.ceil(rawMax / 5) * 5
 
   const yLabels = [
-    5,
-    4,
-    3,
-    2,
-    1,
+    top,
+    Math.round(top * 0.8),
+    Math.round(top * 0.6),
+    Math.round(top * 0.4),
+    Math.round(top * 0.2),
     0,
-  ].map((i) =>
-    Math.round((top * i) / 5)
-  )
+  ]
 
-  const xLabels = daily.map((d) =>
-    new Date(
-      `${d.day}T00:00:00`
-    ).toLocaleDateString(
+  const xLabels = daily.map((item) => {
+    if (!item?.day) return ''
+
+    const date = new Date(
+      `${item.day}T00:00:00`
+    )
+
+    return date.toLocaleDateString(
       'en-US',
       {
-        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
       }
     )
-  )
+  })
 
-  const viewsLine = smoothPath(
+  const viewPath = smoothPath(
     views.length > 1
       ? views
       : [0, 0],
-    600,
-    190,
+    700,
+    220,
     top
   )
 
-  const clicksLine = smoothPath(
+  const clickPath = smoothPath(
     clicks.length > 1
       ? clicks
       : [0, 0],
-    600,
-    190,
+    700,
+    220,
     top
   )
 
+  const areaPath =
+    `${viewPath} L700 220 L0 220 Z`
+
   return (
     <div className="activity-chart">
-
       <div className="y-labels">
-        {yLabels.map((n, i) => (
-          <span key={i}>
-            {n}
+        {yLabels.map((value, index) => (
+          <span key={index}>
+            {value}
           </span>
         ))}
       </div>
 
       <div className="plot">
-
         <div className="grid-lines">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
+          {Array.from({
+            length: 6,
+          }).map((_, index) => (
+            <i key={index} />
+          ))}
         </div>
 
         <svg
-          viewBox="0 0 600 190"
+          viewBox="0 0 700 220"
           preserveAspectRatio="none"
           className="activity-svg"
+          aria-label="Profile activity chart"
         >
           <defs>
             <linearGradient
-              id="areaOrange"
+              id="fallArea"
               x1="0"
               x2="0"
               y1="0"
@@ -359,38 +377,60 @@ export function ActivityChart({
             >
               <stop
                 offset="0%"
-                stopColor="#ff7a2e"
-                stopOpacity=".24"
+                stopColor="#d96b32"
+                stopOpacity=".28"
+              />
+
+              <stop
+                offset="55%"
+                stopColor="#b64d24"
+                stopOpacity=".08"
               />
 
               <stop
                 offset="100%"
-                stopColor="#ff7a2e"
+                stopColor="#8b3519"
                 stopOpacity="0"
+              />
+            </linearGradient>
+
+            <linearGradient
+              id="fallLine"
+              x1="0"
+              x2="1"
+            >
+              <stop
+                offset="0%"
+                stopColor="#e17a3d"
+              />
+
+              <stop
+                offset="100%"
+                stopColor="#f0a35b"
               />
             </linearGradient>
           </defs>
 
           <path
             className="area"
-            d={`${viewsLine} L600 190 L0 190 Z`}
+            d={areaPath}
           />
 
           <path
             className="line-views"
-            d={viewsLine}
+            d={viewPath}
           />
 
           <path
             className="line-clicks"
-            d={clicksLine}
+            d={clickPath}
           />
         </svg>
 
         <div className="x-labels">
-          {xLabels.map((l, i) => (
-            <span key={i}>
-              {l}
+          {xLabels.map((label, index) => (
+            <span key={index}>
+              {label}
             </span>
           ))}
         </div>
