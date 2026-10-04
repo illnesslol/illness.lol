@@ -619,10 +619,13 @@ export default function DashboardPage() {
 
         <div className="brand">
           <div className="brand-icon">
-            🍂
+            <img
+              src="/icon.png"
+              alt="illness.lol"
+            />
           </div>
 
-          <span>halo.rip</span>
+          <span>illness.lol</span>
         </div>
 
         {/* SEARCH */}
@@ -635,7 +638,7 @@ export default function DashboardPage() {
           />
 
           <span>
-            Search Halo
+            Search Illness
           </span>
 
           <kbd>
@@ -845,7 +848,7 @@ export default function DashboardPage() {
             </h1>
 
             <p>
-              Here is a quick look at your halo.rip page.
+              Here is a quick look at your illness.lol page.
             </p>
           </div>
 
@@ -1211,7 +1214,14 @@ export default function DashboardPage() {
           display: grid;
           place-items: center;
 
-          font-size: 17px;
+          flex-shrink: 0;
+        }
+
+        .brand-icon img {
+          width: 25px;
+          height: 25px;
+
+          object-fit: contain;
 
           filter:
             drop-shadow(
@@ -1987,10 +1997,11 @@ export default function DashboardPage() {
 
           border-radius: 50%;
 
+          /* FALL COLORS — NO PINK */
           background:
             conic-gradient(
-              #f09b67 0deg 180deg,
-              #ff75ae 180deg 360deg
+              #ff6a1a 0deg 180deg,
+              #a9360b 180deg 360deg
             );
 
           display: grid;
@@ -2053,12 +2064,13 @@ export default function DashboardPage() {
           border-radius: 50%;
         }
 
+        /* FALL COLORS */
         .device-dot.desktop {
-          background: #f09b67;
+          background: #ff6a1a;
         }
 
         .device-dot.mobile {
-          background: #ff75ae;
+          background: #a9360b;
         }
 
         /* =====================================================
