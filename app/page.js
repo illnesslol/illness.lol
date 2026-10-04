@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { TransitionLink } from '../components/PageTransition'
 
 const COLORS = {
-  bg: '#000000',
+  bg: '#050505',
   surface: '#0c0c0c',
   surfaceAlt: '#141414',
   orange: '#ff6a1a',
@@ -934,7 +934,7 @@ export default function HomePage() {
     <main
       style={{
         minHeight: '100vh',
-        background: COLORS.bg,
+        background: '#050505',
         color: '#fff',
         fontFamily:
           "'Inter', system-ui, sans-serif",
@@ -942,6 +942,233 @@ export default function HomePage() {
         overflow: 'hidden',
       }}
     >
+
+      {/* =====================================================
+          ATMOSPHERIC BACKGROUND
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+
+          background: `
+            radial-gradient(
+              ellipse 75% 60% at 50% 0%,
+              rgba(255,106,26,.18) 0%,
+              rgba(255,106,26,.08) 28%,
+              rgba(255,106,26,.025) 48%,
+              transparent 72%
+            ),
+            radial-gradient(
+              ellipse 50% 55% at 5% 48%,
+              rgba(255,106,26,.075),
+              transparent 70%
+            ),
+            radial-gradient(
+              ellipse 50% 55% at 95% 62%,
+              rgba(255,80,10,.055),
+              transparent 70%
+            ),
+            radial-gradient(
+              ellipse 60% 40% at 50% 100%,
+              rgba(255,106,26,.025),
+              transparent 70%
+            ),
+            linear-gradient(
+              180deg,
+              #0a0a0a 0%,
+              #070707 30%,
+              #050505 65%,
+              #020202 100%
+            )
+          `,
+        }}
+      />
+
+      {/* =====================================================
+          LARGE SOFT CENTER LIGHT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          width: 1000,
+          height: 1000,
+
+          left: '50%',
+          top: '28%',
+
+          transform:
+            'translate(-50%, -50%)',
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.065), rgba(255,106,26,.018) 38%, transparent 70%)',
+
+          filter: 'blur(25px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+      {/* =====================================================
+          TOP ORANGE LIGHT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          top: -500,
+          left: '50%',
+
+          transform:
+            'translateX(-50%)',
+
+          width: 1200,
+          height: 850,
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.16), rgba(255,106,26,.04) 42%, transparent 70%)',
+
+          filter: 'blur(12px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+      {/* =====================================================
+          SIDE AMBIENT GLOW — LEFT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          left: -350,
+          top: '38%',
+
+          width: 700,
+          height: 700,
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.055), transparent 68%)',
+
+          filter: 'blur(20px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+      {/* =====================================================
+          SIDE AMBIENT GLOW — RIGHT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          right: -350,
+          top: '48%',
+
+          width: 700,
+          height: 700,
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,80,10,.045), transparent 68%)',
+
+          filter: 'blur(20px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+      {/* =====================================================
+          DOT GRID
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,.065) 1px, transparent 1px)',
+
+          backgroundSize:
+            '28px 28px',
+
+          maskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 15%, transparent 78%)',
+
+          WebkitMaskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 15%, transparent 78%)',
+        }}
+      />
+
+      {/* =====================================================
+          SUBTLE VIGNETTE
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+
+          background:
+            'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%)',
+        }}
+      />
+
+
+      {/* =====================================================
+          FALLING LEAVES
+      ===================================================== */}
+
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
 
       {/* =====================================================
           GLOBAL STYLES
@@ -960,7 +1187,7 @@ export default function HomePage() {
 
         body {
           margin: 0;
-          background: #000000;
+          background: #050505;
         }
 
         ::selection {
@@ -1095,77 +1322,6 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          FALLING LEAVES
-      ===================================================== */}
-
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
-      />
-
-
-      {/* =====================================================
-          DOT GRID
-      ===================================================== */}
-
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: 'none',
-
-          backgroundImage:
-            'radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px)',
-
-          backgroundSize:
-            '28px 28px',
-
-          maskImage:
-            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
-
-          WebkitMaskImage:
-            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 20%, transparent 78%)',
-        }}
-      />
-
-
-      {/* =====================================================
-          ORANGE GLOW
-      ===================================================== */}
-
-      <div
-        style={{
-          position: 'fixed',
-          top: -380,
-          left: '50%',
-          transform:
-            'translateX(-50%)',
-
-          width: 1000,
-          height: 700,
-
-          borderRadius: '50%',
-
-          background:
-            'radial-gradient(circle,rgba(255,106,26,.16),transparent 68%)',
-
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
-
-
-      {/* =====================================================
           NAVIGATION
       ===================================================== */}
 
@@ -1186,13 +1342,19 @@ export default function HomePage() {
           borderRadius: 40,
 
           background:
-            'rgba(10,10,10,.92)',
+            'rgba(10,10,10,.88)',
+
+          backdropFilter:
+            'blur(18px)',
+
+          WebkitBackdropFilter:
+            'blur(18px)',
 
           border:
-            '1px solid rgba(255,255,255,.06)',
+            '1px solid rgba(255,255,255,.07)',
 
           boxShadow:
-            '0 15px 50px rgba(0,0,0,.4)',
+            '0 15px 50px rgba(0,0,0,.4), 0 0 35px rgba(255,106,26,.025)',
 
           display: 'flex',
           alignItems: 'center',
@@ -1504,6 +1666,9 @@ export default function HomePage() {
             margin: 0,
 
             color: '#fff',
+
+            textShadow:
+              '0 4px 35px rgba(0,0,0,.55)',
           }}
         >
           Everything you want,
@@ -1525,6 +1690,9 @@ export default function HomePage() {
 
             color:
               COLORS.muted,
+
+            textShadow:
+              '0 2px 20px rgba(0,0,0,.5)',
           }}
         >
           illness.lol is your go-to
@@ -1622,6 +1790,9 @@ export default function HomePage() {
               fontSize: 14,
 
               fontWeight: 500,
+
+              backdropFilter:
+                'blur(10px)',
             }}
           >
             View Pricing
@@ -1736,7 +1907,7 @@ export default function HomePage() {
             height: 180,
 
             background:
-              'linear-gradient(to bottom,transparent,#000000 72%)',
+              'linear-gradient(to bottom, transparent, #050505 72%)',
 
             pointerEvents:
               'none',
@@ -1763,7 +1934,7 @@ export default function HomePage() {
           zIndex: 5,
 
           background:
-            'linear-gradient(to bottom,transparent,#000000)',
+            'linear-gradient(to bottom, transparent, #050505)',
         }}
       />
 
@@ -1809,9 +1980,12 @@ export default function HomePage() {
               'linear-gradient(135deg, rgba(255,106,26,.10), rgba(255,255,255,.025) 55%, rgba(255,255,255,.015))',
 
             boxShadow:
-              '0 25px 80px rgba(0,0,0,.45)',
+              '0 25px 80px rgba(0,0,0,.45), 0 0 60px rgba(255,106,26,.025)',
 
             textAlign: 'center',
+
+            backdropFilter:
+              'blur(8px)',
           }}
         >
 
@@ -2034,9 +2208,7 @@ export default function HomePage() {
             }}
           >
 
-            {/* =================================================
-                BRAND
-            ================================================= */}
+            {/* BRAND */}
 
             <div>
 
@@ -2100,16 +2272,14 @@ export default function HomePage() {
                   lineHeight: 1.7,
                 }}
               >
-                Hello absent virtue was
-                here.
+                Hello absentvirtue was
+                here 10/8
               </p>
 
             </div>
 
 
-            {/* =================================================
-                PRODUCT
-            ================================================= */}
+            {/* PRODUCT */}
 
             <div>
 
@@ -2136,9 +2306,7 @@ export default function HomePage() {
             </div>
 
 
-            {/* =================================================
-                RESOURCES
-            ================================================= */}
+            {/* RESOURCES */}
 
             <div>
 
@@ -2169,9 +2337,7 @@ export default function HomePage() {
             </div>
 
 
-            {/* =================================================
-                LEGAL
-            ================================================= */}
+            {/* LEGAL */}
 
             <div>
 
@@ -2196,9 +2362,7 @@ export default function HomePage() {
           </div>
 
 
-          {/* =================================================
-              FOOTER BOTTOM
-          ================================================= */}
+          {/* FOOTER BOTTOM */}
 
           <div
             className="footer-bottom"
