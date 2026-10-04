@@ -17,6 +17,7 @@ const COLORS = {
   line: 'rgba(255,255,255,.08)',
 }
 
+
 /* =========================================================
    ACCENT LINK
 ========================================================= */
@@ -64,6 +65,67 @@ function AccentLink({
         transform: hovered
           ? 'translateY(-1px)'
           : style.transform || 'none',
+      }}
+    >
+      {children}
+    </TransitionLink>
+  )
+}
+
+
+/* =========================================================
+   FOOTER COMPONENTS
+========================================================= */
+
+function FooterTitle({ children }) {
+  return (
+    <div
+      style={{
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: 600,
+        marginBottom: 17,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+
+function FooterLink({
+  href,
+  children,
+  target,
+  rel,
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <TransitionLink
+      href={href}
+      target={target}
+      rel={rel}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'block',
+        width: 'fit-content',
+        marginBottom: 11,
+
+        color: hovered
+          ? COLORS.orangeBright
+          : 'rgba(255,255,255,.48)',
+
+        textDecoration: 'none',
+        fontSize: 13,
+
+        transition:
+          'color .2s ease, transform .2s ease',
+
+        transform: hovered
+          ? 'translateX(2px)'
+          : 'translateX(0)',
       }}
     >
       {children}
@@ -935,6 +997,12 @@ export default function HomePage() {
             0 0 55px rgba(255,106,26,.12) !important;
         }
 
+        .footer-link {
+          transition:
+            color .2s ease,
+            transform .2s ease;
+        }
+
         @media (max-width: 1100px) {
           .showcase {
             transform:
@@ -970,6 +1038,11 @@ export default function HomePage() {
             height: 300px !important;
             margin-top: 10px !important;
           }
+
+          .footer-grid {
+            grid-template-columns:
+              1fr 1fr !important;
+          }
         }
 
         @media (max-width: 520px) {
@@ -1000,6 +1073,22 @@ export default function HomePage() {
               scale(.42) !important;
 
             height: 220px !important;
+          }
+
+          .footer-grid {
+            grid-template-columns:
+              1fr !important;
+            gap: 32px !important;
+          }
+
+          .bottom-cta {
+            padding:
+              45px 24px !important;
+          }
+
+          .footer-bottom {
+            align-items: flex-start !important;
+            flex-direction: column !important;
           }
         }
       `}</style>
@@ -1115,10 +1204,7 @@ export default function HomePage() {
         }}
       >
 
-        {/* =================================================
-            BRAND
-            NO HOVER BOX / NO ORANGE EFFECT
-        ================================================= */}
+        {/* BRAND */}
 
         <TransitionLink
           href="/"
@@ -1165,9 +1251,7 @@ export default function HomePage() {
         </TransitionLink>
 
 
-        {/* =================================================
-            CENTER LINKS
-        ================================================= */}
+        {/* CENTER LINKS */}
 
         <div
           className="desktop-links"
@@ -1254,9 +1338,7 @@ export default function HomePage() {
         </div>
 
 
-        {/* =================================================
-            RIGHT SIDE
-        ================================================= */}
+        {/* RIGHT SIDE */}
 
         <div
           style={{
@@ -1462,6 +1544,8 @@ export default function HomePage() {
 
             justifyContent:
               'center',
+
+            flexWrap: 'wrap',
           }}
         >
 
@@ -1682,6 +1766,493 @@ export default function HomePage() {
             'linear-gradient(to bottom,transparent,#000000)',
         }}
       />
+
+
+      {/* =====================================================
+          LOWER CONTENT
+      ===================================================== */}
+
+      <section
+        style={{
+          position: 'relative',
+          zIndex: 6,
+
+          maxWidth: 1180,
+
+          margin: '0 auto',
+
+          padding:
+            '80px 24px 0',
+        }}
+      >
+
+        {/* =================================================
+            CTA
+        ================================================= */}
+
+        <div
+          className="bottom-cta"
+          style={{
+            position: 'relative',
+
+            overflow: 'hidden',
+
+            padding:
+              '65px 40px',
+
+            borderRadius: 28,
+
+            border:
+              '1px solid rgba(255,106,26,.22)',
+
+            background:
+              'linear-gradient(135deg, rgba(255,106,26,.10), rgba(255,255,255,.025) 55%, rgba(255,255,255,.015))',
+
+            boxShadow:
+              '0 25px 80px rgba(0,0,0,.45)',
+
+            textAlign: 'center',
+          }}
+        >
+
+          {/* CTA GLOW */}
+
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+
+              width: 450,
+              height: 450,
+
+              left: '50%',
+              top: '50%',
+
+              transform:
+                'translate(-50%, -50%)',
+
+              background:
+                'radial-gradient(circle, rgba(255,106,26,.13), transparent 68%)',
+
+              pointerEvents:
+                'none',
+            }}
+          />
+
+
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+
+            <div
+              style={{
+                display:
+                  'inline-flex',
+
+                padding:
+                  '7px 12px',
+
+                borderRadius:
+                  999,
+
+                border:
+                  '1px solid rgba(255,106,26,.25)',
+
+                background:
+                  'rgba(255,106,26,.08)',
+
+                color:
+                  COLORS.orangeBright,
+
+                fontSize: 12,
+
+                fontWeight: 600,
+
+                marginBottom: 18,
+              }}
+            >
+              illness.lol
+            </div>
+
+
+            <h2
+              style={{
+                margin: 0,
+
+                fontFamily:
+                  "'Space Grotesk', sans-serif",
+
+                fontSize: 34,
+
+                letterSpacing:
+                  '-1px',
+
+                lineHeight: 1.2,
+              }}
+            >
+              Your corner of the internet.
+            </h2>
+
+
+            <p
+              style={{
+                maxWidth: 560,
+
+                margin:
+                  '14px auto 25px',
+
+                color:
+                  COLORS.muted,
+
+                lineHeight: 1.6,
+
+                fontSize: 15,
+              }}
+            >
+              Create your custom profile,
+              share your links, host your
+              files, and make your presence
+              yours.
+            </p>
+
+
+            <div
+              style={{
+                display: 'flex',
+
+                justifyContent:
+                  'center',
+
+                gap: 10,
+
+                flexWrap: 'wrap',
+              }}
+            >
+
+              <AccentLink
+                href="/signup"
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'center',
+
+                  padding:
+                    '12px 20px',
+
+                  borderRadius: 13,
+
+                  background:
+                    COLORS.orange,
+
+                  color: '#000',
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+
+                  fontWeight: 600,
+                }}
+              >
+                Get Started
+              </AccentLink>
+
+
+              <AccentLink
+                href="/pricing"
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'center',
+
+                  padding:
+                    '12px 20px',
+
+                  borderRadius: 13,
+
+                  background:
+                    'rgba(255,255,255,.05)',
+
+                  border:
+                    '1px solid rgba(255,255,255,.12)',
+
+                  color: '#fff',
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+                }}
+              >
+                View Pricing
+              </AccentLink>
+
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* =================================================
+            FOOTER
+        ================================================= */}
+
+        <footer
+          style={{
+            marginTop: 75,
+
+            padding:
+              '50px 0 35px',
+
+            borderTop:
+              '1px solid rgba(255,255,255,.07)',
+          }}
+        >
+
+          <div
+            className="footer-grid"
+            style={{
+              display: 'grid',
+
+              gridTemplateColumns:
+                'minmax(240px, 1.8fr) repeat(3, minmax(120px, 1fr))',
+
+              gap: 45,
+            }}
+          >
+
+            {/* =================================================
+                BRAND
+            ================================================= */}
+
+            <div>
+
+              <TransitionLink
+                href="/"
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  gap: 11,
+
+                  color: '#fff',
+
+                  textDecoration:
+                    'none',
+                }}
+              >
+
+                <img
+                  src="/icon.png"
+                  alt=""
+                  width={29}
+                  height={29}
+                  style={{
+                    filter:
+                      'drop-shadow(0 0 10px rgba(255,106,26,.3))',
+                  }}
+                />
+
+                <span
+                  style={{
+                    fontFamily:
+                      "'Space Grotesk', sans-serif",
+
+                    fontSize: 19,
+
+                    fontWeight: 600,
+                  }}
+                >
+                  illness.lol
+                </span>
+
+              </TransitionLink>
+
+
+              <p
+                style={{
+                  maxWidth: 290,
+
+                  margin:
+                    '16px 0 0',
+
+                  color:
+                    COLORS.faint,
+
+                  fontSize: 13,
+
+                  lineHeight: 1.7,
+                }}
+              >
+                Modern custom bio pages
+                and fast, secure file hosting
+                — all in one place.
+              </p>
+
+            </div>
+
+
+            {/* =================================================
+                PRODUCT
+            ================================================= */}
+
+            <div>
+
+              <FooterTitle>
+                Product
+              </FooterTitle>
+
+              <FooterLink href="/pricing">
+                Pricing
+              </FooterLink>
+
+              <FooterLink href="/dashboard">
+                Dashboard
+              </FooterLink>
+
+              <FooterLink href="/leaderboard">
+                Leaderboard
+              </FooterLink>
+
+              <FooterLink href="/questions">
+                Questions
+              </FooterLink>
+
+            </div>
+
+
+            {/* =================================================
+                RESOURCES
+            ================================================= */}
+
+            <div>
+
+              <FooterTitle>
+                Resources
+              </FooterTitle>
+
+              <FooterLink href="/help">
+                Help Center
+              </FooterLink>
+
+              <FooterLink
+                href="https://discord.gg/R4tyQ4h3K5"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Discord
+              </FooterLink>
+
+              <FooterLink href="/login">
+                Log in
+              </FooterLink>
+
+              <FooterLink href="/signup">
+                Sign up
+              </FooterLink>
+
+            </div>
+
+
+            {/* =================================================
+                LEGAL
+            ================================================= */}
+
+            <div>
+
+              <FooterTitle>
+                Legal
+              </FooterTitle>
+
+              <FooterLink href="/privacy">
+                Privacy Policy
+              </FooterLink>
+
+              <FooterLink href="/terms">
+                Terms of Service
+              </FooterLink>
+
+              <FooterLink href="/help">
+                Contact / Support
+              </FooterLink>
+
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              FOOTER BOTTOM
+          ================================================= */}
+
+          <div
+            className="footer-bottom"
+            style={{
+              marginTop: 45,
+
+              paddingTop: 22,
+
+              borderTop:
+                '1px solid rgba(255,255,255,.06)',
+
+              display: 'flex',
+
+              alignItems: 'center',
+
+              justifyContent:
+                'space-between',
+
+              gap: 20,
+
+              flexWrap: 'wrap',
+            }}
+          >
+
+            <span
+              style={{
+                color:
+                  'rgba(255,255,255,.35)',
+
+                fontSize: 12,
+              }}
+            >
+              © {new Date().getFullYear()} illness.lol.
+              All rights reserved.
+            </span>
+
+
+            <span
+              style={{
+                color:
+                  'rgba(255,255,255,.25)',
+
+                fontSize: 12,
+              }}
+            >
+              Made with ♥
+            </span>
+
+          </div>
+
+        </footer>
+
+      </section>
 
     </main>
   )
