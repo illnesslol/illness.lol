@@ -1,186 +1,197 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-
-/* =========================================================
-   FALL DASHBOARD
-========================================================= */
+import { TransitionLink } from '../components/PageTransition'
 
 const COLORS = {
   bg: '#050505',
-  surface: '#0a0a0a',
-  surface2: '#0d0d0d',
+  surface: '#0c0c0c',
+  surfaceAlt: '#141414',
   orange: '#ff6a1a',
-  orangeBright: '#ff914d',
-  orangeSoft: 'rgba(255,106,26,.12)',
-  orangeGlow: 'rgba(255,106,26,.18)',
-  border: 'rgba(255,255,255,.08)',
-  borderOrange: 'rgba(255,106,26,.35)',
+  orangeBright: '#ff8a3d',
+  orangeSoft: 'rgba(255,106,26,.16)',
+  orangeBorder: 'rgba(255,106,26,.5)',
   white: '#ffffff',
-  muted: 'rgba(255,255,255,.65)',
-  faint: 'rgba(255,255,255,.38)',
+  muted: 'rgba(255,255,255,.72)',
+  faint: 'rgba(255,255,255,.4)',
+  line: 'rgba(255,255,255,.08)',
 }
+
 
 /* =========================================================
-   ICON
+   ACCENT LINK
 ========================================================= */
 
-function Icon({ type, size = 16, color = 'currentColor' }) {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: color,
-    strokeWidth: 1.8,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  }
+function AccentLink({
+  href,
+  children,
+  style = {},
+  className = '',
+  target,
+  rel,
+}) {
+  const [hovered, setHovered] = useState(false)
 
-  const paths = {
-    search: (
-      <>
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-4-4" />
-      </>
-    ),
+  return (
+    <TransitionLink
+      href={href}
+      target={target}
+      rel={rel}
+      className={className}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...style,
 
-    grid: (
-      <>
-        <rect x="4" y="4" width="6" height="6" rx="1" />
-        <rect x="14" y="4" width="6" height="6" rx="1" />
-        <rect x="4" y="14" width="6" height="6" rx="1" />
-        <rect x="14" y="14" width="6" height="6" rx="1" />
-      </>
-    ),
+        transition:
+          'color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease',
 
-    wand: (
-      <>
-        <path d="m15 4 5 5" />
-        <path d="m13 6 5 5" />
-        <path d="m3 21 10-10" />
-        <path d="m5 7 .5 1.5L7 9l-1.5.5L5 11l-.5-1.5L3 9l1.5-.5L5 7Z" />
-      </>
-    ),
+        color: hovered
+          ? '#ffffff'
+          : style.color || COLORS.muted,
 
-    user: (
-      <>
-        <circle cx="12" cy="8" r="3" />
-        <path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5" />
-      </>
-    ),
+        background: hovered
+          ? 'rgba(255,106,26,.11)'
+          : style.background || 'transparent',
 
-    image: (
-      <>
-        <rect x="3" y="4" width="18" height="16" rx="2" />
-        <circle cx="8.5" cy="9" r="1.5" />
-        <path d="m21 16-5-5L5 20" />
-      </>
-    ),
+        borderColor: hovered
+          ? 'rgba(255,106,26,.34)'
+          : style.borderColor || 'transparent',
 
-    link: (
-      <>
-        <path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
-        <path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1" />
-      </>
-    ),
+        boxShadow: hovered
+          ? '0 0 18px rgba(255,106,26,.08), inset 0 0 14px rgba(255,106,26,.035)'
+          : style.boxShadow || 'none',
 
-    folder: (
-      <>
-        <path d="M3 7h7l2 2h9v10H3z" />
-      </>
-    ),
-
-    crown: (
-      <>
-        <path d="m4 7 4 4 4-7 4 7 4-4-2 11H6L4 7Z" />
-      </>
-    ),
-
-    lock: (
-      <>
-        <rect x="5" y="10" width="14" height="10" rx="2" />
-        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-      </>
-    ),
-
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.5v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.1h2.5v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1V14h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-      </>
-    ),
-
-    bell: (
-      <>
-        <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-        <path d="M10 21h4" />
-      </>
-    ),
-
-    eye: (
-      <>
-        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-        <circle cx="12" cy="12" r="2.5" />
-      </>
-    ),
-
-    users: (
-      <>
-        <circle cx="9" cy="8" r="3" />
-        <path d="M3 20c.5-3.5 2.5-5 6-5s5.5 1.5 6 5" />
-        <path d="M16 5.5a3 3 0 0 1 0 5.5" />
-        <path d="M18 15c1.8.8 2.8 2.2 3 5" />
-      </>
-    ),
-
-    hash: (
-      <>
-        <path d="M10 3 8 21" />
-        <path d="m16 3-2 18" />
-        <path d="M4 9h17" />
-        <path d="M3 15h17" />
-      </>
-    ),
-
-    globe: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18" />
-        <path d="M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21" />
-        <path d="M12 3c-2.5 2.5-3.5 5.5-3.5 9S9.5 18.5 12 21" />
-      </>
-    ),
-
-    chevron: (
-      <path d="m7 10 5 5 5-5" />
-    ),
-
-    more: (
-      <>
-        <circle cx="5" cy="12" r="1" fill="currentColor" />
-        <circle cx="12" cy="12" r="1" fill="currentColor" />
-        <circle cx="19" cy="12" r="1" fill="currentColor" />
-      </>
-    ),
-
-    support: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M8 15c1.5 1 6.5 1 8 0" />
-        <path d="M9 10h.01M15 10h.01" />
-      </>
-    ),
-  }
-
-  return <svg {...common}>{paths[type]}</svg>
+        transform: hovered
+          ? 'translateY(-1px)'
+          : style.transform || 'none',
+      }}
+    >
+      {children}
+    </TransitionLink>
+  )
 }
+
+
+/* =========================================================
+   FOOTER COMPONENTS
+========================================================= */
+
+function FooterTitle({ children }) {
+  return (
+    <div
+      style={{
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: 600,
+        marginBottom: 17,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+
+function FooterLink({
+  href,
+  children,
+  target,
+  rel,
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <TransitionLink
+      href={href}
+      target={target}
+      rel={rel}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'block',
+        width: 'fit-content',
+        marginBottom: 11,
+
+        color: hovered
+          ? COLORS.orangeBright
+          : 'rgba(255,255,255,.48)',
+
+        textDecoration: 'none',
+        fontSize: 13,
+
+        transition:
+          'color .2s ease, transform .2s ease',
+
+        transform: hovered
+          ? 'translateX(2px)'
+          : 'translateX(0)',
+      }}
+    >
+      {children}
+    </TransitionLink>
+  )
+}
+
+
+/* =========================================================
+   UPLOADED DASHBOARD IMAGE
+========================================================= */
+
+function DashboardImage() {
+  return (
+    <div
+      className="dashboard-image"
+      style={{
+        width: 790,
+        height: 465,
+
+        background: '#050505',
+
+        border:
+          `2px solid ${COLORS.orangeBorder}`,
+
+        borderRadius: 26,
+
+        overflow: 'hidden',
+
+        boxShadow:
+          '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
+
+        transform:
+          'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+
+        transformOrigin:
+          'center center',
+      }}
+    >
+      <img
+        src="/dashboard.png"
+        alt="Dashboard preview"
+        style={{
+          width: '100%',
+          height: '100%',
+
+          objectFit: 'cover',
+
+          display: 'block',
+        }}
+      />
+    </div>
+  )
+}
+
 
 /* =========================================================
    FALLING LEAVES
 ========================================================= */
 
-function drawLeaf(ctx, size, color, opacity) {
+function drawLeaf(
+  ctx,
+  size,
+  color,
+  opacity
+) {
   ctx.globalAlpha = opacity
   ctx.fillStyle = color
 
@@ -208,76 +219,194 @@ function drawLeaf(ctx, size, color, opacity) {
 
   ctx.fill()
 
-  ctx.globalAlpha = opacity * 0.8
-  ctx.strokeStyle = 'rgba(0,0,0,.7)'
-  ctx.lineWidth = 0.8
+  ctx.globalAlpha =
+    opacity * 0.9
+
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 1
 
   ctx.beginPath()
-  ctx.moveTo(0, -size * 0.85)
-  ctx.lineTo(0, size * 1.1)
+
+  ctx.moveTo(
+    0,
+    -size * 0.85
+  )
+
+  ctx.lineTo(
+    0,
+    size * 1.15
+  )
+
   ctx.stroke()
 
   ctx.globalAlpha = 1
 }
 
+
 /* =========================================================
-   LEAF CANVAS
+   HOME PAGE
 ========================================================= */
 
-function FallingLeaves() {
+export default function HomePage() {
   const canvasRef = useRef(null)
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+  const [visible, setVisible] =
+    useState(false)
 
-    const ctx = canvas.getContext('2d')
+  const [authChecked, setAuthChecked] =
+    useState(false)
+
+  const [loggedIn, setLoggedIn] =
+    useState(false)
+
+
+  /* =======================================================
+     EFFECTS
+  ======================================================= */
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(true)
+    }, 100)
+
+
+    /* =====================================================
+       AUTH CHECK
+    ===================================================== */
+
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => {
+        setLoggedIn(
+          Boolean(data.loggedIn)
+        )
+
+        setAuthChecked(true)
+      })
+      .catch(() => {
+        setAuthChecked(true)
+      })
+
+
+    /* =====================================================
+       FALLING LEAVES CANVAS
+    ===================================================== */
+
+    const canvas = canvasRef.current
+
+    if (!canvas) {
+      return () =>
+        clearTimeout(timer)
+    }
+
+    const ctx =
+      canvas.getContext('2d')
+
+    const reduceMotion =
+      window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches
+
 
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      canvas.width =
+        window.innerWidth
+
+      canvas.height =
+        window.innerHeight
     }
 
     resize()
-    window.addEventListener('resize', resize)
 
-    const colors = [
+    window.addEventListener(
+      'resize',
+      resize
+    )
+
+
+    const leafColors = [
       '#ff6a1a',
       '#ff8a3d',
-      '#d94d0b',
-      '#a9360b',
-      '#f08a42',
-      '#8c2d0a',
+      '#e85a0c',
+      '#ffffff',
     ]
 
-    const createLeaf = () => ({
-      x: Math.random() * window.innerWidth,
-      y: -40 - Math.random() * window.innerHeight,
-      size: Math.random() * 5 + 7,
-      speed: Math.random() * 0.55 + 0.35,
-      swayAmp: Math.random() * 35 + 15,
-      swaySpeed: Math.random() * 0.012 + 0.006,
-      phase: Math.random() * Math.PI * 2,
-      rotation: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.015,
-      opacity: Math.random() * 0.25 + 0.18,
-      color: colors[Math.floor(Math.random() * colors.length)],
+
+    const makeLeaf = (
+      spreadY = false
+    ) => ({
+      x:
+        Math.random() *
+        window.innerWidth,
+
+      y: spreadY
+        ? Math.random() *
+          window.innerHeight
+        : -30 -
+          Math.random() * 120,
+
+      size:
+        Math.random() * 6 + 9,
+
+      speed:
+        Math.random() * 0.35 +
+        0.35,
+
+      swayAmp:
+        Math.random() * 30 +
+        20,
+
+      swaySpeed:
+        Math.random() * 0.012 +
+        0.006,
+
+      phase:
+        Math.random() *
+        Math.PI *
+        2,
+
+      rotation:
+        Math.random() *
+        Math.PI *
+        2,
+
+      spin:
+        (Math.random() - 0.5) *
+        0.012,
+
+      opacity:
+        Math.random() * 0.2 +
+        0.22,
+
+      color:
+        leafColors[
+          Math.floor(
+            Math.random() *
+              leafColors.length
+          )
+        ],
+
       baseX: 0,
     })
 
-    const leaves = Array.from(
-      { length: 24 },
-      createLeaf
-    )
 
-    leaves.forEach(leaf => {
-      leaf.baseX = leaf.x
+    const leaves =
+      Array.from(
+        { length: 7 },
+        () => makeLeaf(true)
+      )
+
+
+    leaves.forEach(l => {
+      l.baseX = l.x
     })
 
-    let frame
+
+    let animationFrame
     let tick = 0
 
-    const animate = () => {
+
+    const draw = () => {
       ctx.clearRect(
         0,
         0,
@@ -285,55 +414,90 @@ function FallingLeaves() {
         canvas.height
       )
 
-      tick++
+      tick += 1
 
-      leaves.forEach(leaf => {
-        leaf.y += leaf.speed
-        leaf.rotation += leaf.spin
+
+      leaves.forEach(l => {
+        if (!reduceMotion) {
+          l.y += l.speed
+          l.rotation += l.spin
+        }
+
 
         const sway =
-          Math.sin(
-            tick * leaf.swaySpeed + leaf.phase
-          ) * leaf.swayAmp
+          reduceMotion
+            ? 0
+            : Math.sin(
+                tick *
+                  l.swaySpeed +
+                  l.phase
+              ) *
+              l.swayAmp
 
-        const x = leaf.baseX + sway
 
-        if (leaf.y > canvas.height + 50) {
-          leaf.y = -40
-          leaf.baseX =
-            Math.random() * window.innerWidth
+        const x =
+          l.baseX + sway
+
+
+        if (
+          l.y >
+          canvas.height + 40
+        ) {
+          l.y = -30
+
+          l.baseX =
+            Math.random() *
+            canvas.width
         }
+
 
         ctx.save()
 
-        ctx.translate(x, leaf.y)
+
+        ctx.translate(
+          x,
+          l.y
+        )
+
 
         ctx.rotate(
-          leaf.rotation +
+          l.rotation +
             Math.sin(
-              tick * leaf.swaySpeed +
-                leaf.phase
+              tick *
+                l.swaySpeed +
+                l.phase
             ) *
-              0.45
+              0.5
         )
+
 
         drawLeaf(
           ctx,
-          leaf.size,
-          leaf.color,
-          leaf.opacity
+          l.size,
+          l.color,
+          l.opacity
         )
+
 
         ctx.restore()
       })
 
-      frame = requestAnimationFrame(animate)
+
+      animationFrame =
+        requestAnimationFrame(draw)
     }
 
-    animate()
+
+    draw()
+
 
     return () => {
-      cancelAnimationFrame(frame)
+      clearTimeout(timer)
+
+      cancelAnimationFrame(
+        animationFrame
+      )
+
       window.removeEventListener(
         'resize',
         resize
@@ -341,2077 +505,1569 @@ function FallingLeaves() {
     }
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className="fall-leaves"
-    />
-  )
-}
 
-/* =========================================================
-   SIDEBAR ITEM
-========================================================= */
-
-function SidebarItem({
-  icon,
-  label,
-  active = false,
-  locked = false,
-}) {
   return (
-    <div
-      className={`sidebar-item ${
-        active ? 'active' : ''
-      }`}
+    <main
+      style={{
+        minHeight: '100vh',
+
+        background: '#050505',
+
+        color: '#fff',
+
+        fontFamily:
+          "'Inter', system-ui, sans-serif",
+
+        position: 'relative',
+
+        overflow: 'hidden',
+      }}
     >
-      <Icon
-        type={icon}
-        size={16}
+
+      {/* =====================================================
+          ATMOSPHERIC BACKGROUND
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          inset: 0,
+
+          zIndex: 0,
+
+          pointerEvents: 'none',
+
+          overflow: 'hidden',
+
+          background: `
+            radial-gradient(
+              ellipse 75% 60% at 50% 0%,
+              rgba(255,106,26,.18) 0%,
+              rgba(255,106,26,.08) 28%,
+              rgba(255,106,26,.025) 48%,
+              transparent 72%
+            ),
+            radial-gradient(
+              ellipse 50% 55% at 5% 48%,
+              rgba(255,106,26,.075),
+              transparent 70%
+            ),
+            radial-gradient(
+              ellipse 50% 55% at 95% 62%,
+              rgba(255,80,10,.055),
+              transparent 70%
+            ),
+            radial-gradient(
+              ellipse 60% 40% at 50% 100%,
+              rgba(255,106,26,.025),
+              transparent 70%
+            ),
+            linear-gradient(
+              180deg,
+              #0a0a0a 0%,
+              #070707 30%,
+              #050505 65%,
+              #020202 100%
+            )
+          `,
+        }}
       />
 
-      <span>{label}</span>
-
-      {locked && (
-        <Icon
-          type="lock"
-          size={12}
-          color="rgba(255,255,255,.35)"
-        />
-      )}
-    </div>
-  )
-}
-
-/* =========================================================
-   STAT CARD
-========================================================= */
-
-function StatCard({
-  icon,
-  label,
-  value,
-}) {
-  return (
-    <div className="stat-card">
-      <div className="stat-top">
-        <span>{label}</span>
-
-        <Icon
-          type={icon}
-          size={15}
-          color="rgba(255,255,255,.35)"
-        />
-      </div>
-
-      <div className="stat-value">
-        {value}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   GRAPH
-========================================================= */
-
-function ViewsChart() {
-  return (
-    <div className="chart">
-      <div className="chart-grid">
-        {[0, 1, 2, 3, 4].map(i => (
-          <div
-            key={i}
-            className="grid-line"
-            style={{
-              top: `${i * 25}%`,
-            }}
-          >
-            <span>
-              {4 - i}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <svg
-        className="chart-svg"
-        viewBox="0 0 900 300"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id="fallChartGradient"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
-            <stop
-              offset="0%"
-              stopColor="#ff6a1a"
-              stopOpacity=".32"
-            />
-
-            <stop
-              offset="100%"
-              stopColor="#ff6a1a"
-              stopOpacity="0"
-            />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="
-            M0 275
-            L120 275
-            C160 275 170 275 205 235
-            C230 205 250 205 285 205
-            L430 205
-            C465 205 475 205 510 235
-            C545 265 565 275 605 275
-            L900 275
-            L900 300
-            L0 300
-            Z
-          "
-          fill="url(#fallChartGradient)"
-        />
-
-        <path
-          d="
-            M0 275
-            L120 275
-            C160 275 170 275 205 235
-            C230 205 250 205 285 205
-            L430 205
-            C465 205 475 205 510 235
-            C545 265 565 275 605 275
-            L900 275
-          "
-          fill="none"
-          stroke="#ff6a1a"
-          strokeWidth="2"
-        />
-      </svg>
-
-      <div className="chart-dates">
-        <span>Sep 28</span>
-        <span>Sep 29</span>
-        <span>Sep 30</span>
-        <span>Oct 01</span>
-        <span>Oct 02</span>
-        <span>Oct 03</span>
-        <span>Oct 04</span>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   DEVICE DONUT
-========================================================= */
-
-function DeviceChart() {
-  return (
-    <div className="device-chart">
-      <div className="donut">
-        <div className="donut-hole" />
-      </div>
-
-      <div className="device-list">
-        <div className="device-row">
-          <div>
-            <span className="device-dot desktop" />
-            Desktop
-          </div>
-
-          <strong>1 (50%)</strong>
-        </div>
-
-        <div className="device-row">
-          <div>
-            <span className="device-dot mobile" />
-            Mobile
-          </div>
-
-          <strong>1 (50%)</strong>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   COUNTRY
-========================================================= */
-
-function CountryRow({
-  flag,
-  country,
-}) {
-  return (
-    <div className="country-card">
-      <div className="country-info">
-        <span className="flag">
-          {flag}
-        </span>
-
-        <strong>
-          {country}
-        </strong>
-      </div>
-
-      <span className="country-count">
-        1 (50%)
-      </span>
-
-      <div className="country-progress">
-        <div />
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false)
-
-  return (
-    <main className="dashboard-page">
-      <FallingLeaves />
-
-      {/* ATMOSPHERE */}
-
-      <div className="ambient ambient-top" />
-      <div className="ambient ambient-left" />
-      <div className="ambient ambient-right" />
-
-      <div className="dot-grid" />
-      <div className="vignette" />
-
-      {/* MOBILE OVERLAY */}
-
-      {sidebarOpen && (
-        <div
-          className="mobile-overlay"
-          onClick={() =>
-            setSidebarOpen(false)
-          }
-        />
-      )}
 
       {/* =====================================================
-          SIDEBAR
+          LARGE SOFT CENTER LIGHT
       ===================================================== */}
 
-      <aside
-        className={`sidebar ${
-          sidebarOpen ? 'mobile-open' : ''
-        }`}
-      >
-        {/* BRAND */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
 
-        <div className="brand">
-          <div className="brand-icon">
-            <img
-              src="/icon.png"
-              alt="illness.lol"
-            />
-          </div>
+          width: 1000,
+          height: 1000,
 
-          <span>illness.lol</span>
-        </div>
+          left: '50%',
+          top: '28%',
 
-        {/* SEARCH */}
+          transform:
+            'translate(-50%, -50%)',
 
-        <div className="search">
-          <Icon
-            type="search"
-            size={15}
-            color="rgba(255,255,255,.45)"
-          />
+          borderRadius: '50%',
 
-          <span>
-            Search Illness
-          </span>
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.065), rgba(255,106,26,.018) 38%, transparent 70%)',
 
-          <kbd>
-            Ctrl K
-          </kbd>
-        </div>
+          filter: 'blur(25px)',
 
-        {/* NAV */}
+          pointerEvents: 'none',
 
-        <nav className="sidebar-nav">
-          <SidebarItem
-            icon="grid"
-            label="Overview"
-            active
-          />
+          zIndex: 0,
+        }}
+      />
 
-          <SidebarItem
-            icon="wand"
-            label="Customize"
-          />
-
-          <div className="nav-heading">
-            <SidebarItem
-              icon="user"
-              label="Profile"
-            />
-
-            <span className="collapse">
-              ▲
-            </span>
-          </div>
-
-          <div className="subnav">
-            <span>Assets</span>
-            <span>Badges</span>
-            <span>Links</span>
-            <span>Projects</span>
-            <span>Widgets</span>
-            <span>Section Builder</span>
-          </div>
-
-          <div className="nav-heading premium-heading">
-            <SidebarItem
-              icon="crown"
-              label="Premium"
-              locked
-            />
-
-            <span className="collapse">
-              ▲
-            </span>
-          </div>
-
-          <div className="subnav">
-            <span>Customize</span>
-            <span>Backgrounds</span>
-            <span>Metadata</span>
-          </div>
-
-          <SidebarItem
-            icon="folder"
-            label="Templates"
-          />
-
-          <div className="disabled-item">
-            <Icon
-              type="image"
-              size={15}
-            />
-
-            <span>
-              Image Host
-            </span>
-
-            <small>
-              SOON
-            </small>
-          </div>
-
-          <div className="nav-heading account-heading">
-            <SidebarItem
-              icon="settings"
-              label="Account"
-            />
-
-            <span className="collapse">
-              ▲
-            </span>
-          </div>
-
-          <div className="subnav">
-            <span>Settings</span>
-            <span>Domains</span>
-          </div>
-        </nav>
-
-        {/* PROFILE BOX */}
-
-        <div className="sidebar-profile">
-          <div className="profile-avatar">
-            🍁
-          </div>
-
-          <div>
-            <small>
-              Profile
-            </small>
-
-            <strong>
-              Share your profile
-            </strong>
-          </div>
-
-          <span className="share-icon">
-            ↗
-          </span>
-        </div>
-
-        {/* USER */}
-
-        <div className="sidebar-user">
-          <div className="user-avatar">
-            🌲
-          </div>
-
-          <div className="user-details">
-            <small>
-              Signed in as
-            </small>
-
-            <strong>
-              gun
-            </strong>
-          </div>
-
-          <Icon
-            type="settings"
-            size={14}
-            color="rgba(255,255,255,.45)"
-          />
-        </div>
-      </aside>
 
       {/* =====================================================
-          MAIN
+          TOP ORANGE LIGHT
       ===================================================== */}
 
-      <section className="main-content">
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
 
-        {/* HEADER */}
+          top: -500,
+          left: '50%',
 
-        <header className="topbar">
-          <div className="breadcrumbs">
-            <span>
-              Dashboard
-            </span>
+          transform:
+            'translateX(-50%)',
 
-            <b>›</b>
+          width: 1200,
+          height: 850,
 
-            <strong>
-              Overview
-            </strong>
-          </div>
+          borderRadius: '50%',
 
-          <div className="top-actions">
-            <button className="preview">
-              <Icon
-                type="eye"
-                size={14}
-              />
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.16), rgba(255,106,26,.04) 42%, transparent 70%)',
 
-              Live preview
-            </button>
+          filter: 'blur(12px)',
 
-            <button className="circle-btn">
-              <Icon
-                type="bell"
-                size={15}
-              />
-            </button>
+          pointerEvents: 'none',
 
-            <button className="circle-btn">
-              <Icon
-                type="settings"
-                size={15}
-              />
-            </button>
+          zIndex: 0,
+        }}
+      />
 
-            <button
-              className="mobile-menu"
-              onClick={() =>
-                setSidebarOpen(true)
-              }
-            >
-              ☰
-            </button>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-
-        <div className="content">
-
-          <div className="welcome">
-            <h1>
-              Welcome back
-            </h1>
-
-            <p>
-              Here is a quick look at your illness.lol page.
-            </p>
-          </div>
-
-          {/* STATS */}
-
-          <div className="stats-grid">
-            <StatCard
-              icon="user"
-              label="Username"
-              value="gun"
-            />
-
-            <StatCard
-              icon="users"
-              label="Aliases"
-              value="0"
-            />
-
-            <StatCard
-              icon="hash"
-              label="UID"
-              value="58"
-            />
-
-            <StatCard
-              icon="eye"
-              label="Profile views"
-              value="59"
-            />
-          </div>
-
-          {/* MAIN ANALYTICS */}
-
-          <div className="analytics-grid">
-
-            {/* VIEWS */}
-
-            <section className="panel views-panel">
-
-              <div className="panel-header">
-                <div>
-                  <h2>
-                    Views
-                  </h2>
-
-                  <p>
-                    Your profile activity over the selected range. 2 total.
-                  </p>
-                </div>
-
-                <div className="chart-controls">
-
-                  <button className="select-control">
-                    <Icon
-                      type="eye"
-                      size={13}
-                    />
-
-                    Views
-
-                    <Icon
-                      type="chevron"
-                      size={12}
-                    />
-                  </button>
-
-                  <div className="range-control">
-                    <button>
-                      3d
-                    </button>
-
-                    <button className="selected">
-                      7d
-                    </button>
-
-                    <button>
-                      30d
-                    </button>
-
-                    <button>
-                      90d
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-
-              <ViewsChart />
-
-            </section>
-
-            {/* DEVICES */}
-
-            <section className="panel devices-panel">
-
-              <div className="panel-header">
-                <div>
-                  <h2>
-                    Devices
-                  </h2>
-
-                  <p>
-                    How visitors break down by device type.
-                  </p>
-                </div>
-              </div>
-
-              <DeviceChart />
-
-            </section>
-          </div>
-
-          {/* COUNTRIES */}
-
-          <section className="panel countries-panel">
-
-            <div className="countries-header">
-
-              <div>
-                <h2>
-                  Top countries
-                </h2>
-
-                <p>
-                  Where your visitors are coming from in the selected range.
-                </p>
-              </div>
-
-              <button className="globe-button">
-                <Icon
-                  type="globe"
-                  size={14}
-                />
-
-                Show globe
-              </button>
-            </div>
-
-            <div className="countries-grid">
-
-              <CountryRow
-                flag="🇩🇰"
-                country="Denmark"
-              />
-
-              <CountryRow
-                flag="🇬🇧"
-                country="United Kingdom"
-              />
-
-            </div>
-          </section>
-
-        </div>
-      </section>
 
       {/* =====================================================
-          STYLES
+          SIDE AMBIENT GLOW — LEFT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          left: -350,
+          top: '38%',
+
+          width: 700,
+          height: 700,
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,106,26,.055), transparent 68%)',
+
+          filter: 'blur(20px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+
+      {/* =====================================================
+          SIDE AMBIENT GLOW — RIGHT
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          right: -350,
+          top: '48%',
+
+          width: 700,
+          height: 700,
+
+          borderRadius: '50%',
+
+          background:
+            'radial-gradient(circle, rgba(255,80,10,.045), transparent 68%)',
+
+          filter: 'blur(20px)',
+
+          pointerEvents: 'none',
+
+          zIndex: 0,
+        }}
+      />
+
+
+      {/* =====================================================
+          DOT GRID
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          inset: 0,
+
+          zIndex: 0,
+
+          pointerEvents: 'none',
+
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,.065) 1px, transparent 1px)',
+
+          backgroundSize:
+            '28px 28px',
+
+          maskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 15%, transparent 78%)',
+
+          WebkitMaskImage:
+            'radial-gradient(ellipse 75% 65% at 50% 35%, #000 15%, transparent 78%)',
+        }}
+      />
+
+
+      {/* =====================================================
+          SUBTLE VIGNETTE
+      ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          inset: 0,
+
+          zIndex: 0,
+
+          pointerEvents: 'none',
+
+          background:
+            'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%)',
+        }}
+      />
+
+
+      {/* =====================================================
+          FALLING LEAVES
+      ===================================================== */}
+
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+
+          inset: 0,
+
+          width: '100%',
+          height: '100%',
+
+          pointerEvents: 'none',
+
+          zIndex: 1,
+        }}
+      />
+
+
+      {/* =====================================================
+          GLOBAL STYLES
       ===================================================== */}
 
       <style jsx global>{`
-
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
         * {
           box-sizing: border-box;
         }
 
-        html,
+        html {
+          scroll-behavior: smooth;
+        }
+
         body {
           margin: 0;
-          min-height: 100%;
           background: #050505;
         }
 
-        body {
-          font-family:
-            'Inter',
-            system-ui,
-            sans-serif;
+        ::selection {
+          background: rgba(255,106,26,.4);
           color: #fff;
         }
 
-        button {
-          font-family: inherit;
+        a:focus-visible {
+          outline: 2px solid #ff6a1a;
+          outline-offset: 3px;
         }
 
-        /* =====================================================
-           PAGE
-        ===================================================== */
-
-        .dashboard-page {
-          min-height: 100vh;
-          background:
-            linear-gradient(
-              180deg,
-              #090909 0%,
-              #060606 45%,
-              #030303 100%
-            );
-          position: relative;
-          overflow-x: hidden;
-        }
-
-        /* =====================================================
-           FALL ATMOSPHERE
-        ===================================================== */
-
-        .ambient {
-          position: fixed;
-          pointer-events: none;
-          z-index: 0;
-          border-radius: 50%;
-          filter: blur(35px);
-        }
-
-        .ambient-top {
-          width: 900px;
-          height: 600px;
-          top: -420px;
-          left: 50%;
-          transform: translateX(-50%);
-          background:
-            radial-gradient(
-              circle,
-              rgba(255,106,26,.20),
-              rgba(255,106,26,.055) 48%,
-              transparent 72%
-            );
-        }
-
-        .ambient-left {
-          width: 700px;
-          height: 700px;
-          left: -500px;
-          top: 35%;
-          background:
-            radial-gradient(
-              circle,
-              rgba(255,106,26,.075),
-              transparent 68%
-            );
-        }
-
-        .ambient-right {
-          width: 700px;
-          height: 700px;
-          right: -500px;
-          top: 50%;
-          background:
-            radial-gradient(
-              circle,
-              rgba(180,65,10,.055),
-              transparent 68%
-            );
-        }
-
-        .dot-grid {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
-
-          background-image:
-            radial-gradient(
-              rgba(255,255,255,.045) 1px,
-              transparent 1px
-            );
-
-          background-size: 28px 28px;
-
-          mask-image:
-            radial-gradient(
-              ellipse 70% 65% at 50% 35%,
-              #000 10%,
-              transparent 78%
-            );
-
-          -webkit-mask-image:
-            radial-gradient(
-              ellipse 70% 65% at 50% 35%,
-              #000 10%,
-              transparent 78%
-            );
-        }
-
-        .vignette {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 8;
-
-          background:
-            radial-gradient(
-              ellipse at center,
-              transparent 42%,
-              rgba(0,0,0,.5) 100%
-            );
-        }
-
-        .fall-leaves {
-          position: fixed;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 9;
-        }
-
-        /* =====================================================
-           SIDEBAR
-        ===================================================== */
-
-        .sidebar {
-          position: fixed;
-          z-index: 20;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 242px;
-
-          padding: 18px 9px 10px;
-
-          background:
-            rgba(7,7,7,.93);
-
-          border-right:
-            1px solid rgba(255,255,255,.07);
-
-          display: flex;
-          flex-direction: column;
-
-          backdrop-filter:
-            blur(22px);
-
-          -webkit-backdrop-filter:
-            blur(22px);
-        }
-
-        .brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          height: 31px;
-          padding: 0 10px;
-          margin-bottom: 20px;
-
-          font-family:
-            'Space Grotesk',
-            sans-serif;
-
-          font-size: 20px;
-          font-weight: 700;
-
-          letter-spacing: -.7px;
-        }
-
-        .brand-icon {
-          width: 25px;
-          height: 25px;
-
-          display: grid;
-          place-items: center;
-
-          flex-shrink: 0;
-        }
-
-        .brand-icon img {
-          width: 25px;
-          height: 25px;
-
-          object-fit: contain;
-
-          filter:
-            drop-shadow(
-              0 0 8px
-              rgba(255,106,26,.45)
-            );
-        }
-
-        .search {
-          height: 40px;
-          border-radius: 21px;
-
-          display: flex;
-          align-items: center;
-          gap: 9px;
-
-          padding: 0 12px;
-
-          border:
-            1px solid rgba(255,255,255,.08);
-
-          background:
-            rgba(255,255,255,.025);
-
-          color:
-            rgba(255,255,255,.68);
-
-          font-size: 12px;
-
-          margin-bottom: 12px;
-        }
-
-        .search kbd {
-          margin-left: auto;
-
-          font-size: 9px;
-
-          padding: 3px 6px;
-
-          border-radius: 6px;
-
-          border:
-            1px solid rgba(255,255,255,.08);
-
-          background:
-            rgba(255,255,255,.035);
-
-          color:
-            rgba(255,255,255,.42);
-        }
-
-        .sidebar-nav {
-          overflow-y: auto;
-          scrollbar-width: none;
-          flex: 1;
-        }
-
-        .sidebar-nav::-webkit-scrollbar {
-          display: none;
-        }
-
-        .sidebar-item {
-          height: 36px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 12px;
-
-          padding: 0 14px;
-
-          margin-bottom: 2px;
-
-          border-radius: 20px;
-
-          color:
-            rgba(255,255,255,.68);
-
-          font-size: 12px;
-
-          cursor: pointer;
-
+        .nav-link {
           transition:
-            background .2s ease,
             color .2s ease,
-            box-shadow .2s ease;
-        }
-
-        .sidebar-item:hover {
-          color: #fff;
-          background:
-            rgba(255,106,26,.07);
-        }
-
-        .sidebar-item.active {
-          color: #ff8a4c;
-
-          background:
-            rgba(255,106,26,.12);
-
-          border:
-            1px solid rgba(255,106,26,.35);
-
-          box-shadow:
-            inset 0 0 18px
-            rgba(255,106,26,.025);
-        }
-
-        .nav-heading {
-          position: relative;
-        }
-
-        .nav-heading .sidebar-item {
-          margin-bottom: 0;
-        }
-
-        .collapse {
-          position: absolute;
-          right: 16px;
-          top: 10px;
-
-          font-size: 8px;
-
-          color:
-            rgba(255,255,255,.42);
-        }
-
-        .subnav {
-          margin:
-            0 0 7px 19px;
-
-          padding-left: 20px;
-
-          border-left:
-            1px solid rgba(255,255,255,.07);
-
-          display: flex;
-          flex-direction: column;
-        }
-
-        .subnav span {
-          height: 31px;
-
-          display: flex;
-          align-items: center;
-
-          color:
-            rgba(255,255,255,.66);
-
-          font-size: 12px;
-
-          padding-left: 13px;
-
-          cursor: pointer;
-
-          transition: color .2s ease;
-        }
-
-        .subnav span:hover {
-          color: #ff8a4c;
-        }
-
-        .premium-heading {
-          margin-top: 2px;
-        }
-
-        .account-heading {
-          margin-top: 3px;
-        }
-
-        .disabled-item {
-          height: 36px;
-
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          padding: 0 14px;
-
-          color:
-            rgba(255,255,255,.25);
-
-          font-size: 12px;
-        }
-
-        .disabled-item small {
-          margin-left: auto;
-          font-size: 8px;
-          color:
-            rgba(255,255,255,.22);
-        }
-
-        .sidebar-profile {
-          min-height: 54px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 10px;
-
-          padding: 8px 10px;
-
-          border-radius: 13px;
-
-          border:
-            1px solid rgba(255,255,255,.08);
-
-          background:
-            rgba(255,255,255,.025);
-
-          margin-top: 7px;
-        }
-
-        .profile-avatar {
-          width: 31px;
-          height: 31px;
-
-          border-radius: 50%;
-
-          display: grid;
-          place-items: center;
-
-          background:
-            linear-gradient(
-              135deg,
-              #3a2111,
-              #ff6a1a
-            );
-
-          font-size: 15px;
-        }
-
-        .sidebar-profile div:nth-child(2) {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .sidebar-profile small,
-        .sidebar-user small {
-          color:
-            rgba(255,255,255,.35);
-
-          font-size: 9px;
-        }
-
-        .sidebar-profile strong {
-          font-size: 11px;
-          font-weight: 500;
-        }
-
-        .share-icon {
-          margin-left: auto;
-          color:
-            rgba(255,255,255,.38);
-          font-size: 13px;
-        }
-
-        .sidebar-user {
-          margin-top: 7px;
-
-          min-height: 52px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          padding: 8px 10px;
-
-          border-radius: 13px;
-
-          background:
-            rgba(255,255,255,.02);
-        }
-
-        .user-avatar {
-          width: 31px;
-          height: 31px;
-
-          border-radius: 50%;
-
-          display: grid;
-          place-items: center;
-
-          background:
-            linear-gradient(
-              135deg,
-              #172015,
-              #3f5434
-            );
-
-          font-size: 14px;
-        }
-
-        .user-details {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          flex: 1;
-        }
-
-        .user-details strong {
-          font-size: 11px;
-          font-weight: 500;
-        }
-
-        /* =====================================================
-           MAIN
-        ===================================================== */
-
-        .main-content {
-          position: relative;
-          z-index: 10;
-
-          margin-left: 242px;
-
-          min-height: 100vh;
-        }
-
-        .topbar {
-          height: 57px;
-
-          display: flex;
-          align-items: center;
-
-          justify-content: space-between;
-
-          padding:
-            0 30px 0 22px;
-
-          border-bottom:
-            1px solid rgba(255,255,255,.045);
-        }
-
-        .breadcrumbs {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          font-size: 12px;
-        }
-
-        .breadcrumbs span {
-          color:
-            rgba(255,255,255,.38);
-        }
-
-        .breadcrumbs b {
-          color:
-            rgba(255,255,255,.25);
-          font-size: 17px;
-          font-weight: 400;
-        }
-
-        .breadcrumbs strong {
-          font-weight: 500;
-          color:
-            rgba(255,255,255,.76);
-        }
-
-        .top-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .preview {
-          height: 36px;
-
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          padding: 0 15px;
-
-          border-radius: 19px;
-
-          color:
-            #ff8a4c;
-
-          background:
-            rgba(255,106,26,.08);
-
-          border:
-            1px solid rgba(255,106,26,.35);
-
-          font-size: 11px;
-          font-weight: 600;
-
-          cursor: pointer;
-
-          transition: .2s ease;
-        }
-
-        .preview:hover {
-          background:
-            rgba(255,106,26,.15);
-
-          box-shadow:
-            0 0 20px
-            rgba(255,106,26,.13);
-        }
-
-        .circle-btn {
-          width: 36px;
-          height: 36px;
-
-          display: grid;
-          place-items: center;
-
-          border-radius: 50%;
-
-          background:
-            rgba(255,255,255,.025);
-
-          border:
-            1px solid rgba(255,255,255,.07);
-
-          color:
-            rgba(255,255,255,.45);
-
-          cursor: pointer;
-
-          transition: .2s ease;
-        }
-
-        .circle-btn:hover {
-          color: #ff8a4c;
-          border-color:
-            rgba(255,106,26,.3);
-        }
-
-        .mobile-menu {
-          display: none;
-        }
-
-        /* =====================================================
-           CONTENT
-        ===================================================== */
-
-        .content {
-          padding:
-            27px 22px 35px;
-
-          max-width: 1510px;
-          margin: 0 auto;
-        }
-
-        .welcome {
-          margin-bottom: 19px;
-        }
-
-        .welcome h1 {
-          font-family:
-            'Space Grotesk',
-            sans-serif;
-
-          margin: 0 0 5px;
-
-          font-size: 22px;
-
-          letter-spacing: -.6px;
-        }
-
-        .welcome p {
-          margin: 0;
-
-          color:
-            rgba(255,255,255,.43);
-
-          font-size: 12px;
-        }
-
-        /* =====================================================
-           STATS
-        ===================================================== */
-
-        .stats-grid {
-          display: grid;
-
-          grid-template-columns:
-            repeat(4, 1fr);
-
-          gap: 10px;
-
-          margin-bottom: 19px;
-        }
-
-        .stat-card {
-          min-height: 107px;
-
-          border:
-            1px solid rgba(255,255,255,.08);
-
-          border-radius: 19px;
-
-          padding: 19px;
-
-          background:
-            rgba(7,7,7,.78);
-
-          transition:
+            background .2s ease,
             border-color .2s ease,
             box-shadow .2s ease,
             transform .2s ease;
         }
 
-        .stat-card:hover {
-          transform: translateY(-1px);
+        .hero-button {
+          transition:
+            color .2s ease,
+            background .2s ease,
+            border-color .2s ease,
+            box-shadow .2s ease,
+            transform .2s ease;
+        }
 
-          border-color:
-            rgba(255,106,26,.22);
-
+        .primary-button:hover {
           box-shadow:
-            0 12px 40px
-            rgba(0,0,0,.25),
-            0 0 25px
-            rgba(255,106,26,.035);
+            0 0 25px rgba(255,106,26,.35),
+            0 0 55px rgba(255,106,26,.12) !important;
         }
 
-        .stat-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          margin-bottom: 22px;
-
-          color:
-            rgba(255,255,255,.43);
-
-          font-size: 11px;
+        .footer-link {
+          transition:
+            color .2s ease,
+            transform .2s ease;
         }
 
-        .stat-value {
-          font-family:
-            'Space Grotesk',
-            sans-serif;
+        @media (max-width: 1100px) {
+          .showcase {
+            transform:
+              translateX(-50%)
+              scale(.82) !important;
 
-          font-size: 22px;
-
-          font-weight: 600;
-
-          letter-spacing: -.5px;
+            transform-origin: top center;
+          }
         }
 
-        /* =====================================================
-           ANALYTICS GRID
-        ===================================================== */
-
-        .analytics-grid {
-          display: grid;
-
-          grid-template-columns:
-            minmax(0, 3fr)
-            minmax(310px, 1.05fr);
-
-          gap: 13px;
-
-          margin-bottom: 19px;
-        }
-
-        .panel {
-          background:
-            rgba(7,7,7,.8);
-
-          border:
-            1px solid rgba(255,255,255,.075);
-
-          border-radius: 18px;
-
-          overflow: hidden;
-        }
-
-        .panel-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-
-          padding: 22px 22px 0;
-        }
-
-        .panel-header h2,
-        .countries-header h2 {
-          margin: 0 0 6px;
-
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .panel-header p,
-        .countries-header p {
-          margin: 0;
-
-          color:
-            rgba(255,255,255,.38);
-
-          font-size: 11px;
-        }
-
-        .views-panel {
-          min-height: 410px;
-        }
-
-        .chart-controls {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .select-control {
-          height: 34px;
-
-          display: flex;
-          align-items: center;
-          gap: 7px;
-
-          padding: 0 11px;
-
-          border-radius: 18px;
-
-          background:
-            rgba(255,255,255,.025);
-
-          border:
-            1px solid rgba(255,255,255,.08);
-
-          color:
-            rgba(255,255,255,.6);
-
-          font-size: 10px;
-        }
-
-        .range-control {
-          display: flex;
-
-          padding: 3px;
-
-          border-radius: 18px;
-
-          background:
-            rgba(255,255,255,.025);
-
-          border:
-            1px solid rgba(255,255,255,.07);
-        }
-
-        .range-control button {
-          height: 28px;
-
-          min-width: 31px;
-
-          border: 0;
-
-          border-radius: 14px;
-
-          background: transparent;
-
-          color:
-            rgba(255,255,255,.4);
-
-          font-size: 9px;
-
-          cursor: pointer;
-        }
-
-        .range-control button.selected {
-          color:
-            #ff8a4c;
-
-          background:
-            rgba(255,106,26,.12);
-
-          border:
-            1px solid rgba(255,106,26,.3);
-        }
-
-        /* =====================================================
-           CHART
-        ===================================================== */
-
-        .chart {
-          height: 325px;
-
-          margin:
-            9px 20px 0;
-
-          position: relative;
-        }
-
-        .chart-grid {
-          position: absolute;
-          inset:
-            13px 0 31px 0;
-        }
-
-        .grid-line {
-          position: absolute;
-
-          left: 39px;
-          right: 0;
-
-          border-top:
-            1px solid
-            rgba(255,255,255,.045);
-        }
-
-        .grid-line span {
-          position: absolute;
-
-          left: -24px;
-          top: -7px;
-
-          color:
-            rgba(255,255,255,.32);
-
-          font-size: 9px;
-        }
-
-        .chart-svg {
-          position: absolute;
-
-          left: 39px;
-          right: 0;
-
-          bottom: 28px;
-
-          width:
-            calc(100% - 39px);
-
-          height: 245px;
-        }
-
-        .chart-dates {
-          position: absolute;
-
-          left: 39px;
-          right: 0;
-          bottom: 2px;
-
-          display: flex;
-
-          justify-content: space-between;
-
-          color:
-            rgba(255,255,255,.35);
-
-          font-size: 9px;
-        }
-
-        /* =====================================================
-           DEVICES
-        ===================================================== */
-
-        .devices-panel {
-          min-height: 410px;
-        }
-
-        .device-chart {
-          height: 330px;
-
-          display: flex;
-          flex-direction: column;
-
-          align-items: center;
-
-          padding-top: 42px;
-        }
-
-        .donut {
-          width: 126px;
-          height: 126px;
-
-          border-radius: 50%;
-
-          /* FALL COLORS — NO PINK */
-          background:
-            conic-gradient(
-              #ff6a1a 0deg 180deg,
-              #a9360b 180deg 360deg
-            );
-
-          display: grid;
-          place-items: center;
-
-          transform:
-            rotate(-90deg);
-
-          box-shadow:
-            0 0 25px
-            rgba(255,106,26,.07);
-        }
-
-        .donut-hole {
-          width: 90px;
-          height: 90px;
-
-          border-radius: 50%;
-
-          background:
-            #0a0a0a;
-        }
-
-        .device-list {
-          width: 75%;
-
-          margin-top: 36px;
-        }
-
-        .device-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          padding: 7px 0;
-
-          color:
-            rgba(255,255,255,.43);
-
-          font-size: 10px;
-        }
-
-        .device-row > div {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .device-row strong {
-          color:
-            rgba(255,255,255,.7);
-
-          font-size: 10px;
-          font-weight: 500;
-        }
-
-        .device-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-        }
-
-        /* FALL COLORS */
-        .device-dot.desktop {
-          background: #ff6a1a;
-        }
-
-        .device-dot.mobile {
-          background: #a9360b;
-        }
-
-        /* =====================================================
-           COUNTRIES
-        ===================================================== */
-
-        .countries-panel {
-          padding-bottom: 22px;
-        }
-
-        .countries-header {
-          display: flex;
-
-          justify-content: space-between;
-          align-items: flex-start;
-
-          padding:
-            21px 22px 18px;
-        }
-
-        .globe-button {
-          height: 34px;
-
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          padding: 0 13px;
-
-          border-radius: 18px;
-
-          background:
-            rgba(255,106,26,.06);
-
-          border:
-            1px solid rgba(255,106,26,.28);
-
-          color:
-            #ff8a4c;
-
-          font-size: 10px;
-
-          cursor: pointer;
-        }
-
-        .countries-grid {
-          display: grid;
-
-          grid-template-columns:
-            repeat(2, 1fr);
-
-          gap: 10px;
-
-          padding:
-            0 22px;
-        }
-
-        .country-card {
-          min-height: 52px;
-
-          position: relative;
-
-          display: flex;
-          align-items: center;
-
-          padding: 0 12px;
-
-          border-radius: 13px;
-
-          background:
-            rgba(255,255,255,.018);
-
-          border:
-            1px solid rgba(255,255,255,.065);
-
-          overflow: hidden;
-        }
-
-        .country-info {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-
-          font-size: 11px;
-        }
-
-        .country-info strong {
-          font-weight: 600;
-        }
-
-        .flag {
-          width: 28px;
-          height: 22px;
-
-          display: grid;
-          place-items: center;
-
-          font-size: 21px;
-        }
-
-        .country-count {
-          margin-left: auto;
-
-          margin-right: 3px;
-
-          color:
-            rgba(255,255,255,.55);
-
-          font-size: 10px;
-
-          z-index: 2;
-        }
-
-        .country-progress {
-          position: absolute;
-
-          left: 52px;
-          right: 60px;
-          bottom: 6px;
-
-          height: 3px;
-
-          border-radius: 3px;
-
-          background:
-            rgba(255,255,255,.06);
-        }
-
-        .country-progress div {
-          width: 50%;
-          height: 100%;
-
-          border-radius: inherit;
-
-          background:
-            linear-gradient(
-              90deg,
-              #ff6a1a,
-              #ff9b5d
-            );
-
-          box-shadow:
-            0 0 8px
-            rgba(255,106,26,.2);
-        }
-
-        /* =====================================================
-           MOBILE OVERLAY
-        ===================================================== */
-
-        .mobile-overlay {
-          display: none;
-        }
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (max-width: 1050px) {
-
-          .sidebar {
-            width: 215px;
+        @media (max-width: 800px) {
+          .desktop-links {
+            display: none !important;
           }
 
-          .main-content {
-            margin-left: 215px;
+          .hero {
+            padding-top: 145px !important;
           }
 
-          .analytics-grid {
-            grid-template-columns: 1fr;
+          .hero-title {
+            font-size: 42px !important;
           }
 
-          .devices-panel {
-            min-height: 350px;
+          .hero-subtitle {
+            font-size: 15px !important;
           }
 
-          .device-chart {
-            height: 280px;
+          .showcase {
+            transform:
+              translateX(-50%)
+              scale(.58) !important;
+
+            height: 300px !important;
+            margin-top: 10px !important;
           }
 
-          .stats-grid {
+          .footer-grid {
             grid-template-columns:
-              repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 760px) {
-
-          .sidebar {
-            transform:
-              translateX(-100%);
-
-            transition:
-              transform .25s ease;
-
-            box-shadow:
-              20px 0 60px
-              rgba(0,0,0,.6);
-          }
-
-          .sidebar.mobile-open {
-            transform:
-              translateX(0);
-          }
-
-          .mobile-overlay {
-            display: block;
-
-            position: fixed;
-            inset: 0;
-
-            background:
-              rgba(0,0,0,.55);
-
-            backdrop-filter:
-              blur(4px);
-
-            z-index: 19;
-          }
-
-          .main-content {
-            margin-left: 0;
-          }
-
-          .topbar {
-            padding:
-              0 14px;
-          }
-
-          .mobile-menu {
-            width: 36px;
-            height: 36px;
-
-            display: grid;
-            place-items: center;
-
-            border-radius: 50%;
-
-            border:
-              1px solid rgba(255,255,255,.08);
-
-            background:
-              rgba(255,255,255,.025);
-
-            color:
-              rgba(255,255,255,.7);
-          }
-
-          .content {
-            padding:
-              22px 13px 30px;
-          }
-
-          .preview {
-            display: none;
-          }
-
-          .circle-btn {
-            display: none;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .stat-card {
-            min-height: 100px;
-          }
-
-          .panel-header {
-            flex-direction: column;
-            gap: 15px;
-          }
-
-          .chart-controls {
-            width: 100%;
-            justify-content: space-between;
-          }
-
-          .countries-grid {
-            grid-template-columns: 1fr;
+              1fr 1fr !important;
           }
         }
 
         @media (max-width: 520px) {
-
-          .breadcrumbs span,
-          .breadcrumbs b {
-            display: none;
+          .nav {
+            width:
+              calc(100% - 24px) !important;
           }
 
-          .breadcrumbs strong {
-            font-size: 11px;
+          .nav-brand {
+            font-size: 14px !important;
           }
 
-          .stats-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 7px;
+          .nav-login {
+            display: none !important;
           }
 
-          .stat-card {
-            padding: 14px;
-            border-radius: 15px;
+          .hero-title {
+            font-size: 35px !important;
           }
 
-          .stat-top {
-            margin-bottom: 17px;
+          .hero-subtitle {
+            max-width: 330px !important;
           }
 
-          .stat-value {
-            font-size: 19px;
+          .showcase {
+            transform:
+              translateX(-50%)
+              scale(.42) !important;
+
+            height: 220px !important;
           }
 
-          .views-panel,
-          .devices-panel {
-            min-height: 390px;
+          .footer-grid {
+            grid-template-columns:
+              1fr !important;
+
+            gap: 32px !important;
           }
 
-          .chart {
-            margin-left: 12px;
-            margin-right: 12px;
+          .bottom-cta {
+            padding:
+              45px 24px !important;
           }
 
-          .range-control button {
-            min-width: 27px;
-          }
-
-          .select-control {
-            padding: 0 8px;
-          }
-
-          .countries-header {
-            gap: 15px;
-          }
-
-          .globe-button {
-            white-space: nowrap;
+          .footer-bottom {
+            align-items: flex-start !important;
+            flex-direction: column !important;
           }
         }
-
       `}</style>
+
+
+      {/* =====================================================
+          NAVIGATION
+      ===================================================== */}
+
+      <nav
+        className="nav"
+        style={{
+          position: 'absolute',
+
+          top: 21,
+          left: '50%',
+
+          transform:
+            'translateX(-50%)',
+
+          width:
+            'min(1180px, calc(100% - 40px))',
+
+          height: 70,
+
+          borderRadius: 40,
+
+          background:
+            'rgba(10,10,10,.88)',
+
+          backdropFilter:
+            'blur(18px)',
+
+          WebkitBackdropFilter:
+            'blur(18px)',
+
+          border:
+            '1px solid rgba(255,255,255,.07)',
+
+          boxShadow:
+            '0 15px 50px rgba(0,0,0,.4), 0 0 35px rgba(255,106,26,.025)',
+
+          display: 'flex',
+
+          alignItems: 'center',
+
+          padding:
+            '0 22px 0 28px',
+
+          zIndex: 20,
+        }}
+      >
+
+        {/* BRAND */}
+
+        <TransitionLink
+          href="/"
+          style={{
+            display: 'flex',
+
+            alignItems: 'center',
+
+            gap: 12,
+
+            color: '#fff',
+
+            textDecoration: 'none',
+
+            minWidth: 200,
+          }}
+        >
+          <img
+            src="/icon.png"
+            alt=""
+            width={30}
+            height={30}
+            style={{
+              display: 'block',
+
+              filter:
+                'drop-shadow(0 0 10px rgba(255,106,26,.35))',
+            }}
+          />
+
+          <span
+            className="nav-brand"
+            style={{
+              fontFamily:
+                "'Space Grotesk', sans-serif",
+
+              fontSize: 21,
+
+              fontWeight: 600,
+
+              letterSpacing: '-.7px',
+            }}
+          >
+            illness.lol
+          </span>
+        </TransitionLink>
+
+
+        {/* CENTER LINKS */}
+
+        <div
+          className="desktop-links"
+          style={{
+            position: 'absolute',
+
+            left: '50%',
+
+            transform:
+              'translateX(-50%)',
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            gap: 5,
+          }}
+        >
+          {[
+            ['Help Center', '/help'],
+
+            [
+              'Discord',
+              'https://discord.gg/R4tyQ4h3K5',
+            ],
+
+            [
+              'Leaderboard',
+              '/leaderboard',
+            ],
+
+            [
+              'Pricing',
+              '/pricing',
+            ],
+
+            [
+              'Questions',
+              '/questions',
+            ],
+          ].map(
+            ([label, href]) => (
+              <AccentLink
+                key={label}
+                href={href}
+
+                className="nav-link"
+
+                target={
+                  label === 'Discord'
+                    ? '_blank'
+                    : undefined
+                }
+
+                rel={
+                  label === 'Discord'
+                    ? 'noopener noreferrer'
+                    : undefined
+                }
+
+                style={{
+                  color:
+                    COLORS.muted,
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+
+                  padding:
+                    '9px 13px',
+
+                  whiteSpace:
+                    'nowrap',
+
+                  border:
+                    '1px solid transparent',
+
+                  borderRadius: 12,
+
+                  background:
+                    'transparent',
+
+                  boxShadow:
+                    'none',
+                }}
+              >
+                {label}
+              </AccentLink>
+            )
+          )}
+        </div>
+
+
+        {/* RIGHT SIDE */}
+
+        <div
+          style={{
+            marginLeft: 'auto',
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            gap: 8,
+          }}
+        >
+
+          {!loggedIn && (
+            <AccentLink
+              href="/login"
+
+              className="nav-login nav-link"
+
+              style={{
+                color:
+                  COLORS.muted,
+
+                textDecoration:
+                  'none',
+
+                fontSize: 14,
+
+                padding:
+                  '9px 13px',
+
+                border:
+                  '1px solid transparent',
+
+                borderRadius: 12,
+
+                background:
+                  'transparent',
+
+                boxShadow:
+                  'none',
+              }}
+            >
+              Log in
+            </AccentLink>
+          )}
+
+
+          {authChecked &&
+          loggedIn ? (
+            <AccentLink
+              href="/dashboard"
+
+              className="hero-button"
+
+              style={{
+                color: '#fff',
+
+                background:
+                  'rgba(255,106,26,.16)',
+
+                border:
+                  '1px solid rgba(255,106,26,.55)',
+
+                textDecoration:
+                  'none',
+
+                fontSize: 14,
+
+                fontWeight: 500,
+
+                padding:
+                  '11px 17px',
+
+                borderRadius: 25,
+
+                boxShadow:
+                  '0 0 12px rgba(255,106,26,.08)',
+              }}
+            >
+              Dashboard
+            </AccentLink>
+          ) : (
+            <AccentLink
+              href="/signup"
+
+              className="hero-button"
+
+              style={{
+                color: '#000',
+
+                background:
+                  COLORS.orange,
+
+                textDecoration:
+                  'none',
+
+                fontSize: 14,
+
+                fontWeight: 600,
+
+                padding:
+                  '12px 19px',
+
+                borderRadius: 25,
+
+                border:
+                  '1px solid transparent',
+
+                boxShadow:
+                  '0 0 18px rgba(255,106,26,.25)',
+              }}
+            >
+              Sign up
+            </AccentLink>
+          )}
+
+        </div>
+      </nav>
+
+
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+
+      <section
+        className="hero"
+
+        style={{
+          position: 'relative',
+
+          zIndex: 2,
+
+          minHeight: 650,
+
+          paddingTop: 185,
+
+          textAlign: 'center',
+
+          display: 'flex',
+
+          flexDirection: 'column',
+
+          alignItems: 'center',
+
+          opacity:
+            visible ? 1 : 0,
+
+          transform:
+            visible
+              ? 'translateY(0)'
+              : 'translateY(14px)',
+
+          transition:
+            'opacity .7s ease, transform .7s ease',
+        }}
+      >
+
+        <h1
+          className="hero-title"
+
+          style={{
+            fontFamily:
+              "'Space Grotesk', sans-serif",
+
+            fontSize: 46,
+
+            lineHeight: 1.15,
+
+            letterSpacing:
+              '-1.5px',
+
+            fontWeight: 600,
+
+            margin: 0,
+
+            color: '#fff',
+
+            textShadow:
+              '0 4px 35px rgba(0,0,0,.55)',
+          }}
+        >
+          Everything you want,
+          right here.
+        </h1>
+
+
+        <p
+          className="hero-subtitle"
+
+          style={{
+            maxWidth: 720,
+
+            margin:
+              '17px auto 25px',
+
+            fontSize: 17,
+
+            lineHeight: 1.6,
+
+            color:
+              COLORS.muted,
+
+            textShadow:
+              '0 2px 20px rgba(0,0,0,.5)',
+          }}
+        >
+          illness.lol is your go-to
+          for modern, feature rich
+          custom bio pages and fast,
+          secure file hosting
+        </p>
+
+
+        <div
+          style={{
+            display: 'flex',
+
+            gap: 10,
+
+            alignItems: 'center',
+
+            justifyContent:
+              'center',
+
+            flexWrap: 'wrap',
+          }}
+        >
+
+          <AccentLink
+            href="/signup"
+
+            className="hero-button primary-button"
+
+            style={{
+              display:
+                'inline-flex',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
+              padding:
+                '12px 18px',
+
+              borderRadius: 14,
+
+              color: '#000',
+
+              background:
+                COLORS.orange,
+
+              textDecoration:
+                'none',
+
+              fontSize: 14,
+
+              fontWeight: 600,
+
+              border:
+                '1px solid transparent',
+
+              boxShadow:
+                '0 0 20px rgba(255,106,26,.3)',
+            }}
+          >
+            Sign Up for Free
+          </AccentLink>
+
+
+          <AccentLink
+            href="/pricing"
+
+            className="hero-button"
+
+            style={{
+              display:
+                'inline-flex',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
+              padding:
+                '12px 18px',
+
+              borderRadius: 14,
+
+              color: '#fff',
+
+              background:
+                'rgba(255,255,255,.04)',
+
+              border:
+                '1px solid rgba(255,255,255,.14)',
+
+              textDecoration:
+                'none',
+
+              fontSize: 14,
+
+              fontWeight: 500,
+
+              backdropFilter:
+                'blur(10px)',
+            }}
+          >
+            View Pricing
+          </AccentLink>
+
+        </div>
+      </section>
+
+
+      {/* =====================================================
+          SHOWCASE
+      ===================================================== */}
+
+      <section
+        className="showcase"
+
+        style={{
+          position: 'relative',
+
+          zIndex: 3,
+
+          width: 1500,
+
+          height: 500,
+
+          margin:
+            '-160px auto 0',
+
+          left: '50%',
+
+          transform:
+            'translateX(-50%)',
+        }}
+      >
+
+        {/* =================================================
+            UPLOADED DASHBOARD IMAGE
+        ================================================= */}
+
+        <DashboardImage />
+
+
+        {/* =================================================
+            PROFILE PLACEHOLDER
+        ================================================= */}
+
+        <div
+          style={{
+            position: 'absolute',
+
+            right: 80,
+
+            top: 95,
+
+            width: 600,
+
+            height: 380,
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+          }}
+        >
+
+          <div
+            style={{
+              padding:
+                '18px 28px',
+
+              borderRadius: 16,
+
+              border:
+                '1px solid rgba(255,106,26,.15)',
+
+              background:
+                'rgba(255,106,26,.025)',
+
+              color:
+                'rgba(255,255,255,.22)',
+
+              fontFamily:
+                "'Space Grotesk', sans-serif",
+
+              fontSize: 18,
+
+              letterSpacing: '.5px',
+
+              boxShadow:
+                '0 0 35px rgba(255,106,26,.025)',
+            }}
+          >
+            Profile preview
+          </div>
+
+        </div>
+
+
+        {/* =================================================
+            BOTTOM FADE
+        ================================================= */}
+
+        <div
+          style={{
+            position: 'absolute',
+
+            left: -100,
+
+            right: -100,
+
+            bottom: -80,
+
+            height: 180,
+
+            background:
+              'linear-gradient(to bottom, transparent, #050505 72%)',
+
+            pointerEvents:
+              'none',
+
+            zIndex: 10,
+          }}
+        />
+
+      </section>
+
+
+      {/* =====================================================
+          SMALL BOTTOM FADE
+      ===================================================== */}
+
+      <div
+        style={{
+          height: 160,
+
+          marginTop: -100,
+
+          position: 'relative',
+
+          zIndex: 5,
+
+          background:
+            'linear-gradient(to bottom, transparent, #050505)',
+        }}
+      />
+
+
+      {/* =====================================================
+          LOWER CONTENT
+      ===================================================== */}
+
+      <section
+        style={{
+          position: 'relative',
+
+          zIndex: 6,
+
+          maxWidth: 1180,
+
+          margin: '0 auto',
+
+          padding:
+            '80px 24px 0',
+        }}
+      >
+
+        {/* =================================================
+            CTA
+        ================================================= */}
+
+        <div
+          className="bottom-cta"
+
+          style={{
+            position: 'relative',
+
+            overflow: 'hidden',
+
+            padding:
+              '65px 40px',
+
+            borderRadius: 28,
+
+            border:
+              '1px solid rgba(255,106,26,.22)',
+
+            background:
+              'linear-gradient(135deg, rgba(255,106,26,.10), rgba(255,255,255,.025) 55%, rgba(255,255,255,.015))',
+
+            boxShadow:
+              '0 25px 80px rgba(0,0,0,.45), 0 0 60px rgba(255,106,26,.025)',
+
+            textAlign: 'center',
+
+            backdropFilter:
+              'blur(8px)',
+          }}
+        >
+
+          {/* CTA GLOW */}
+
+          <div
+            aria-hidden="true"
+
+            style={{
+              position: 'absolute',
+
+              width: 450,
+              height: 450,
+
+              left: '50%',
+              top: '50%',
+
+              transform:
+                'translate(-50%, -50%)',
+
+              background:
+                'radial-gradient(circle, rgba(255,106,26,.13), transparent 68%)',
+
+              pointerEvents:
+                'none',
+            }}
+          />
+
+
+          <div
+            style={{
+              position: 'relative',
+
+              zIndex: 1,
+            }}
+          >
+
+            <div
+              style={{
+                display:
+                  'inline-flex',
+
+                padding:
+                  '7px 12px',
+
+                borderRadius:
+                  999,
+
+                border:
+                  '1px solid rgba(255,106,26,.25)',
+
+                background:
+                  'rgba(255,106,26,.08)',
+
+                color:
+                  COLORS.orangeBright,
+
+                fontSize: 12,
+
+                fontWeight: 600,
+
+                marginBottom: 18,
+              }}
+            >
+              illness.lol
+            </div>
+
+
+            <h2
+              style={{
+                margin: 0,
+
+                fontFamily:
+                  "'Space Grotesk', sans-serif",
+
+                fontSize: 34,
+
+                letterSpacing:
+                  '-1px',
+
+                lineHeight: 1.2,
+              }}
+            >
+              Your corner of the internet.
+            </h2>
+
+
+            <p
+              style={{
+                maxWidth: 560,
+
+                margin:
+                  '14px auto 25px',
+
+                color:
+                  COLORS.muted,
+
+                lineHeight: 1.6,
+
+                fontSize: 15,
+              }}
+            >
+              Create your custom profile,
+              share your links, host your
+              files, and make your presence
+              yours.
+            </p>
+
+
+            <div
+              style={{
+                display: 'flex',
+
+                justifyContent:
+                  'center',
+
+                gap: 10,
+
+                flexWrap: 'wrap',
+              }}
+            >
+
+              <AccentLink
+                href="/signup"
+
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'center',
+
+                  padding:
+                    '12px 20px',
+
+                  borderRadius: 13,
+
+                  background:
+                    COLORS.orange,
+
+                  color: '#000',
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+
+                  fontWeight: 600,
+                }}
+              >
+                Get Started
+              </AccentLink>
+
+
+              <AccentLink
+                href="/pricing"
+
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'center',
+
+                  padding:
+                    '12px 20px',
+
+                  borderRadius: 13,
+
+                  background:
+                    'rgba(255,255,255,.05)',
+
+                  border:
+                    '1px solid rgba(255,255,255,.12)',
+
+                  color: '#fff',
+
+                  textDecoration:
+                    'none',
+
+                  fontSize: 14,
+                }}
+              >
+                View Pricing
+              </AccentLink>
+
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* =================================================
+            FOOTER
+        ================================================= */}
+
+        <footer
+          style={{
+            marginTop: 75,
+
+            padding:
+              '50px 0 35px',
+
+            borderTop:
+              '1px solid rgba(255,255,255,.07)',
+          }}
+        >
+
+          <div
+            className="footer-grid"
+
+            style={{
+              display: 'grid',
+
+              gridTemplateColumns:
+                'minmax(240px, 1.8fr) repeat(3, minmax(120px, 1fr))',
+
+              gap: 45,
+            }}
+          >
+
+            {/* BRAND */}
+
+            <div>
+
+              <TransitionLink
+                href="/"
+
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  gap: 11,
+
+                  color: '#fff',
+
+                  textDecoration:
+                    'none',
+                }}
+              >
+
+                <img
+                  src="/icon.png"
+
+                  alt=""
+
+                  width={29}
+
+                  height={29}
+
+                  style={{
+                    filter:
+                      'drop-shadow(0 0 10px rgba(255,106,26,.3))',
+                  }}
+                />
+
+                <span
+                  style={{
+                    fontFamily:
+                      "'Space Grotesk', sans-serif",
+
+                    fontSize: 19,
+
+                    fontWeight: 600,
+                  }}
+                >
+                  illness.lol
+                </span>
+
+              </TransitionLink>
+
+
+              <p
+                style={{
+                  maxWidth: 290,
+
+                  margin:
+                    '16px 0 0',
+
+                  color:
+                    COLORS.faint,
+
+                  fontSize: 13,
+
+                  lineHeight: 1.7,
+                }}
+              >
+                Hello absentvirtue was
+                here 10/8
+              </p>
+
+            </div>
+
+
+            {/* PRODUCT */}
+
+            <div>
+
+              <FooterTitle>
+                Product
+              </FooterTitle>
+
+              <FooterLink href="/pricing">
+                Pricing
+              </FooterLink>
+
+              <FooterLink href="/dashboard">
+                Dashboard
+              </FooterLink>
+
+              <FooterLink href="/leaderboard">
+                Leaderboard
+              </FooterLink>
+
+              <FooterLink href="/questions">
+                Questions
+              </FooterLink>
+
+            </div>
+
+
+            {/* RESOURCES */}
+
+            <div>
+
+              <FooterTitle>
+                Resources
+              </FooterTitle>
+
+              <FooterLink href="/help">
+                Help Center
+              </FooterLink>
+
+              <FooterLink
+                href="https://discord.gg/R4tyQ4h3K5"
+
+                target="_blank"
+
+                rel="noopener noreferrer"
+              >
+                Discord
+              </FooterLink>
+
+              <FooterLink href="/login">
+                Log in
+              </FooterLink>
+
+              <FooterLink href="/signup">
+                Sign up
+              </FooterLink>
+
+            </div>
+
+
+            {/* LEGAL */}
+
+            <div>
+
+              <FooterTitle>
+                Legal
+              </FooterTitle>
+
+              <FooterLink href="/privacy">
+                Privacy Policy
+              </FooterLink>
+
+              <FooterLink href="/terms">
+                Terms of Service
+              </FooterLink>
+
+              <FooterLink href="/help">
+                Contact / Support
+              </FooterLink>
+
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              FOOTER BOTTOM
+          ================================================= */}
+
+          <div
+            className="footer-bottom"
+
+            style={{
+              marginTop: 45,
+
+              paddingTop: 22,
+
+              borderTop:
+                '1px solid rgba(255,255,255,.06)',
+
+              display: 'flex',
+
+              alignItems: 'center',
+
+              justifyContent:
+                'space-between',
+
+              gap: 20,
+
+              flexWrap: 'wrap',
+            }}
+          >
+
+            <span
+              style={{
+                color:
+                  'rgba(255,255,255,.35)',
+
+                fontSize: 12,
+              }}
+            >
+              © {new Date().getFullYear()} illness.lol.
+              All rights reserved.
+            </span>
+
+
+            <span
+              style={{
+                color:
+                  'rgba(255,255,255,.25)',
+
+                fontSize: 12,
+              }}
+            >
+              Made with ♥
+            </span>
+
+          </div>
+
+        </footer>
+
+      </section>
+
     </main>
   )
 }
