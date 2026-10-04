@@ -1,3228 +1,1910 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { TransitionLink } from '../../components/PageTransition'
 
-import {
-  useDashboardData,
-  Spark,
-  ActivityChart,
-  fmt,
-  trend,
-  LINK_LIMIT,
-} from './dashboardKit'
-
-/* =====================================================
-   ICONS
-===================================================== */
-
-const ICONS = {
-  overview: (
-    <>
-      <rect
-        x="3"
-        y="3"
-        width="7"
-        height="7"
-        rx="2"
-      />
-      <rect
-        x="14"
-        y="3"
-        width="7"
-        height="7"
-        rx="2"
-      />
-      <rect
-        x="3"
-        y="14"
-        width="7"
-        height="7"
-        rx="2"
-      />
-      <rect
-        x="14"
-        y="14"
-        width="7"
-        height="7"
-        rx="2"
-      />
-    </>
-  ),
-
-  customize: (
-    <>
-      <path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" />
-      <path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z" />
-    </>
-  ),
-
-  profile: (
-    <>
-      <circle
-        cx="12"
-        cy="8"
-        r="3"
-      />
-      <path d="M5 20a7 7 0 0 1 14 0Z" />
-    </>
-  ),
-
-  premium: (
-    <>
-      <path d="m3 8 4 4 5-8 5 8 4-4-2 11H5L3 8Z" />
-      <path d="M7 22h10" />
-    </>
-  ),
-
-  templates: (
-    <>
-      <path d="m12 3 9 5-9 5-9-5 9-5Z" />
-      <path d="m3 12 9 5 9-5M3 16l9 5 9-5" />
-    </>
-  ),
-
-  image: (
-    <>
-      <rect
-        x="3"
-        y="4"
-        width="18"
-        height="16"
-        rx="3"
-      />
-      <circle
-        cx="8.5"
-        cy="9"
-        r="1.5"
-      />
-      <path d="m5 17 5-5 3 3 2-2 4 4" />
-    </>
-  ),
-
-  account: (
-    <>
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-      />
-      <circle
-        cx="12"
-        cy="10"
-        r="2.5"
-      />
-      <path d="M7.5 17a5 5 0 0 1 9 0" />
-    </>
-  ),
-
-  assets: (
-    <>
-      <rect
-        x="4"
-        y="4"
-        width="16"
-        height="16"
-        rx="3"
-      />
-      <path d="m7 15 3-3 2 2 3-4 3 5" />
-    </>
-  ),
-
-  badges: (
-    <path d="m12 3 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3Z" />
-  ),
-
-  links: (
-    <>
-      <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
-      <path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1" />
-    </>
-  ),
-
-  projects: (
-    <>
-      <rect
-        x="3"
-        y="5"
-        width="18"
-        height="15"
-        rx="2"
-      />
-      <path d="M8 5V3h8v2M3 10h18" />
-    </>
-  ),
-
-  widgets: (
-    <>
-      <rect
-        x="4"
-        y="4"
-        width="6"
-        height="6"
-        rx="1"
-      />
-      <rect
-        x="14"
-        y="4"
-        width="6"
-        height="6"
-        rx="1"
-      />
-      <rect
-        x="4"
-        y="14"
-        width="6"
-        height="6"
-        rx="1"
-      />
-      <rect
-        x="14"
-        y="14"
-        width="6"
-        height="6"
-        rx="1"
-      />
-    </>
-  ),
-
-  section: (
-    <path d="M4 5h16M4 10h16M4 15h10M4 20h10" />
-  ),
-
-  backgrounds: (
-    <>
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="18"
-        rx="3"
-      />
-      <circle
-        cx="16"
-        cy="8"
-        r="2"
-      />
-      <path d="m4 17 5-5 4 4 2-2 5 5" />
-    </>
-  ),
-
-  metadata: (
-    <>
-      <path d="M4 5h16M4 12h16M4 19h10" />
-      <circle
-        cx="18"
-        cy="19"
-        r="2"
-      />
-    </>
-  ),
-
-  settings: (
-    <>
-      <circle
-        cx="12"
-        cy="12"
-        r="3"
-      />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.6v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6.4v-2.6h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.1H15v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1V14h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-    </>
-  ),
-
-  domains: (
-    <>
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-      />
-      <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
-    </>
-  ),
-
-  search: (
-    <>
-      <circle
-        cx="10.5"
-        cy="10.5"
-        r="6.5"
-      />
-      <path d="m16 16 4 4" />
-    </>
-  ),
+const C = {
+  bg: '#050505',
+  panel: '#0b0b0b',
+  panel2: '#101010',
+  line: 'rgba(255,255,255,.08)',
+  text: '#fff',
+  muted: 'rgba(255,255,255,.58)',
+  faint: 'rgba(255,255,255,.36)',
+  orange: '#ff6a1a',
+  orange2: '#ff8a3d',
+  orangeSoft: 'rgba(255,106,26,.11)',
 }
 
-function Icon({
-  name,
-  size = 16,
-}) {
+function Icon({ children }) {
   return (
-    <svg
-      aria-hidden="true"
-      className="icon"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {ICONS[name] || ICONS.overview}
-    </svg>
-  )
-}
-
-/* =====================================================
-   COMPONENTS
-===================================================== */
-
-function Panel({
-  children,
-  className = '',
-}) {
-  return (
-    <section
-      className={`panel ${className}`}
-    >
+    <span className="icon" aria-hidden="true">
       {children}
-    </section>
+    </span>
   )
 }
 
-const PROFILE_ITEMS = [
-  ['Assets', 'assets'],
-  ['Badges', 'badges'],
-  ['Links', 'links'],
-  ['Projects', 'projects'],
-  ['Widgets', 'widgets'],
-  ['Section Builder', 'section'],
-]
-
-const PREMIUM_ITEMS = [
-  [
-    'Customize',
-    'Premium Customize',
-    'customize',
-  ],
-  [
-    'Backgrounds',
-    'Backgrounds',
-    'backgrounds',
-  ],
-  [
-    'Metadata',
-    'Metadata',
-    'metadata',
-  ],
-]
-
-const ACCOUNT_ITEMS = [
-  ['Settings', 'Settings', 'settings'],
-  ['Domains', 'Domains', 'domains'],
-]
-
-const QUICK_ACTIONS = [
-  [
-    'Edit your page',
-    'Update your bio and style',
-    '✦',
-    'orange',
-    'Customize page',
-  ],
-  [
-    'Manage links',
-    'Add or organize your links',
-    '↗',
-    'amber',
-    'Links',
-  ],
-  [
-    'Change appearance',
-    'Colors, backgrounds, effects',
-    '◐',
-    'green',
-    'Appearance',
-  ],
-]
-
-function NavItem({
-  label,
-  value = label,
-  icon,
-  active,
-  setActive,
-  className = '',
-  children,
-}) {
+function NavItem({ href, icon, children, active = false }) {
   return (
-    <button
-      className={`nav-item ${className} ${
-        active === value ? 'active' : ''
-      }`}
-      onClick={() =>
-        setActive(value)
-      }
+    <TransitionLink
+      href={href}
+      className={`nav-item ${active ? 'active' : ''}`}
     >
-      <Icon name={icon} />
-
-      <span>{label}</span>
-
-      {children}
-    </button>
+      <Icon>{icon}</Icon>
+      <span>{children}</span>
+    </TransitionLink>
   )
 }
 
-function NavGroup({
-  label,
-  icon,
-  items,
-  open,
-  toggle,
-  active,
-  setActive,
-  lock,
-  groupClass = '',
-  triggerClass = '',
-}) {
-  const current =
-    active === label ||
-    items.some(
-      ([, value]) =>
-        value === active
-    )
-
+function StatCard({ label, value, icon }) {
   return (
-    <div
-      className={`nav-group ${groupClass}`}
-    >
-      <button
-        className={`nav-item group-trigger ${triggerClass} ${
-          current
-            ? 'group-current'
-            : ''
-        }`}
-        onClick={toggle}
-        aria-expanded={open}
-      >
-        <Icon name={icon} />
-
+    <div className="stat-card">
+      <div className="stat-top">
         <span>{label}</span>
+        <Icon>{icon}</Icon>
+      </div>
 
-        {lock && (
-          <span className="premium-lock">
-            ✦
-          </span>
-        )}
-
-        <span
-          className={`chevron ${
-            open ? 'expanded' : ''
-          }`}
-        >
-          ⌃
-        </span>
-      </button>
-
-      {open && (
-        <div className="subnav">
-          {items.map(
-            ([
-              text,
-              value,
-              iconName,
-            ]) => (
-              <button
-                key={value}
-                className={`subnav-item ${
-                  active === value
-                    ? 'selected'
-                    : ''
-                }`}
-                onClick={() =>
-                  setActive(value)
-                }
-              >
-                <Icon
-                  name={iconName}
-                  size={14}
-                />
-
-                <span>{text}</span>
-              </button>
-            )
-          )}
-        </div>
-      )}
+      <strong>{value}</strong>
     </div>
   )
 }
 
-/* =====================================================
-   FALL DECORATION
-===================================================== */
+function Chart() {
+  const points = useMemo(
+    () => [
+      0, 0, 0, 1, 1, 1, 2, 2,
+      3, 2, 4, 3, 5, 4, 6, 5,
+      4, 3, 4, 2, 1, 2, 1, 0,
+    ],
+    []
+  )
 
-function AutumnLeaves() {
+  const width = 900
+  const height = 260
+  const max = 7
+
+  const path = points
+    .map((value, index) => {
+      const x =
+        (index / (points.length - 1)) *
+        width
+
+      const y =
+        height -
+        28 -
+        (value / max) * 190
+
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+    })
+    .join(' ')
+
+  const area =
+    `${path} L ${width} ${height} L 0 ${height} Z`
+
   return (
-    <div
-      className="autumn-decoration"
-      aria-hidden="true"
-    >
-      <span className="fall-leaf leaf-a">
-        🍂
-      </span>
+    <div className="chart-wrap">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient
+            id="fallChart"
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop
+              offset="0%"
+              stopColor={C.orange}
+              stopOpacity=".28"
+            />
 
-      <span className="fall-leaf leaf-b">
-        🍁
-      </span>
+            <stop
+              offset="100%"
+              stopColor={C.orange}
+              stopOpacity="0"
+            />
+          </linearGradient>
+        </defs>
 
-      <span className="fall-leaf leaf-c">
-        🍂
-      </span>
+        {[0, 1, 2, 3, 4].map(i => (
+          <line
+            key={i}
+            x1="0"
+            x2={width}
+            y1={32 + i * 48}
+            y2={32 + i * 48}
+            stroke="rgba(255,255,255,.055)"
+          />
+        ))}
 
-      <span className="fall-leaf leaf-d">
-        ✦
-      </span>
+        <path
+          d={area}
+          fill="url(#fallChart)"
+        />
 
-      <span className="fall-leaf leaf-e">
-        🍁
-      </span>
+        <path
+          d={path}
+          fill="none"
+          stroke={C.orange2}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      <div className="chart-labels">
+        <span>Sep 28</span>
+        <span>Sep 30</span>
+        <span>Oct 02</span>
+        <span>Oct 04</span>
+      </div>
     </div>
   )
 }
 
-/* =====================================================
-   DASHBOARD
-===================================================== */
+function Donut() {
+  return (
+    <div className="donut-area">
+      <div className="donut">
+        <div className="donut-hole">
+          2
+          <br />
+          <small>views</small>
+        </div>
+      </div>
+
+      <div className="legend">
+        <div>
+          <i className="dot orange" />
+          Desktop
+          <b>1 (50%)</b>
+        </div>
+
+        <div>
+          <i className="dot gold" />
+          Mobile
+          <b>1 (50%)</b>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Country({ flag, name, value }) {
+  return (
+    <div className="country">
+      <span className="flag">
+        {flag}
+      </span>
+
+      <div style={{ flex: 1 }}>
+        <div className="country-name">
+          {name}
+        </div>
+
+        <div className="country-bar" />
+      </div>
+
+      <span className="country-value">
+        {value}
+      </span>
+    </div>
+  )
+}
 
 export default function DashboardPage() {
-  const [active, setActive] =
-    useState('Overview')
-
-  const [copied, setCopied] =
+  const [range, setRange] = useState('7d')
+  const [menuOpen, setMenuOpen] =
     useState(false)
 
-  const [open, setOpen] =
-    useState({
-      profile: true,
-      premium: true,
-      account: true,
-    })
-
-  const {
-    username,
-    initial,
-    bio,
-    greeting,
-    stats,
-    profilePublic,
-    setProfilePublic,
-  } = useDashboardData()
-
-  const profileUrl =
-    `https://illness.lol/${username}`
-
-  const flip = (key) => {
-    setOpen((current) => ({
-      ...current,
-      [key]: !current[key],
-    }))
-  }
-
-  const nav = {
-    active,
-    setActive,
-  }
-
-  const percentage = Math.min(
-    100,
-    Math.round(
-      (stats.activeLinks /
-        LINK_LIMIT) *
-        100
-    )
-  )
-
-  async function copyProfile() {
-    try {
-      await navigator.clipboard.writeText(
-        profileUrl
-      )
-
-      setCopied(true)
-
-      setTimeout(
-        () => setCopied(false),
-        1800
-      )
-    } catch {
-      setCopied(false)
-    }
-  }
-
-  const statCards = [
-    {
-      icon: '◉',
-      tone: 'orange',
-      label: 'Profile views',
-      value: stats.views,
-      prev: stats.prev.views,
-      series: 'views',
-      chart: '',
-    },
-
-    {
-      icon: '↗',
-      tone: 'amber',
-      label: 'Link clicks',
-      value: stats.clicks,
-      prev: stats.prev.clicks,
-      series: 'clicks',
-      chart: 'chart-amber',
-    },
-
-    {
-      icon: '⌁',
-      tone: 'green',
-      label: 'Unique visitors',
-      value: stats.visitors,
-      prev: stats.prev.visitors,
-      series: 'views',
-      chart: 'chart-green',
-    },
-  ]
-
   return (
-    <main className="dash-shell">
-      <AutumnLeaves />
+    <main className="dashboard-shell">
 
-      {/* =================================================
-          SIDEBAR
-      ================================================= */}
+      {/* FALL ATMOSPHERE */}
+
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
+
+      <div className="leaf leaf-a">
+        🍂
+      </div>
+
+      <div className="leaf leaf-b">
+        🍁
+      </div>
+
+      <div className="leaf leaf-c">
+        🍂
+      </div>
+
+      {/* SIDEBAR */}
 
       <aside className="sidebar">
-        <a
-          className="brand"
+
+        <TransitionLink
           href="/"
+          className="brand"
         >
-          <div className="brand-mark">
-            <span>i</span>
-          </div>
-
-          <span>
-            illness
-            <span className="brand-dot">
-              .lol
-            </span>
-          </span>
-        </a>
-
-        <button
-          className="sidebar-search"
-          onClick={() =>
-            setActive('Search')
-          }
-        >
-          <Icon
-            name="search"
-            size={17}
+          <img
+            src="/icon.png"
+            alt=""
           />
 
           <span>
-            Search illness
+            illness.lol
+          </span>
+        </TransitionLink>
+
+        <div className="search">
+          <span className="search-icon">
+            ⌕
+          </span>
+
+          <span>
+            Search Halo
           </span>
 
           <kbd>
             Ctrl K
           </kbd>
-        </button>
+        </div>
 
-        <nav
-          className="nav-list"
-          aria-label="Dashboard navigation"
-        >
-          <NavItem
-            label="Overview"
-            icon="overview"
-            {...nav}
-          />
+        <div className="nav-section">
 
           <NavItem
-            label="Customize"
-            value="Customize page"
-            icon="customize"
-            {...nav}
-          />
-
-          <NavGroup
-            label="Profile"
-            icon="profile"
-            items={PROFILE_ITEMS}
-            open={open.profile}
-            toggle={() =>
-              flip('profile')
-            }
-            {...nav}
-          />
-
-          <NavGroup
-            label="Premium"
-            icon="premium"
-            items={PREMIUM_ITEMS}
-            open={open.premium}
-            toggle={() =>
-              flip('premium')
-            }
-            lock
-            {...nav}
-          />
-
-          <NavItem
-            label="Templates"
-            icon="templates"
-            {...nav}
-          />
-
-          <NavItem
-            label="Image Host"
-            icon="image"
-            className="disabled-item"
-            {...nav}
+            href="/dashboard"
+            icon="▦"
+            active
           >
-            <small>
-              SOON
-            </small>
+            Overview
           </NavItem>
 
-          <NavGroup
-            label="Account"
-            icon="account"
-            items={ACCOUNT_ITEMS}
-            open={open.account}
-            toggle={() =>
-              flip('account')
-            }
-            groupClass="account-nav-group"
-            triggerClass="account-trigger"
-            {...nav}
-          />
-        </nav>
-
-        <div className="sidebar-bottom">
-          <button
-            className="share-profile"
-            onClick={copyProfile}
+          <NavItem
+            href="/dashboard/customize"
+            icon="✣"
           >
-            <span className="share-icon">
-              <Icon
-                name="profile"
-                size={16}
-              />
-            </span>
+            Customize
+          </NavItem>
 
-            <span>
-              <small>
-                Profile
-              </small>
-
-              <strong>
-                {copied
-                  ? 'Link copied!'
-                  : 'Share your profile'}
-              </strong>
-            </span>
-
-            <span className="share-arrow">
-              ↗
-            </span>
-          </button>
-
-          <button
-            className="account-button"
-            onClick={() =>
-              setActive('Account')
-            }
-          >
-            <div className="avatar small">
-              {initial}
-            </div>
-
-            <span>
-              <small>
-                Signed in as
-              </small>
-
-              <strong>
-                {username}
-              </strong>
-            </span>
-
-            <span className="account-settings">
-              <Icon
-                name="settings"
-                size={15}
-              />
-            </span>
-          </button>
         </div>
-      </aside>
 
-      {/* =================================================
-          MAIN
-      ================================================= */}
+        <div className="nav-heading">
+          <span>
+            Profile
+          </span>
 
-      <div className="main-area">
-        <header className="topbar">
-          <div className="breadcrumbs">
-            <span>
-              Dashboard
-            </span>
+          <span>
+            ⌃
+          </span>
+        </div>
 
-            <b>
-              /
-            </b>
+        <div className="nav-section nested">
+
+          <NavItem
+            href="/dashboard/assets"
+            icon="•"
+          >
+            Assets
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/badges"
+            icon="◇"
+          >
+            Badges
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/links"
+            icon="↗"
+          >
+            Links
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/projects"
+            icon="▱"
+          >
+            Projects
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/widgets"
+            icon="⊞"
+          >
+            Widgets
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/sections"
+            icon="≡"
+          >
+            Section Builder
+          </NavItem>
+
+        </div>
+
+        <div className="nav-heading premium">
+          <span>♛ Premium</span>
+          <small>▣</small>
+        </div>
+
+        <div className="nav-section nested">
+
+          <NavItem
+            href="/dashboard/premium/customize"
+            icon="•"
+          >
+            Customize
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/premium/backgrounds"
+            icon="•"
+          >
+            Backgrounds
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/premium/metadata"
+            icon="•"
+          >
+            Metadata
+          </NavItem>
+
+        </div>
+
+        <div className="nav-section">
+
+          <NavItem
+            href="/dashboard/templates"
+            icon="▤"
+          >
+            Templates
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/image-host"
+            icon="▣"
+          >
+            Image Host
+
+            <em>
+              SOON
+            </em>
+          </NavItem>
+
+        </div>
+
+        <div className="nav-heading">
+          <span>
+            Account
+          </span>
+
+          <span>
+            ⌃
+          </span>
+        </div>
+
+        <div className="nav-section nested">
+
+          <NavItem
+            href="/dashboard/settings"
+            icon="•"
+          >
+            Settings
+          </NavItem>
+
+          <NavItem
+            href="/dashboard/domains"
+            icon="•"
+          >
+            Domains
+          </NavItem>
+
+        </div>
+
+        <div className="share-card">
+
+          <div className="share-icon">
+            ✣
+          </div>
+
+          <div>
+            <small>
+              Profile
+            </small>
 
             <strong>
-              {active}
+              Share your profile
             </strong>
           </div>
 
+          <span>
+            ↗
+          </span>
+
+        </div>
+
+        <div className="signed-in">
+
+          <span className="mini-avatar">
+            🍂
+          </span>
+
+          <div>
+            <small>
+              Signed in as
+            </small>
+
+            <strong>
+              gun
+            </strong>
+          </div>
+
+          <span>
+            ⚙
+          </span>
+
+        </div>
+
+      </aside>
+
+      {/* CONTENT */}
+
+      <section className="content">
+
+        {/* TOP BAR */}
+
+        <header className="topbar">
+
+          <div className="crumb">
+            Dashboard
+            <span>›</span>
+            <b>
+              Overview
+            </b>
+          </div>
+
           <div className="top-actions">
-            <span className="season-tag">
-              <span>
-                🍂
-              </span>
 
-              AUTUMN '26
-            </span>
-
-            <button
-              className="icon-button"
-              aria-label="Notifications"
+            <TransitionLink
+              href="/gun"
+              className="preview"
             >
-              ♧
-              <i />
+              ◉ &nbsp;Live preview
+            </TransitionLink>
+
+            <button>
+              ♟
             </button>
 
             <button
-              className="view-button"
               onClick={() =>
-                window.open(
-                  profileUrl,
-                  '_blank'
+                setMenuOpen(
+                  value => !value
                 )
               }
             >
-              ↗
-
-              <span>
-                View profile
-              </span>
+              ⚙
             </button>
+
+            {menuOpen && (
+              <div className="quick-menu">
+
+                <TransitionLink
+                  href="/dashboard/settings"
+                >
+                  Settings
+                </TransitionLink>
+
+                <TransitionLink
+                  href="/logout"
+                >
+                  Log out
+                </TransitionLink>
+
+              </div>
+            )}
+
           </div>
+
         </header>
 
-        <div className="content">
-          {/* =================================================
-              WELCOME
-          ================================================= */}
+        {/* HEADER */}
 
-          <div className="welcome-row">
-            <div>
-              <p className="eyebrow">
-                <span />
-                YOUR LITTLE CORNER
-              </p>
+        <div className="heading">
 
-              <h1>
-                {greeting},{' '}
-                <span>
-                  {username}.
-                </span>
-              </h1>
+          <div>
 
-              <p className="subheading">
-                Cozy season is here. Your
-                corner of the internet is
-                looking good.
-              </p>
-            </div>
+            <h1>
+              Welcome back
+            </h1>
 
-            <button
-              className="primary-button"
-              onClick={() =>
-                setActive(
-                  'Customize page'
-                )
-              }
-            >
-              <span>
-                ✦
-              </span>
+            <p>
+              Here is a quick look at
+              your illness.lol page.
+            </p>
 
-              Customize page
-
-              <span className="button-arrow">
-                ↗
-              </span>
-            </button>
           </div>
 
-          {/* =================================================
-              PROFILE CARD
-          ================================================= */}
+        </div>
 
-          <Panel className="profile-banner">
-            <div className="banner-art">
-              <div className="autumn-sun" />
+        {/* STAT CARDS */}
 
-              <div className="mountain mountain-one" />
-              <div className="mountain mountain-two" />
+        <div className="stats">
 
-              <span className="banner-leaf leaf-one">
-                🍁
-              </span>
+          <StatCard
+            label="Username"
+            value="gun"
+            icon="◎"
+          />
 
-              <span className="banner-leaf leaf-two">
-                🍂
-              </span>
+          <StatCard
+            label="Aliases"
+            value="0"
+            icon="♟"
+          />
 
-              <span className="banner-leaf leaf-three">
-                🍁
-              </span>
+          <StatCard
+            label="UID"
+            value="58"
+            icon="#"
+          />
 
-              <span className="banner-star">
-                ✦
-              </span>
+          <StatCard
+            label="Profile views"
+            value="59"
+            icon="◉"
+          />
 
-              <div className="banner-grid" />
-            </div>
+        </div>
 
-            <div className="profile-info">
-              <div className="profile-avatar">
-                {initial}
+        {/* MAIN GRID */}
 
-                <span className="avatar-status" />
-              </div>
+        <div className="main-grid">
 
-              <div className="profile-copy">
-                <div className="profile-name">
-                  {username}
+          {/* VIEWS */}
 
-                  <span className="verified">
-                    ✓
-                  </span>
-                </div>
+          <section className="panel views-panel">
 
-                <div className="profile-url">
-                  illness.lol/
-                  {username}
-                  <span>
-                    ↗
-                  </span>
-                </div>
+            <div className="panel-head">
+
+              <div>
+
+                <h2>
+                  Views
+                </h2>
 
                 <p>
-                  {bio ||
-                    'Your bio goes here — tell the world a little about you.'}
+                  Your profile activity
+                  over the selected range.
+                  {' '}
+                  <b>
+                    2 total.
+                  </b>
                 </p>
+
               </div>
 
-              <div className="profile-controls">
-                <span
-                  className={`status-pill ${
-                    profilePublic
-                      ? ''
-                      : 'private'
-                  }`}
-                >
-                  <i />
+              <div className="controls">
 
-                  {profilePublic
-                    ? 'Public'
-                    : 'Private'}
-                </span>
-
-                <button
-                  className="switch"
-                  aria-label="Toggle profile visibility"
-                  aria-pressed={
-                    profilePublic
-                  }
-                  onClick={() =>
-                    setProfilePublic(
-                      (value) =>
-                        !value
-                    )
-                  }
-                >
-                  <span />
+                <button className="metric">
+                  ◉ &nbsp; Views⌄
                 </button>
+
+                {[
+                  '3d',
+                  '7d',
+                  '30d',
+                  '90d',
+                ].map(value => (
+
+                  <button
+                    key={value}
+                    className={
+                      range === value
+                        ? 'selected'
+                        : ''
+                    }
+                    onClick={() =>
+                      setRange(value)
+                    }
+                  >
+                    {value}
+                  </button>
+
+                ))}
+
               </div>
+
             </div>
 
-            <div className="profile-footer">
-              <span>
-                <i className="live-dot" />
+            <Chart />
 
-                Profile is{' '}
-                {profilePublic
-                  ? 'live'
-                  : 'hidden'}
-              </span>
+          </section>
 
-              <button
-                onClick={copyProfile}
-              >
-                {copied
-                  ? '✓ Copied link'
-                  : 'Copy profile link'}
+          {/* DEVICES */}
 
-                <span>
-                  ⧉
-                </span>
-              </button>
+          <section className="panel devices-panel">
+
+            <div className="panel-head">
+
+              <div>
+
+                <h2>
+                  Devices
+                </h2>
+
+                <p>
+                  How visitors break
+                  down by device type.
+                </p>
+
+              </div>
+
             </div>
-          </Panel>
 
-          {/* =================================================
-              STATS HEADER
-          ================================================= */}
+            <Donut />
 
-          <div className="section-heading">
+          </section>
+
+        </div>
+
+        {/* COUNTRIES */}
+
+        <section className="panel countries-panel">
+
+          <div className="countries-head">
+
             <div>
+
               <h2>
-                At a glance
+                Top countries
               </h2>
 
               <p>
-                A little look at how your
-                page is doing.
+                Where your visitors are
+                coming from in the selected
+                range.
               </p>
+
             </div>
 
-            <span className="period-label">
-              LAST 7 DAYS
-              <span>
-                ⌄
-              </span>
-            </span>
+            <button className="globe">
+              ◎ &nbsp; Show globe
+            </button>
+
           </div>
 
-          {/* =================================================
-              STATS
-          ================================================= */}
+          <div className="countries">
 
-          <div className="stats-grid">
-            {statCards.map((card) => (
-              <Panel
-                key={card.label}
-                className="stat-card"
-              >
-                <div className="stat-top">
-                  <span
-                    className={`stat-icon ${card.tone}`}
-                  >
-                    {card.icon}
-                  </span>
+            <Country
+              flag="🇩🇰"
+              name="Denmark"
+              value="1 (50%)"
+            />
 
-                  <span className="trend">
-                    {trend(
-                      card.value,
-                      card.prev
-                    )}
-                  </span>
-                </div>
+            <Country
+              flag="🇬🇧"
+              name="United Kingdom"
+              value="1 (50%)"
+            />
 
-                <p>
-                  {card.label}
-                </p>
-
-                <div className="stat-number">
-                  {fmt(card.value)}
-                </div>
-
-                <Spark
-                  values={stats.daily.map(
-                    (day) =>
-                      day[
-                        card.series
-                      ]
-                  )}
-                  className={
-                    card.chart
-                  }
-                />
-              </Panel>
-            ))}
-
-            <Panel className="stat-card">
-              <div className="stat-top">
-                <span className="stat-icon purple">
-                  ♡
-                </span>
-
-                <span className="trend neutral">
-                  All time
-                </span>
-              </div>
-
-              <p>
-                Active links
-              </p>
-
-              <div className="stat-number">
-                {String(
-                  stats.activeLinks
-                ).padStart(2, '0')}
-
-                <span className="stat-total">
-                  {' '}
-                  / {LINK_LIMIT}
-                </span>
-              </div>
-
-              <div className="progress-track">
-                <span
-                  style={{
-                    width: `${percentage}%`,
-                  }}
-                />
-              </div>
-
-              <div className="progress-caption">
-                <span>
-                  {stats.activeLinks}{' '}
-                  {stats.activeLinks ===
-                  1
-                    ? 'link'
-                    : 'links'}{' '}
-                  published
-                </span>
-
-                <strong>
-                  {percentage}%
-                </strong>
-              </div>
-            </Panel>
           </div>
 
-          {/* =================================================
-              LOWER CONTENT
-          ================================================= */}
+        </section>
 
-          <div className="lower-grid">
-            <Panel className="activity-panel">
-              <div className="panel-heading">
-                <div>
-                  <h2>
-                    Profile activity
-                  </h2>
+      </section>
 
-                  <p>
-                    Your traffic over the
-                    past week.
-                  </p>
-                </div>
-
-                <button
-                  className="more-button"
-                  aria-label="More activity options"
-                >
-                  ···
-                </button>
-              </div>
-
-              <div className="chart-legend">
-                <span>
-                  <i />
-                  Views
-                </span>
-
-                <span>
-                  <i />
-                  Clicks
-                </span>
-              </div>
-
-              <ActivityChart
-                daily={stats.daily}
-              />
-            </Panel>
-
-            <Panel className="quick-panel">
-              <div className="panel-heading">
-                <div>
-                  <h2>
-                    Quick actions
-                  </h2>
-
-                  <p>
-                    Make something happen.
-                  </p>
-                </div>
-              </div>
-
-              {QUICK_ACTIONS.map(
-                ([
-                  title,
-                  sub,
-                  icon,
-                  tone,
-                  target,
-                ]) => (
-                  <button
-                    key={title}
-                    className="quick-action"
-                    onClick={() =>
-                      setActive(
-                        target
-                      )
-                    }
-                  >
-                    <span
-                      className={`quick-icon ${tone}`}
-                    >
-                      {icon}
-                    </span>
-
-                    <span>
-                      <strong>
-                        {title}
-                      </strong>
-
-                      <small>
-                        {sub}
-                      </small>
-                    </span>
-
-                    <b>
-                      ↗
-                    </b>
-                  </button>
-                )
-              )}
-
-              <div className="tip-box">
-                <span>
-                  🍂
-                </span>
-
-                <div>
-                  <strong>
-                    Autumn tip
-                  </strong>
-
-                  <p>
-                    Try burnt orange,
-                    warm cream and
-                    deep brown together
-                    for a cozy profile.
-                  </p>
-                </div>
-              </div>
-            </Panel>
-          </div>
-
-          {/* =================================================
-              FOOTER
-          ================================================= */}
-
-          <footer className="footer">
-            <span>
-              © 2026 illness.lol
-            </span>
-
-            <span>
-              Made for your little corner
-              of the internet{' '}
-              <b>
-                ♥
-              </b>
-            </span>
-
-            <a href="/help">
-              Help center ↗
-            </a>
-          </footer>
-        </div>
-      </div>
-
-      {/* =====================================================
-          STYLES
-      ===================================================== */}
+      {/* STYLES */}
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-        :root {
-          --bg: #090807;
-          --panel: #11100f;
-          --panel-2: #151210;
-
-          --cream: #f6eee5;
-          --muted: #928981;
-          --dim: #655e58;
-
-          --orange: #e26d32;
-          --orange-bright: #f08b49;
-          --amber: #d49a52;
-          --green: #83ad8b;
-          --purple: #a98ac3;
-
-          --border: rgba(255,255,255,.075);
-        }
 
         * {
           box-sizing: border-box;
         }
 
-        html {
-          background: var(--bg);
-        }
-
+        html,
         body {
           margin: 0;
-          background:
-            radial-gradient(
-              ellipse at 80% -10%,
-              rgba(173, 72, 25, .13),
-              transparent 35%
-            ),
-            radial-gradient(
-              ellipse at 15% 90%,
-              rgba(116, 53, 22, .08),
-              transparent 35%
-            ),
-            var(--bg);
-
-          color: var(--cream);
-          font-family: 'DM Sans', sans-serif;
+          background: #050505;
+          color: #fff;
+          font-family:
+            Inter,
+            system-ui,
+            sans-serif;
         }
 
-        button,
         a {
-          font: inherit;
+          text-decoration: none;
+          color: inherit;
         }
 
         button {
-          cursor: pointer;
+          font: inherit;
+          color: inherit;
         }
 
-        h1,
-        h2,
-        p {
-          margin-top: 0;
-        }
+        /* =========================
+           PAGE
+        ========================= */
 
-        /* =====================================================
-           GLOBAL FALL DECORATION
-        ===================================================== */
-
-        .autumn-decoration {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
+        .dashboard-shell {
+          min-height: 100vh;
+          background: #050505;
+          position: relative;
           overflow: hidden;
         }
 
-        .fall-leaf {
-          position: absolute;
-          opacity: .07;
-          filter: blur(.1px);
-          user-select: none;
+        /* =========================
+           FALL BACKGROUND
+        ========================= */
+
+        .ambient {
+          position: fixed;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(30px);
+          z-index: 0;
         }
 
-        .leaf-a {
-          top: 18%;
-          right: 4%;
-          font-size: 80px;
-          transform: rotate(18deg);
-        }
-
-        .leaf-b {
-          top: 62%;
-          left: 1%;
-          font-size: 70px;
-          transform: rotate(-25deg);
-        }
-
-        .leaf-c {
-          bottom: 7%;
-          right: 12%;
-          font-size: 95px;
-          transform: rotate(35deg);
-        }
-
-        .leaf-d {
-          top: 35%;
-          left: 17%;
-          font-size: 45px;
-        }
-
-        .leaf-e {
-          top: 8%;
-          right: 32%;
-          font-size: 38px;
-        }
-
-        /* =====================================================
-           LAYOUT
-        ===================================================== */
-
-        .dash-shell {
-          position: relative;
-          z-index: 1;
-
-          min-height: 100vh;
-
-          display: flex;
+        .ambient-one {
+          width: 800px;
+          height: 500px;
+          top: -300px;
+          left: 35%;
 
           background:
             radial-gradient(
-              ellipse at 70% 0%,
-              rgba(126, 51, 18, .10),
-              transparent 38%
+              circle,
+              rgba(255,106,26,.13),
+              transparent 68%
             );
         }
 
-        /* =====================================================
+        .ambient-two {
+          width: 600px;
+          height: 600px;
+          right: -300px;
+          top: 25%;
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(186,88,18,.07),
+              transparent 70%
+            );
+        }
+
+        /* =========================
+           FALLING LEAVES
+        ========================= */
+
+        .leaf {
+          position: fixed;
+          z-index: 1;
+          pointer-events: none;
+
+          opacity: .22;
+
+          font-size: 24px;
+
+          filter:
+            drop-shadow(
+              0 0 8px
+              rgba(255,106,26,.25)
+            );
+
+          animation:
+            fall 12s linear infinite;
+        }
+
+        .leaf-a {
+          left: 28%;
+          top: -40px;
+        }
+
+        .leaf-b {
+          left: 70%;
+          top: -70px;
+          animation-delay: 4s;
+        }
+
+        .leaf-c {
+          left: 87%;
+          top: -90px;
+          animation-delay: 8s;
+        }
+
+        @keyframes fall {
+
+          to {
+            transform:
+              translate3d(
+                -80px,
+                110vh,
+                0
+              )
+              rotate(260deg);
+          }
+
+        }
+
+        /* =========================
            SIDEBAR
-        ===================================================== */
+        ========================= */
 
         .sidebar {
-          width: 252px;
-          flex: 0 0 252px;
+          position: fixed;
+          z-index: 5;
 
-          min-height: 100vh;
+          inset: 0 auto 0 0;
+
+          width: 247px;
+
+          background:
+            rgba(7,7,7,.96);
+
+          border-right:
+            1px solid
+            rgba(255,255,255,.08);
+
+          padding:
+            20px 10px 12px;
 
           display: flex;
           flex-direction: column;
-
-          padding: 20px 12px 12px;
-
-          background:
-            linear-gradient(
-              180deg,
-              #0b0a09,
-              #090807
-            );
-
-          border-right: 1px solid var(--border);
         }
 
         .brand {
           display: flex;
           align-items: center;
+
           gap: 10px;
 
-          padding: 0 9px;
+          padding:
+            0 9px 24px;
 
-          margin-bottom: 24px;
-
-          color: #f8f1e9;
-
-          text-decoration: none;
-
-          font:
-            700 21px
+          font-family:
             'Space Grotesk',
+            Inter,
             sans-serif;
 
-          letter-spacing: -.8px;
+          font-size: 21px;
+          font-weight: 600;
         }
 
-        .brand-mark {
-          width: 22px;
-          height: 22px;
+        .brand img {
+          width: 29px;
+          height: 29px;
 
-          display: grid;
-          place-items: center;
-
-          border-radius: 7px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #f08a48,
-              #a94220
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(255,106,26,.35)
             );
-
-          color: #160a04;
-
-          box-shadow:
-            0 5px 18px
-            rgba(214, 91, 34, .2);
         }
 
-        .brand-mark span {
-          font:
-            700 13px
-            'Space Grotesk';
-        }
+        /* SEARCH */
 
-        .brand-dot {
-          color: var(--orange-bright);
-        }
+        .search {
+          height: 45px;
 
-        .sidebar-search {
-          width: 100%;
+          border:
+            1px solid
+            rgba(255,255,255,.08);
 
-          display: flex;
-          align-items: center;
-          gap: 10px;
+          background: #0b0b0b;
 
-          padding: 12px;
-
-          margin-bottom: 16px;
-
-          border: 1px solid var(--border);
-          border-radius: 13px;
-
-          background: #0e0d0c;
-
-          color: #85807b;
-
-          text-align: left;
-          font-size: 12px;
-
-          transition:
-            border-color .2s,
-            background .2s;
-        }
-
-        .sidebar-search:hover {
-          background: #13110f;
-          border-color: rgba(226,109,50,.25);
-        }
-
-        .sidebar-search span {
-          flex: 1;
-          color: #aaa29b;
-        }
-
-        .sidebar-search kbd {
-          padding: 4px 6px;
-
-          border: 1px solid #292522;
-          border-radius: 6px;
-
-          color: #706a65;
-
-          font:
-            10px
-            'DM Sans';
-        }
-
-        .nav-list {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          width: 100%;
-          min-height: 39px;
-
-          padding: 0 12px;
-
-          border: 1px solid transparent;
           border-radius: 12px;
 
-          background: transparent;
+          padding:
+            0 12px;
 
-          color: #b7b0aa;
-
-          text-align: left;
-
-          font:
-            500 12px
-            'DM Sans';
-
-          transition:
-            background .15s,
-            border-color .15s,
-            color .15s;
-        }
-
-        .nav-item:hover,
-        .subnav-item:hover {
-          background: rgba(255,255,255,.035);
-          color: #f5eee8;
-        }
-
-        .nav-item .icon {
-          flex-shrink: 0;
-          color: #77716b;
-        }
-
-        .nav-item.active {
-          border-color: rgba(226,109,50,.28);
-
-          background:
-            linear-gradient(
-              90deg,
-              rgba(226,109,50,.16),
-              rgba(226,109,50,.055)
-            );
-
-          color: #f29a5b;
-
-          box-shadow:
-            inset 3px 0 0 #d8662e;
-        }
-
-        .nav-item.active .icon {
-          color: #ef8b4b;
-        }
-
-        .nav-item span:nth-child(2) {
-          flex: 1;
-        }
-
-        .nav-group {
           display: flex;
-          flex-direction: column;
-        }
+          align-items: center;
 
-        .group-current:not(.active) {
-          color: #e5ded7;
-        }
+          gap: 9px;
 
-        .chevron {
-          margin-left: auto;
-
-          color: #77716b;
+          color:
+            rgba(255,255,255,.58);
 
           font-size: 13px;
 
-          transform: rotate(180deg);
-
-          transition: transform .15s;
+          margin-bottom: 15px;
         }
 
-        .chevron.expanded {
-          transform: rotate(0);
+        .search-icon {
+          font-size: 20px;
         }
 
-        .premium-lock {
+        .search kbd {
           margin-left: auto;
-          color: #bd7549;
+
+          border:
+            1px solid
+            rgba(255,255,255,.08);
+
+          border-radius: 7px;
+
+          padding:
+            3px 6px;
+
+          color:
+            rgba(255,255,255,.36);
+
           font-size: 10px;
         }
 
-        .subnav {
-          display: flex;
-          flex-direction: column;
+        /* NAV */
 
-          margin: 1px 0 7px 19px;
-
-          padding: 1px 0 1px 14px;
-
-          border-left: 1px solid #292421;
-
-          gap: 1px;
-        }
-
-        .subnav-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          min-height: 33px;
-
-          padding: 0 10px;
-
-          border: 0;
-          border-radius: 8px;
-
-          background: transparent;
-
-          color: #aaa39d;
-
-          text-align: left;
-
-          font:
-            400 11.5px
-            'DM Sans';
-        }
-
-        .subnav-item .icon {
-          color: #68625d;
-          flex-shrink: 0;
-        }
-
-        .subnav-item.selected {
-          color: #ee9255;
-          background: rgba(226,109,50,.08);
-        }
-
-        .subnav-item.selected .icon {
-          color: #e57c3d;
-        }
-
-        .disabled-item,
-        .disabled-item .icon {
-          color: #4f4b47;
-        }
-
-        .disabled-item small {
-          margin-left: auto;
-
-          color: #4b4541;
-
-          font-size: 9px;
-          letter-spacing: .5px;
-        }
-
-        .account-nav-group {
-          margin-top: 5px;
-        }
-
-        .account-trigger {
-          border-color: #4a4540;
-          border-radius: 22px;
-          color: #d5cec8;
-        }
-
-        .account-trigger .icon {
-          color: #928a83;
-        }
-
-        .sidebar-bottom {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-
-          margin-top: auto;
-          padding-top: 22px;
-        }
-
-        .share-profile,
-        .account-button {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          width: 100%;
-
-          padding: 10px 11px;
-
-          border: 1px solid #282522;
-          border-radius: 15px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #11100f,
-              #0d0c0b
-            );
-
-          color: #eee8e2;
-
-          text-align: left;
-        }
-
-        .share-profile:hover,
-        .account-button:hover {
-          border-color: rgba(226,109,50,.22);
-        }
-
-        .share-icon {
-          display: grid;
-          place-items: center;
-
-          width: 32px;
-          height: 32px;
-
-          border-radius: 50%;
-
-          background: #191512;
-
-          color: #aaa19a;
-        }
-
-        .share-profile > span:nth-child(2),
-        .account-button > span:nth-child(2) {
+        .nav-section {
           display: flex;
           flex-direction: column;
           gap: 2px;
-
-          flex: 1;
-          min-width: 0;
         }
 
-        .share-profile small,
-        .account-button small {
-          color: #77716b;
-          font-size: 9px;
+        .nav-item {
+          height: 38px;
+
+          border-radius: 10px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 11px;
+
+          padding:
+            0 12px;
+
+          color:
+            rgba(255,255,255,.7);
+
+          font-size: 13px;
+
+          transition:
+            background .2s ease,
+            color .2s ease,
+            transform .2s ease;
         }
 
-        .share-profile strong,
-        .account-button strong {
-          color: #eee8e2;
+        .nav-item:hover {
+          background:
+            rgba(255,106,26,.07);
 
-          font-size: 11px;
-          font-weight: 600;
+          color: #fff;
 
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          transform:
+            translateX(2px);
         }
 
-        .share-arrow {
+        .nav-item.active {
+          color: #ff8a3d;
+
+          background:
+            rgba(255,106,26,.11);
+
+          border:
+            1px solid
+            rgba(255,106,26,.28);
+        }
+
+        .icon {
+          width: 17px;
+          text-align: center;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 14px;
+        }
+
+        .nav-item.active .icon {
+          color: #ff6a1a;
+        }
+
+        .nav-heading {
+          display: flex;
+          align-items: center;
+
+          gap: 6px;
+
+          padding:
+            17px 13px 7px;
+
+          color:
+            rgba(255,255,255,.58);
+
+          font-size: 12px;
+        }
+
+        .nav-heading > span:last-child {
+          margin-left: auto;
+        }
+
+        .nav-heading.premium {
+          gap: 8px;
+        }
+
+        .nav-heading.premium small {
+          margin-left: auto;
+        }
+
+        .nested {
+          border-left:
+            1px solid
+            rgba(255,255,255,.08);
+
+          margin-left: 18px;
+
+          padding-left: 7px;
+        }
+
+        .nav-item em {
+          margin-left: auto;
+
+          font-size: 7px;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-style: normal;
+        }
+
+        /* SHARE CARD */
+
+        .share-card {
+          margin-top: auto;
+
+          padding: 11px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.08);
+
+          border-radius: 13px;
+
+          background: #0d0d0d;
+
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
+        }
+
+        .share-card .share-icon {
+          width: 31px;
+          height: 31px;
+
+          border-radius: 9px;
+
+          background: #151515;
+
           display: grid;
           place-items: center;
-
-          width: 18px;
-          height: 18px;
-
-          border-radius: 5px;
-
-          background: #25211e;
-
-          color: #888078;
-
-          font-size: 11px;
         }
 
-        .account-button {
-          padding: 9px 10px;
+        .share-card div:nth-child(2) {
+          display: flex;
+          flex-direction: column;
+
+          gap: 3px;
         }
 
-        .avatar.small {
-          display: grid;
-          place-items: center;
+        .share-card small,
+        .signed-in small {
+          font-size: 10px;
 
-          flex-shrink: 0;
+          color:
+            rgba(255,255,255,.36);
+        }
 
+        .share-card strong,
+        .signed-in strong {
+          font-size: 12px;
+        }
+
+        .share-card > span {
+          margin-left: auto;
+
+          color:
+            rgba(255,255,255,.36);
+        }
+
+        /* SIGNED IN */
+
+        .signed-in {
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
+
+          padding:
+            12px 8px 0;
+        }
+
+        .signed-in > div {
+          display: flex;
+          flex-direction: column;
+
+          gap: 3px;
+        }
+
+        .signed-in > span:last-child {
+          margin-left: auto;
+
+          color:
+            rgba(255,255,255,.36);
+        }
+
+        .mini-avatar {
           width: 29px;
           height: 29px;
 
           border-radius: 50%;
 
+          display: grid;
+          place-items: center;
+
           background:
             linear-gradient(
-              140deg,
-              #a94d25,
-              #e8a15e
+              135deg,
+              #39200c,
+              #15100a
             );
 
-          color: #251006;
-
-          font:
-            700 11px
-            'Space Grotesk';
+          border:
+            1px solid
+            rgba(255,106,26,.18);
         }
 
-        .account-settings {
-          color: #77716b;
+        /* =========================
+           CONTENT
+        ========================= */
+
+        .content {
+          position: relative;
+          z-index: 2;
+
+          margin-left: 247px;
+
+          padding:
+            0 24px 40px;
+
+          max-width: 1800px;
         }
 
-        /* =====================================================
-           MAIN
-        ===================================================== */
-
-        .main-area {
-          flex: 1;
-          min-width: 0;
-        }
+        /* TOP BAR */
 
         .topbar {
-          height: 76px;
+          height: 70px;
 
           display: flex;
           align-items: center;
           justify-content: space-between;
 
-          padding: 0 42px;
-
-          border-bottom: 1px solid var(--border);
-
-          background:
-            rgba(8,7,6,.82);
-
-          backdrop-filter: blur(14px);
+          border-bottom:
+            1px solid
+            rgba(255,255,255,.025);
         }
 
-        .breadcrumbs {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-
-          color: #746d67;
-
+        .crumb {
           font-size: 12px;
+
+          color:
+            rgba(255,255,255,.36);
         }
 
-        .breadcrumbs b {
-          color: #46413d;
-          font-weight: 400;
+        .crumb span {
+          padding:
+            0 9px;
         }
 
-        .breadcrumbs strong {
-          color: #e9e0d8;
+        .crumb b {
+          color:
+            rgba(255,255,255,.58);
+
           font-weight: 500;
         }
 
         .top-actions {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .season-tag {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-
-          padding: 7px 10px;
-
-          border: 1px solid rgba(226,109,50,.18);
-          border-radius: 8px;
-
-          background: rgba(226,109,50,.035);
-
-          color: #c89874;
-
-          font-size: 9px;
-          letter-spacing: .8px;
-        }
-
-        .icon-button {
           position: relative;
 
-          width: 33px;
-          height: 33px;
-
-          border: 1px solid var(--border);
-          border-radius: 9px;
-
-          background: #11100f;
-
-          color: #a69d95;
-
-          font-size: 17px;
-        }
-
-        .icon-button i {
-          position: absolute;
-
-          right: 7px;
-          top: 6px;
-
-          width: 5px;
-          height: 5px;
-
-          border-radius: 50%;
-
-          background: #d8662e;
-        }
-
-        .view-button {
           display: flex;
           align-items: center;
+
           gap: 8px;
-
-          padding: 9px 13px;
-
-          border: 1px solid rgba(226,109,50,.32);
-          border-radius: 9px;
-
-          background: rgba(226,109,50,.08);
-
-          color: #e7b38d;
-
-          font-size: 11px;
         }
 
-        .view-button:hover {
-          background: rgba(226,109,50,.14);
+        .top-actions button,
+        .preview {
+          height: 36px;
+
+          border-radius: 20px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.08);
+
+          background: #0c0c0c;
+
+          padding:
+            0 12px;
+
+          display: grid;
+          place-items: center;
+
+          cursor: pointer;
         }
 
-        .content {
-          width: 100%;
-          max-width: 1500px;
+        .preview {
+          color: #ff8a3d;
 
-          padding: 37px 42px 20px;
+          border-color:
+            rgba(255,106,26,.35);
 
-          margin: 0 auto;
-        }
-
-        /* =====================================================
-           WELCOME
-        ===================================================== */
-
-        .welcome-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          gap: 20px;
-
-          margin-bottom: 28px;
-        }
-
-        .eyebrow {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          margin: 0 0 10px;
-
-          color: #aa7553;
-
-          font-size: 9px;
-          letter-spacing: 1.6px;
-          font-weight: 700;
-        }
-
-        .eyebrow span {
-          width: 6px;
-          height: 6px;
-
-          border-radius: 2px;
-
-          background: #d96830;
-
-          box-shadow:
-            0 0 12px
-            rgba(217,104,48,.55);
-        }
-
-        .welcome-row h1 {
-          margin: 0;
-
-          font:
-            600 clamp(24px,2.2vw,31px)/1.2
-            'Space Grotesk',
-            sans-serif;
-
-          letter-spacing: -1px;
-        }
-
-        .welcome-row h1 span {
-          color: #e99455;
-        }
-
-        .subheading {
-          margin: 9px 0 0;
-
-          color: #8e8780;
+          padding:
+            0 17px;
 
           font-size: 12px;
         }
 
-        .primary-button {
-          display: flex;
-          align-items: center;
-          gap: 9px;
+        .quick-menu {
+          position: absolute;
 
-          padding: 12px 14px;
+          right: 0;
+          top: 44px;
 
-          border: 1px solid rgba(245,143,78,.3);
-          border-radius: 10px;
+          background: #111;
 
-          background:
-            linear-gradient(
-              120deg,
-              #d9662d,
-              #ef9b5c
-            );
+          border:
+            1px solid
+            rgba(255,255,255,.08);
 
-          color: #1d0c04;
+          border-radius: 12px;
 
-          font-size: 11px;
-          font-weight: 700;
+          padding: 6px;
+
+          width: 130px;
 
           box-shadow:
-            0 7px 30px
-            rgba(198,72,28,.16);
+            0 15px 40px #000;
 
-          transition:
-            transform .2s,
-            box-shadow .2s;
+          z-index: 20;
         }
 
-        .primary-button:hover {
-          transform: translateY(-1px);
-
-          box-shadow:
-            0 10px 32px
-            rgba(198,72,28,.25);
-        }
-
-        .button-arrow {
-          margin-left: 6px;
-        }
-
-        /* =====================================================
-           PANEL
-        ===================================================== */
-
-        .panel {
-          min-width: 0;
-
-          border: 1px solid var(--border);
-          border-radius: 14px;
-
-          background:
-            linear-gradient(
-              145deg,
-              rgba(22,19,17,.96),
-              rgba(12,11,10,.98)
-            );
-
-          box-shadow:
-            0 16px 40px
-            rgba(0,0,0,.14);
-        }
-
-        /* =====================================================
-           PROFILE BANNER
-        ===================================================== */
-
-        .profile-banner {
-          overflow: hidden;
-          margin-bottom: 29px;
-        }
-
-        .banner-art {
-          position: relative;
-
-          height: 118px;
-
-          overflow: hidden;
-
-          background:
-            linear-gradient(
-              115deg,
-              #25130b,
-              #482313 42%,
-              #1d110b
-            );
-        }
-
-        .autumn-sun {
-          position: absolute;
-
-          width: 240px;
-          height: 170px;
-
-          right: 18%;
-          top: -105px;
-
-          border-radius: 50%;
-
-          background:
-            radial-gradient(
-              circle,
-              #e9904d 0%,
-              #b84d24 36%,
-              transparent 70%
-            );
-
-          filter: blur(12px);
-
-          opacity: .55;
-        }
-
-        .mountain {
-          position: absolute;
-
-          bottom: -65px;
-
-          width: 52%;
-          height: 120px;
-
-          background: #1c100b;
-
-          transform: skewX(-25deg)
-            rotate(-7deg);
-        }
-
-        .mountain-one {
-          right: -3%;
-          opacity: .8;
-        }
-
-        .mountain-two {
-          right: 31%;
-          width: 40%;
-          height: 90px;
-          background: #30170d;
-          opacity: .65;
-        }
-
-        .banner-grid {
-          position: absolute;
-          inset: 0;
-
-          opacity: .12;
-
-          background-image:
-            linear-gradient(
-              rgba(245,170,105,.5) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(245,170,105,.5) 1px,
-              transparent 1px
-            );
-
-          background-size: 30px 30px;
-
-          mask-image:
-            linear-gradient(
-              90deg,
-              transparent,
-              #000 40%,
-              #000
-            );
-        }
-
-        .banner-leaf {
-          position: absolute;
-
-          z-index: 3;
-
-          color: #e18a4c;
-
-          filter:
-            drop-shadow(
-              0 7px 18px
-              rgba(0,0,0,.35)
-            );
-        }
-
-        .leaf-one {
-          right: 13%;
-          top: 12px;
-          font-size: 47px;
-          transform: rotate(17deg);
-        }
-
-        .leaf-two {
-          right: 8%;
-          top: 56px;
-          font-size: 28px;
-          transform: rotate(-18deg);
-        }
-
-        .leaf-three {
-          right: 23%;
-          top: 46px;
-          font-size: 40px;
-          transform: rotate(24deg);
-          color: #ad4b24;
-        }
-
-        .banner-star {
-          position: absolute;
-
-          right: 31%;
-          top: 20px;
-
-          color: #f1b16c;
-
-          opacity: .5;
-
-          font-size: 20px;
-        }
-
-        .profile-info {
-          display: flex;
-          align-items: center;
-
-          gap: 15px;
-
-          min-height: 94px;
-
-          padding:
-            0 23px 18px;
-        }
-
-        .profile-avatar {
-          position: relative;
-
-          display: grid;
-          place-items: center;
-
-          width: 62px;
-          height: 62px;
-
-          margin-top: -28px;
-
-          flex-shrink: 0;
-
-          border: 4px solid #0e0d0c;
-          border-radius: 18px;
-
-          background:
-            linear-gradient(
-              140deg,
-              #b94e25,
-              #f0ae69
-            );
-
-          color: #2b1005;
-
-          font:
-            700 25px
-            'Space Grotesk';
-
-          box-shadow:
-            0 8px 24px
-            rgba(0,0,0,.6);
-        }
-
-        .avatar-status {
-          position: absolute;
-
-          right: -2px;
-          bottom: -2px;
-
-          width: 13px;
-          height: 13px;
-
-          border: 3px solid #0d0c0b;
-          border-radius: 50%;
-
-          background: #76b486;
-        }
-
-        .profile-copy {
-          min-width: 0;
-          padding-top: 13px;
-        }
-
-        .profile-name {
-          font:
-            600 16px
-            'Space Grotesk';
-        }
-
-        .verified {
-          display: inline-grid;
-          place-items: center;
-
-          width: 14px;
-          height: 14px;
-
-          margin-left: 3px;
-
-          border-radius: 50%;
-
-          background: #d2763e;
-
-          color: #180a04;
-
-          font:
-            700 9px
-            sans-serif;
-
-          vertical-align: 2px;
-        }
-
-        .profile-url {
-          margin-top: 5px;
-
-          color: #cc8357;
-
-          font-size: 10px;
-        }
-
-        .profile-url span {
-          margin-left: 4px;
-        }
-
-        .profile-copy p {
-          margin: 8px 0 0;
-
-          color: #817a74;
-
-          font-size: 11px;
-        }
-
-        .profile-controls {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          margin-left: auto;
-
-          align-self: flex-start;
-
-          padding-top: 17px;
-        }
-
-        .status-pill {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-
-          padding: 6px 8px;
-
-          border: 1px solid
-            rgba(117,201,148,.15);
-
-          border-radius: 7px;
-
-          color: #8ec79c;
-
-          background:
-            rgba(117,201,148,.045);
-
-          font-size: 10px;
-        }
-
-        .status-pill i {
-          width: 5px;
-          height: 5px;
-
-          border-radius: 50%;
-
-          background: #76b486;
-        }
-
-        .status-pill.private {
-          color: #d09a76;
-
-          border-color:
-            rgba(226,109,50,.2);
-
-          background:
-            rgba(226,109,50,.04);
-        }
-
-        .status-pill.private i {
-          background: #d8662e;
-        }
-
-        .switch {
-          width: 32px;
-          height: 18px;
-
-          padding: 2px;
-
-          border: 0;
-          border-radius: 20px;
-
-          background: #d96830;
-
-          transition: .2s;
-        }
-
-        .switch span {
+        .quick-menu a {
           display: block;
 
-          width: 14px;
-          height: 14px;
+          padding: 8px;
 
-          border-radius: 50%;
-
-          background: #fff;
-
-          margin-left: 14px;
-
-          transition: .2s;
-        }
-
-        .switch[aria-pressed='false'] {
-          background: #393531;
-        }
-
-        .switch[aria-pressed='false'] span {
-          margin-left: 0;
-        }
-
-        .profile-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          padding: 12px 23px;
-
-          border-top: 1px solid var(--border);
-
-          color: #77716b;
-
-          font-size: 10px;
-        }
-
-        .profile-footer > span {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-        }
-
-        .live-dot {
-          width: 5px;
-          height: 5px;
-
-          border-radius: 50%;
-
-          background: #76b486;
-
-          box-shadow:
-            0 0 8px
-            rgba(118,180,134,.5);
-        }
-
-        .profile-footer button {
-          border: 0;
-
-          color: #d79a72;
-
-          background: transparent;
-
-          font-size: 10px;
-        }
-
-        .profile-footer button span {
-          margin-left: 6px;
-        }
-
-        /* =====================================================
-           SECTION HEADINGS
-        ===================================================== */
-
-        .section-heading {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          margin-bottom: 14px;
-        }
-
-        .section-heading h2,
-        .panel-heading h2 {
-          margin: 0;
-
-          font:
-            600 15px
-            'Space Grotesk';
-
-          letter-spacing: -.3px;
-        }
-
-        .section-heading p,
-        .panel-heading p {
-          margin: 5px 0 0;
-
-          color: #77716b;
-
-          font-size: 10px;
-        }
-
-        .period-label {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          padding: 7px 9px;
-
-          border: 1px solid var(--border);
           border-radius: 7px;
 
-          color: #aaa29b;
+          font-size: 12px;
 
-          font-size: 9px;
-          letter-spacing: .6px;
+          color:
+            rgba(255,255,255,.58);
         }
 
-        /* =====================================================
-           STAT CARDS
-        ===================================================== */
+        .quick-menu a:hover {
+          background:
+            rgba(255,106,26,.08);
 
-        .stats-grid {
+          color: #fff;
+        }
+
+        /* HEADING */
+
+        .heading {
+          padding:
+            27px 0 19px;
+        }
+
+        .heading h1 {
+          font-family:
+            'Space Grotesk',
+            Inter,
+            sans-serif;
+
+          font-size: 25px;
+
+          margin:
+            0 0 5px;
+
+          letter-spacing: -.6px;
+
+          font-weight: 600;
+        }
+
+        .heading p,
+        .panel p {
+          margin: 0;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 12px;
+        }
+
+        /* =========================
+           STATS
+        ========================= */
+
+        .stats {
           display: grid;
 
           grid-template-columns:
-            repeat(
-              4,
-              minmax(0, 1fr)
-            );
+            repeat(4, 1fr);
 
-          gap: 13px;
-
-          margin-bottom: 24px;
+          gap: 10px;
         }
 
         .stat-card {
-          min-height: 155px;
+          height: 111px;
 
-          padding:
-            16px 16px 12px;
+          border:
+            1px solid
+            rgba(255,255,255,.08);
 
-          overflow: hidden;
+          background:
+            linear-gradient(
+              135deg,
+              #0b0b0b,
+              #090909
+            );
+
+          border-radius: 20px;
+
+          padding: 20px;
 
           transition:
-            transform .2s,
-            border-color .2s;
+            border-color .2s ease,
+            transform .2s ease,
+            box-shadow .2s ease;
         }
 
         .stat-card:hover {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
 
           border-color:
-            rgba(226,109,50,.18);
+            rgba(255,106,26,.18);
+
+          box-shadow:
+            0 12px 35px
+            rgba(0,0,0,.3);
         }
 
         .stat-top {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 12px;
+
+          margin-bottom: 20px;
         }
 
-        .stat-icon,
-        .quick-icon {
+        .stat-card strong {
+          font-family:
+            'Space Grotesk',
+            Inter,
+            sans-serif;
+
+          font-size: 25px;
+
+          font-weight: 600;
+        }
+
+        /* =========================
+           PANELS
+        ========================= */
+
+        .main-grid {
           display: grid;
-          place-items: center;
 
-          width: 30px;
-          height: 30px;
+          grid-template-columns:
+            minmax(0, 3fr)
+            minmax(300px, 1fr);
 
-          border-radius: 9px;
+          gap: 14px;
 
-          font-size: 16px;
+          margin-top: 18px;
         }
 
-        .orange {
-          color: #f39a5c;
-          background: rgba(226,109,50,.11);
-        }
+        .panel {
+          border:
+            1px solid
+            rgba(255,255,255,.08);
 
-        .amber {
-          color: #ddb06a;
-          background: rgba(212,154,82,.11);
-        }
+          background:
+            rgba(8,8,8,.9);
 
-        .green {
-          color: #91bd98;
-          background: rgba(131,173,139,.10);
-        }
-
-        .purple {
-          color: #b79bcd;
-          background: rgba(169,138,195,.10);
-        }
-
-        .trend {
-          color: #8fc49a;
-          font-size: 9px;
-        }
-
-        .trend.neutral {
-          color: #716b65;
-        }
-
-        .stat-card > p {
-          margin: 14px 0 4px;
-
-          color: #969089;
-
-          font-size: 10px;
-        }
-
-        .stat-number {
-          font:
-            600 25px
-            'Space Grotesk';
-
-          letter-spacing: -.8px;
-        }
-
-        .stat-total {
-          color: #77716b;
-
-          font:
-            400 13px
-            'DM Sans';
-        }
-
-        .mini-chart {
-          height: 28px;
-
-          margin:
-            3px -2px 0;
-        }
-
-        .mini-chart svg {
-          width: 100%;
-          height: 100%;
-          overflow: visible;
-        }
-
-        .mini-chart path {
-          fill: none;
-
-          stroke:
-            #e4773b;
-
-          stroke-width: 2;
-
-          vector-effect:
-            non-scaling-stroke;
-        }
-
-        .chart-amber path {
-          stroke: #d4a05b;
-        }
-
-        .chart-green path {
-          stroke: #82b58b;
-        }
-
-        .progress-track {
-          height: 4px;
-
-          margin-top: 15px;
-
-          border-radius: 5px;
-
-          background: #292522;
+          border-radius: 20px;
 
           overflow: hidden;
         }
 
-        .progress-track span {
-          display: block;
+        .views-panel {
+          min-height: 420px;
+        }
 
-          height: 100%;
+        .devices-panel {
+          min-height: 420px;
+        }
 
-          border-radius: 5px;
+        .panel-head {
+          display: flex;
+
+          justify-content: space-between;
+
+          gap: 15px;
+
+          padding:
+            25px 23px 0;
+        }
+
+        .panel h2 {
+          font-family:
+            'Space Grotesk',
+            Inter,
+            sans-serif;
+
+          font-size: 15px;
+
+          margin:
+            0 0 7px;
+
+          font-weight: 600;
+        }
+
+        .panel-head p b {
+          color:
+            rgba(255,255,255,.58);
+
+          font-weight: 500;
+        }
+
+        /* =========================
+           CHART CONTROLS
+        ========================= */
+
+        .controls {
+          display: flex;
+          align-items: center;
+
+          gap: 2px;
+
+          background: #0c0c0c;
+
+          border:
+            1px solid
+            rgba(255,255,255,.08);
+
+          border-radius: 19px;
+
+          padding: 3px;
+
+          height: 36px;
+        }
+
+        .controls button {
+          border: 0;
+
+          background: transparent;
+
+          border-radius: 14px;
+
+          padding:
+            6px 9px;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 11px;
+
+          cursor: pointer;
+        }
+
+        .controls button.selected {
+          background:
+            rgba(255,106,26,.11);
+
+          border:
+            1px solid
+            rgba(255,106,26,.3);
+
+          color: #ff8a3d;
+        }
+
+        .controls .metric {
+          border-right:
+            1px solid
+            rgba(255,255,255,.08);
+
+          border-radius: 14px;
+
+          color:
+            rgba(255,255,255,.58);
+        }
+
+        /* =========================
+           CHART
+        ========================= */
+
+        .chart-wrap {
+          height: 310px;
+
+          padding:
+            30px 22px 14px;
+        }
+
+        .chart-wrap svg {
+          width: 100%;
+          height: 245px;
+        }
+
+        .chart-labels {
+          display: flex;
+
+          justify-content: space-between;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 10px;
+
+          padding:
+            0 8px;
+        }
+
+        /* =========================
+           DONUT
+        ========================= */
+
+        .donut-area {
+          display: flex;
+          flex-direction: column;
+
+          align-items: center;
+          justify-content: center;
+
+          height: 330px;
+        }
+
+        .donut {
+          width: 130px;
+          height: 130px;
+
+          border-radius: 50%;
+
+          background:
+            conic-gradient(
+              #f18eb3 0 50%,
+              #ffb14a 50% 100%
+            );
+
+          display: grid;
+          place-items: center;
+
+          box-shadow:
+            0 0 35px
+            rgba(255,106,26,.05);
+        }
+
+        .donut-hole {
+          width: 92px;
+          height: 92px;
+
+          border-radius: 50%;
+
+          background: #090909;
+
+          display: grid;
+          place-items: center;
+
+          align-content: center;
+
+          text-align: center;
+
+          font-family:
+            'Space Grotesk';
+
+          font-size: 20px;
+
+          font-weight: 600;
+        }
+
+        .donut-hole small {
+          font-family: Inter;
+
+          font-size: 9px;
+
+          font-weight: 400;
+
+          color:
+            rgba(255,255,255,.36);
+        }
+
+        .legend {
+          margin-top: 28px;
+
+          display: flex;
+          flex-direction: column;
+
+          gap: 11px;
+
+          width: 170px;
+
+          color:
+            rgba(255,255,255,.58);
+
+          font-size: 11px;
+        }
+
+        .legend div {
+          display: flex;
+          align-items: center;
+
+          gap: 8px;
+        }
+
+        .legend b {
+          margin-left: auto;
+
+          color:
+            rgba(255,255,255,.58);
+
+          font-weight: 500;
+        }
+
+        .dot {
+          width: 8px;
+          height: 8px;
+
+          border-radius: 50%;
+
+          display: inline-block;
+        }
+
+        .dot.orange {
+          background: #f18eb3;
+        }
+
+        .dot.gold {
+          background: #ffb14a;
+        }
+
+        /* =========================
+           COUNTRIES
+        ========================= */
+
+        .countries-panel {
+          margin-top: 18px;
+
+          padding-bottom: 22px;
+        }
+
+        .countries-head {
+          display: flex;
+
+          justify-content: space-between;
+          align-items: center;
+
+          padding: 23px;
+        }
+
+        .globe {
+          border:
+            1px solid
+            rgba(255,106,26,.35);
+
+          background:
+            rgba(255,106,26,.08);
+
+          color: #ff8a3d;
+
+          border-radius: 18px;
+
+          padding:
+            8px 13px;
+
+          font-size: 11px;
+
+          cursor: pointer;
+        }
+
+        .countries {
+          display: grid;
+
+          grid-template-columns:
+            1fr 1fr;
+
+          gap: 12px;
+
+          padding:
+            0 23px;
+        }
+
+        .country {
+          border:
+            1px solid
+            rgba(255,255,255,.07);
+
+          background: #101010;
+
+          border-radius: 14px;
+
+          padding: 11px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 10px;
+        }
+
+        .country .flag {
+          font-size: 22px;
+        }
+
+        .country-name {
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .country-bar {
+          height: 5px;
+
+          border-radius: 99px;
 
           background:
             linear-gradient(
               90deg,
-              #a94620,
-              #ee9957
+              #ff6a1a,
+              #ff8a3d
             );
+
+          margin-top: 8px;
+
+          width: 70%;
         }
 
-        .progress-caption {
-          display: flex;
-          justify-content: space-between;
+        .country-value {
+          margin-left: auto;
 
-          margin-top: 7px;
+          color:
+            rgba(255,255,255,.58);
 
-          color: #77716b;
-
-          font-size: 9px;
-        }
-
-        .progress-caption strong {
-          color: #c88c63;
-          font-weight: 500;
-        }
-
-        /* =====================================================
-           LOWER
-        ===================================================== */
-
-        .lower-grid {
-          display: grid;
-
-          grid-template-columns:
-            minmax(0, 1.65fr)
-            minmax(280px, 1fr);
-
-          gap: 14px;
-        }
-
-        .activity-panel,
-        .quick-panel {
-          padding: 19px;
-        }
-
-        .panel-heading {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-        }
-
-        .more-button {
-          border: 1px solid var(--border);
-          border-radius: 7px;
-
-          background: rgba(255,255,255,.02);
-
-          color: #8f8880;
-
-          padding: 2px 8px;
-
-          letter-spacing: 2px;
-        }
-
-        .chart-legend {
-          display: flex;
-          gap: 14px;
-
-          margin-top: 20px;
-
-          font-size: 9px;
-          color: #99918a;
-        }
-
-        .chart-legend span {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .chart-legend i {
-          width: 6px;
-          height: 6px;
-
-          border-radius: 2px;
-
-          background: #e16e32;
-        }
-
-        .chart-legend span + span i {
-          background: #d5a05d;
-        }
-
-        /* =====================================================
-           CHART
-        ===================================================== */
-
-        .activity-chart {
-          display: flex;
-          gap: 10px;
-
-          height: 235px;
-
-          padding-top: 13px;
-        }
-
-        .y-labels {
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-
-          padding-bottom: 22px;
-
-          color: #69635d;
-
-          font-size: 9px;
-        }
-
-        .plot {
-          position: relative;
-
-          flex: 1;
-
-          min-width: 0;
-        }
-
-        .grid-lines {
-          position: absolute;
-
-          inset: 0 0 22px;
-
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-        .grid-lines i {
-          border-top:
-            1px dashed
-            rgba(255,255,255,.055);
-        }
-
-        .activity-svg {
-          position: absolute;
-
-          inset: 0 0 22px;
-
-          width: 100%;
-          height: calc(100% - 22px);
-
-          overflow: visible;
-        }
-
-        .activity-svg .area {
-          fill: url(#fallArea);
-        }
-
-        .line-views,
-        .line-clicks {
-          fill: none;
-
-          stroke-width: 2;
-
-          vector-effect:
-            non-scaling-stroke;
-        }
-
-        .line-views {
-          stroke: url(#fallLine);
-        }
-
-        .line-clicks {
-          stroke: #d3a15e;
-
-          stroke-dasharray: 4 4;
-        }
-
-        .x-labels {
-          position: absolute;
-
-          bottom: 0;
-          left: 0;
-          right: 0;
-
-          display: flex;
-          justify-content: space-between;
-
-          color: #69635d;
-
-          font-size: 9px;
-        }
-
-        /* =====================================================
-           QUICK ACTIONS
-        ===================================================== */
-
-        .quick-panel {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .quick-panel .panel-heading {
-          margin-bottom: 12px;
-        }
-
-        .quick-action {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-
-          width: 100%;
-
-          padding: 12px 0;
-
-          border: 0;
-          border-bottom:
-            1px solid var(--border);
-
-          background: transparent;
-
-          color: #eee;
-
-          text-align: left;
-        }
-
-        .quick-icon {
-          width: 34px;
-          height: 34px;
-
-          flex-shrink: 0;
-        }
-
-        .quick-action > span:nth-child(2) {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-
-          flex: 1;
-        }
-
-        .quick-action strong {
           font-size: 11px;
-          font-weight: 600;
         }
 
-        .quick-action small {
-          color: #77716b;
-          font-size: 9px;
-        }
-
-        .quick-action > b {
-          color: #77716b;
-          font-weight: 400;
-        }
-
-        .quick-action:hover > b {
-          color: #e99556;
-        }
-
-        .tip-box {
-          display: flex;
-          gap: 10px;
-
-          margin-top: 16px;
-
-          padding: 12px;
-
-          border:
-            1px solid
-            rgba(226,109,50,.14);
-
-          border-radius: 10px;
-
-          background:
-            rgba(226,109,50,.045);
-        }
-
-        .tip-box > span {
-          font-size: 15px;
-        }
-
-        .tip-box strong {
-          color: #ddb08e;
-          font-size: 10px;
-        }
-
-        .tip-box p {
-          margin: 5px 0 0;
-
-          color: #8e8176;
-
-          font-size: 9px;
-          line-height: 1.5;
-        }
-
-        /* =====================================================
-           FOOTER
-        ===================================================== */
-
-        .footer {
-          display: flex;
-          align-items: center;
-          gap: 22px;
-
-          margin-top: 25px;
-
-          padding:
-            15px 1px 5px;
-
-          color: #5f5a55;
-
-          font-size: 9px;
-        }
-
-        .footer span:nth-child(2) {
-          margin: 0 auto;
-        }
-
-        .footer b {
-          color: #d8662e;
-        }
-
-        .footer a {
-          color: #8b8178;
-          text-decoration: none;
-        }
-
-        .footer a:hover {
-          color: #d28b5f;
-        }
-
-        /* =====================================================
+        /* =========================
            RESPONSIVE
-        ===================================================== */
+        ========================= */
 
-        @media (max-width: 1150px) {
+        @media (max-width: 1050px) {
+
           .sidebar {
-            width: 235px;
-            flex-basis: 235px;
+            width: 215px;
           }
 
           .content {
-            padding:
-              30px 25px 20px;
+            margin-left: 215px;
           }
 
-          .topbar {
-            padding: 0 25px;
-          }
-
-          .stats-grid {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-          }
-        }
-
-        @media (max-width: 850px) {
-          .lower-grid {
+          .main-grid {
             grid-template-columns: 1fr;
           }
 
-          .profile-info {
-            flex-wrap: wrap;
+          .devices-panel {
+            min-height: 300px;
           }
 
-          .profile-controls {
-            margin-left: auto;
+          .donut-area {
+            height: 260px;
           }
+
         }
 
         @media (max-width: 800px) {
+
           .sidebar {
-            width: 66px;
-            flex-basis: 66px;
+            position: relative;
 
-            padding:
-              22px 8px;
+            width: 100%;
+            height: auto;
 
-            overflow: hidden;
+            border-right: 0;
+
+            border-bottom:
+              1px solid
+              rgba(255,255,255,.08);
+
+            padding-bottom: 15px;
+          }
+
+          .sidebar .nav-section,
+          .sidebar .nav-heading,
+          .sidebar .search,
+          .share-card,
+          .signed-in {
+            display: none;
           }
 
           .brand {
-            justify-content: center;
-            padding: 0;
-          }
-
-          .brand > span:last-child,
-          .sidebar-search,
-          .subnav,
-          .sidebar-bottom,
-          .disabled-item small {
-            display: none;
-          }
-
-          .nav-item > span:not(.chevron):not(.premium-lock) {
-            display: none;
-          }
-
-          .nav-item {
-            justify-content: center;
-            padding: 12px 0;
-          }
-
-          .nav-item .icon {
-            width: 18px;
-            height: 18px;
-          }
-
-          .account-trigger {
-            border-radius: 12px;
-          }
-
-          .topbar {
-            height: 64px;
-            padding: 0 17px;
+            padding-bottom: 0;
           }
 
           .content {
+            margin-left: 0;
+
             padding:
-              25px 17px;
+              0 14px 30px;
           }
 
-          .season-tag {
-            display: none;
-          }
-        }
-
-        @media (max-width: 600px) {
-          .welcome-row {
-            align-items: flex-start;
-            flex-direction: column;
+          .topbar {
+            height: 62px;
           }
 
-          .welcome-row h1 {
-            font-size: 25px;
-          }
-
-          .primary-button {
-            padding: 10px 12px;
-          }
-
-          .stats-grid {
+          .stats {
             grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 9px;
+              1fr 1fr;
           }
 
-          .stat-card {
-            padding: 12px;
-            min-height: 145px;
-          }
-
-          .stat-number {
-            font-size: 22px;
-          }
-
-          .profile-info {
-            padding:
-              0 13px 15px;
-
-            gap: 10px;
-          }
-
-          .profile-controls {
-            width: 100%;
-
-            justify-content: flex-end;
-
-            padding-top: 0;
-          }
-
-          .profile-footer {
-            padding:
-              11px 13px;
-          }
-
-          .footer {
-            flex-wrap: wrap;
-            gap: 10px;
-          }
-
-          .footer span:nth-child(2) {
-            margin: 0;
-            order: 3;
-            width: 100%;
-          }
-
-          .view-button {
-            padding: 8px 9px;
-          }
-
-          .view-button span {
-            display: none;
-          }
-        }
-
-        @media (max-width: 420px) {
-          .stats-grid {
+          .countries {
             grid-template-columns: 1fr;
           }
 
-          .period-label {
+          .top-actions .preview {
             display: none;
           }
 
-          .profile-copy p {
-            max-width: 220px;
-          }
-
-          .top-actions {
-            gap: 7px;
-          }
-
-          .breadcrumbs span {
-            display: none;
-          }
         }
+
+        @media (max-width: 520px) {
+
+          .stats {
+            grid-template-columns: 1fr;
+          }
+
+          .panel-head {
+            display: block;
+          }
+
+          .controls {
+            margin-top: 16px;
+
+            width: max-content;
+          }
+
+          .views-panel,
+          .devices-panel {
+            min-height: 360px;
+          }
+
+          .heading {
+            padding-top: 22px;
+          }
+
+          .chart-wrap {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .country-bar {
+            width: 55%;
+          }
+
+        }
+
       `}</style>
+
     </main>
   )
 }
