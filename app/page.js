@@ -2100,9 +2100,8 @@ export default function HomePage() {
                   lineHeight: 1.7,
                 }}
               >
-                Modern custom bio pages
-                and fast, secure file hosting
-                — all in one place.
+                Hello absent virtue was
+                here.
               </p>
 
             </div>
