@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { TransitionLink } from '../components/PageTransition'
+import Link from 'next/link'
+
+const TransitionLink = Link
 
 const COLORS = {
   bg: '#050505',
@@ -135,7 +137,7 @@ function FooterLink({
 
 
 /* =========================================================
-   UPLOADED DASHBOARD IMAGE
+   DASHBOARD IMAGE
 ========================================================= */
 
 function DashboardImage() {
@@ -171,9 +173,7 @@ function DashboardImage() {
         style={{
           width: '100%',
           height: '100%',
-
           objectFit: 'cover',
-
           display: 'block',
         }}
       />
@@ -275,7 +275,13 @@ export default function HomePage() {
     ===================================================== */
 
     fetch('/api/me')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Auth request failed')
+        }
+
+        return res.json()
+      })
       .then(data => {
         setLoggedIn(
           Boolean(data.loggedIn)
@@ -289,7 +295,7 @@ export default function HomePage() {
 
 
     /* =====================================================
-       FALLING LEAVES CANVAS
+       CANVAS
     ===================================================== */
 
     const canvas = canvasRef.current
@@ -302,11 +308,21 @@ export default function HomePage() {
     const ctx =
       canvas.getContext('2d')
 
+    if (!ctx) {
+      return () =>
+        clearTimeout(timer)
+    }
+
+
     const reduceMotion =
       window.matchMedia(
         '(prefers-reduced-motion: reduce)'
       ).matches
 
+
+    /* =====================================================
+       RESIZE
+    ===================================================== */
 
     const resize = () => {
       canvas.width =
@@ -324,6 +340,10 @@ export default function HomePage() {
     )
 
 
+    /* =====================================================
+       LEAF COLORS
+    ===================================================== */
+
     const leafColors = [
       '#ff6a1a',
       '#ff8a3d',
@@ -331,6 +351,10 @@ export default function HomePage() {
       '#ffffff',
     ]
 
+
+    /* =====================================================
+       CREATE LEAF
+    ===================================================== */
 
     const makeLeaf = (
       spreadY = false
@@ -390,6 +414,10 @@ export default function HomePage() {
     })
 
 
+    /* =====================================================
+       CREATE LEAVES
+    ===================================================== */
+
     const leaves =
       Array.from(
         { length: 7 },
@@ -405,6 +433,10 @@ export default function HomePage() {
     let animationFrame
     let tick = 0
 
+
+    /* =====================================================
+       DRAW
+    ===================================================== */
 
     const draw = () => {
       ctx.clearRect(
@@ -490,6 +522,10 @@ export default function HomePage() {
 
     draw()
 
+
+    /* =====================================================
+       CLEANUP
+    ===================================================== */
 
     return () => {
       clearTimeout(timer)
@@ -618,12 +654,14 @@ export default function HomePage() {
           position: 'fixed',
 
           top: -500,
+
           left: '50%',
 
           transform:
             'translateX(-50%)',
 
           width: 1200,
+
           height: 850,
 
           borderRadius: '50%',
@@ -641,7 +679,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          SIDE AMBIENT GLOW — LEFT
+          LEFT GLOW
       ===================================================== */}
 
       <div
@@ -650,9 +688,11 @@ export default function HomePage() {
           position: 'fixed',
 
           left: -350,
+
           top: '38%',
 
           width: 700,
+
           height: 700,
 
           borderRadius: '50%',
@@ -670,7 +710,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          SIDE AMBIENT GLOW — RIGHT
+          RIGHT GLOW
       ===================================================== */}
 
       <div
@@ -679,9 +719,11 @@ export default function HomePage() {
           position: 'fixed',
 
           right: -350,
+
           top: '48%',
 
           width: 700,
+
           height: 700,
 
           borderRadius: '50%',
@@ -729,7 +771,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          SUBTLE VIGNETTE
+          VIGNETTE
       ===================================================== */}
 
       <div
@@ -755,13 +797,16 @@ export default function HomePage() {
 
       <canvas
         ref={canvasRef}
+
         aria-hidden="true"
+
         style={{
           position: 'fixed',
 
           inset: 0,
 
           width: '100%',
+
           height: '100%',
 
           pointerEvents: 'none',
@@ -831,6 +876,16 @@ export default function HomePage() {
             transform .2s ease;
         }
 
+        .dashboard-image img {
+          transition:
+            transform .5s ease,
+            filter .5s ease;
+        }
+
+        .dashboard-image:hover img {
+          transform: scale(1.015);
+        }
+
         @media (max-width: 1100px) {
           .showcase {
             transform:
@@ -864,6 +919,7 @@ export default function HomePage() {
               scale(.58) !important;
 
             height: 300px !important;
+
             margin-top: 10px !important;
           }
 
@@ -917,6 +973,7 @@ export default function HomePage() {
 
           .footer-bottom {
             align-items: flex-start !important;
+
             flex-direction: column !important;
           }
         }
@@ -929,10 +986,12 @@ export default function HomePage() {
 
       <nav
         className="nav"
+
         style={{
           position: 'absolute',
 
           top: 21,
+
           left: '50%',
 
           transform:
@@ -975,6 +1034,7 @@ export default function HomePage() {
 
         <TransitionLink
           href="/"
+
           style={{
             display: 'flex',
 
@@ -991,9 +1051,13 @@ export default function HomePage() {
         >
           <img
             src="/icon.png"
+
             alt=""
+
             width={30}
+
             height={30}
+
             style={{
               display: 'block',
 
@@ -1004,6 +1068,7 @@ export default function HomePage() {
 
           <span
             className="nav-brand"
+
             style={{
               fontFamily:
                 "'Space Grotesk', sans-serif",
@@ -1024,6 +1089,7 @@ export default function HomePage() {
 
         <div
           className="desktop-links"
+
           style={{
             position: 'absolute',
 
@@ -1065,6 +1131,7 @@ export default function HomePage() {
             ([label, href]) => (
               <AccentLink
                 key={label}
+
                 href={href}
 
                 className="nav-link"
@@ -1461,7 +1528,7 @@ export default function HomePage() {
       >
 
         {/* =================================================
-            UPLOADED DASHBOARD IMAGE
+            YOUR UPLOADED IMAGE
         ================================================= */}
 
         <DashboardImage />
@@ -1625,8 +1692,6 @@ export default function HomePage() {
           }}
         >
 
-          {/* CTA GLOW */}
-
           <div
             aria-hidden="true"
 
@@ -1634,9 +1699,11 @@ export default function HomePage() {
               position: 'absolute',
 
               width: 450,
+
               height: 450,
 
               left: '50%',
+
               top: '50%',
 
               transform:
@@ -1966,9 +2033,7 @@ export default function HomePage() {
 
               <FooterLink
                 href="https://discord.gg/R4tyQ4h3K5"
-
                 target="_blank"
-
                 rel="noopener noreferrer"
               >
                 Discord
