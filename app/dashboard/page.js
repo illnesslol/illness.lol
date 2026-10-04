@@ -1,1266 +1,307 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/app/lib/supabase-client'
-import { useTransition } from '@/components/PageTransition'
+import { useEffect, useRef, useState } from 'react'
 
-export default function SignupPage() {
-  const { navigate } = useTransition()
+/* =========================================================
+   FALL DASHBOARD
+========================================================= */
 
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+const COLORS = {
+  bg: '#050505',
+  surface: '#0a0a0a',
+  surface2: '#0d0d0d',
+  orange: '#ff6a1a',
+  orangeBright: '#ff914d',
+  orangeSoft: 'rgba(255,106,26,.12)',
+  orangeGlow: 'rgba(255,106,26,.18)',
+  border: 'rgba(255,255,255,.08)',
+  borderOrange: 'rgba(255,106,26,.35)',
+  white: '#ffffff',
+  muted: 'rgba(255,255,255,.65)',
+  faint: 'rgba(255,255,255,.38)',
+}
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+/* =========================================================
+   ICON
+========================================================= */
 
-  const [usernameStatus, setUsernameStatus] = useState('idle')
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [oauthLoading, setOauthLoading] = useState('')
-  const [agreed, setAgreed] = useState(false)
-
-  useEffect(() => {
-    const clean = username.trim().toLowerCase()
-
-    if (!clean) {
-      setUsernameStatus('idle')
-      return
-    }
-
-    if (clean.length > 24 || !/^[a-z0-9_]+$/.test(clean)) {
-      setUsernameStatus('invalid')
-      return
-    }
-
-    let cancelled = false
-
-    const timer = setTimeout(async () => {
-      setUsernameStatus('checking')
-
-      const { data, error } = await supabase.rpc('username_available', {
-        name: clean,
-      })
-
-      if (cancelled) return
-
-      if (error) {
-        console.error('Username check failed:', error)
-        setUsernameStatus('error')
-        return
-      }
-
-      setUsernameStatus(data ? 'available' : 'taken')
-    }, 350)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [username])
-
-  const passwordStrong =
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /\d/.test(password)
-
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-
-  const usernameOk =
-    usernameStatus === 'available' || usernameStatus === 'error'
-
-  const canSubmit =
-    username.trim().length >= 1 &&
-    username.trim().length <= 24 &&
-    usernameOk &&
-    emailValid &&
-    passwordStrong &&
-    password === confirmPassword &&
-    agreed &&
-    !loading &&
-    !oauthLoading
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    setError('')
-    setNotice('')
-
-    const cleanUsername = username.trim().toLowerCase()
-    const cleanEmail = email.trim().toLowerCase()
-
-    if (!agreed) {
-      setError('Please agree to the Terms of Service and Privacy Policy.')
-      return
-    }
-
-    if (
-      cleanUsername.length < 1 ||
-      cleanUsername.length > 24 ||
-      !/^[a-z0-9_]+$/.test(cleanUsername)
-    ) {
-      setError(
-        'Username must be 1–24 characters and can only contain letters, numbers, and underscores.'
-      )
-      return
-    }
-
-    if (!usernameOk) {
-      setError('Please choose an available username.')
-      return
-    }
-
-    if (!emailValid) {
-      setError('Please enter a valid email address.')
-      return
-    }
-
-    if (!passwordStrong) {
-      setError(
-        'Password must be at least 8 characters and include an uppercase letter, lowercase letter, and number.'
-      )
-      return
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: {
-            username: cleanUsername,
-          },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
-
-      if (error) {
-        console.error('Signup failed:', error)
-
-        const msg = (error.message || '').toLowerCase()
-
-        if (msg.includes('database error')) {
-          setError(
-            'That username may already be taken, or the profile could not be created. Try a different username.'
-          )
-        } else {
-          setError(error.message)
-        }
-
-        setLoading(false)
-        return
-      }
-
-      if (data.user && data.user.identities?.length === 0) {
-        setError('An account with this email already exists. Try signing in.')
-        setLoading(false)
-        return
-      }
-
-      if (data.session) {
-        navigate('/dashboard')
-        return
-      }
-
-      setNotice(
-        'Account created! Check your email to confirm your account, then sign in.'
-      )
-
-      setLoading(false)
-    } catch (err) {
-      console.error(err)
-      setError('Something went wrong. Please try again.')
-      setLoading(false)
-    }
+function Icon({ type, size = 16, color = 'currentColor' }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: color,
+    strokeWidth: 1.8,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
   }
 
-  const handleOAuth = async (provider) => {
-    setError('')
-    setNotice('')
-    setOauthLoading(provider)
+  const paths = {
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-4-4" />
+      </>
+    ),
 
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
+    grid: (
+      <>
+        <rect x="4" y="4" width="6" height="6" rx="1" />
+        <rect x="14" y="4" width="6" height="6" rx="1" />
+        <rect x="4" y="14" width="6" height="6" rx="1" />
+        <rect x="14" y="14" width="6" height="6" rx="1" />
+      </>
+    ),
 
-      if (error) {
-        setError(error.message)
-        setOauthLoading('')
-      }
-    } catch (err) {
-      console.error(err)
-      setError('Unable to continue with that provider.')
-      setOauthLoading('')
-    }
+    wand: (
+      <>
+        <path d="m15 4 5 5" />
+        <path d="m13 6 5 5" />
+        <path d="m3 21 10-10" />
+        <path d="m5 7 .5 1.5L7 9l-1.5.5L5 11l-.5-1.5L3 9l1.5-.5L5 7Z" />
+      </>
+    ),
+
+    user: (
+      <>
+        <circle cx="12" cy="8" r="3" />
+        <path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5" />
+      </>
+    ),
+
+    image: (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="8.5" cy="9" r="1.5" />
+        <path d="m21 16-5-5L5 20" />
+      </>
+    ),
+
+    link: (
+      <>
+        <path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
+        <path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1" />
+      </>
+    ),
+
+    folder: (
+      <>
+        <path d="M3 7h7l2 2h9v10H3z" />
+      </>
+    ),
+
+    crown: (
+      <>
+        <path d="m4 7 4 4 4-7 4 7 4-4-2 11H6L4 7Z" />
+      </>
+    ),
+
+    lock: (
+      <>
+        <rect x="5" y="10" width="14" height="10" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </>
+    ),
+
+    settings: (
+      <>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.5v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.1h2.5v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1V14h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+      </>
+    ),
+
+    bell: (
+      <>
+        <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
+      </>
+    ),
+
+    eye: (
+      <>
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="2.5" />
+      </>
+    ),
+
+    users: (
+      <>
+        <circle cx="9" cy="8" r="3" />
+        <path d="M3 20c.5-3.5 2.5-5 6-5s5.5 1.5 6 5" />
+        <path d="M16 5.5a3 3 0 0 1 0 5.5" />
+        <path d="M18 15c1.8.8 2.8 2.2 3 5" />
+      </>
+    ),
+
+    hash: (
+      <>
+        <path d="M10 3 8 21" />
+        <path d="m16 3-2 18" />
+        <path d="M4 9h17" />
+        <path d="M3 15h17" />
+      </>
+    ),
+
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18" />
+        <path d="M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21" />
+        <path d="M12 3c-2.5 2.5-3.5 5.5-3.5 9S9.5 18.5 12 21" />
+      </>
+    ),
+
+    chevron: (
+      <path d="m7 10 5 5 5-5" />
+    ),
+
+    more: (
+      <>
+        <circle cx="5" cy="12" r="1" fill="currentColor" />
+        <circle cx="12" cy="12" r="1" fill="currentColor" />
+        <circle cx="19" cy="12" r="1" fill="currentColor" />
+      </>
+    ),
+
+    support: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8 15c1.5 1 6.5 1 8 0" />
+        <path d="M9 10h.01M15 10h.01" />
+      </>
+    ),
   }
 
-  return (
-    <main className="signup-page">
-      <FallingLeaves />
-
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
-
-      <section className="signup-card">
-        <div className="brand">
-          <img
-            src="/icon.png"
-            alt=""
-            width={32}
-            height={32}
-            className="brand-icon"
-          />
-          <span>illness.lol</span>
-        </div>
-
-        <div className="heading">
-          <h1>Create account</h1>
-          <p>Create your illness.lol account</p>
-        </div>
-
-        <div className="social-row">
-          <button
-            type="button"
-            className="social-button"
-            onClick={() => handleOAuth('discord')}
-            disabled={!!oauthLoading || loading}
-          >
-            <DiscordIcon />
-            <span>
-              {oauthLoading === 'discord' ? 'Connecting...' : 'Discord'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="social-button"
-            onClick={() => handleOAuth('google')}
-            disabled={!!oauthLoading || loading}
-          >
-            <GoogleIcon />
-            <span>
-              {oauthLoading === 'google' ? 'Connecting...' : 'Google'}
-            </span>
-          </button>
-        </div>
-
-        <div className="divider">
-          <span />
-          <p>OR</p>
-          <span />
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label htmlFor="username">Username</label>
-
-            <div
-              className={`input-wrap ${
-                usernameStatus === 'available'
-                  ? 'success'
-                  : usernameStatus === 'taken' ||
-                      usernameStatus === 'invalid'
-                    ? 'danger'
-                    : ''
-              }`}
-            >
-              <UserIcon />
-
-              <input
-                id="username"
-                type="text"
-                placeholder="your_username"
-                value={username}
-                maxLength={24}
-                autoComplete="username"
-                onChange={(e) =>
-                  setUsername(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
-                  )
-                }
-              />
-
-              {usernameStatus === 'checking' && (
-                <span className="status checking">Checking</span>
-              )}
-
-              {usernameStatus === 'available' && (
-                <span className="status available">✓ Available</span>
-              )}
-
-              {usernameStatus === 'taken' && (
-                <span className="status taken">Taken</span>
-              )}
-
-              {usernameStatus === 'error' && (
-                <span className="status checking">Couldn't check</span>
-              )}
-            </div>
-
-            {usernameStatus === 'invalid' && username.length > 0 && (
-              <small className="hint">
-                1–24 characters. Letters, numbers, and underscores only.
-              </small>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="email">Email</label>
-
-            <div className="input-wrap">
-              <MailIcon />
-
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                autoComplete="email"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="field">
-            <label htmlFor="password">Password</label>
-
-            <div className="input-wrap">
-              <LockIcon />
-
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Create a strong password"
-                value={password}
-                autoComplete="new-password"
-                onChange={(e) => setPassword(e.target.value)}
-              />
-
-              <button
-                type="button"
-                className="eye-button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            {password.length > 0 && (
-              <div className="password-hint">
-                {passwordStrong ? (
-                  <span className="good">✓ Strong password</span>
-                ) : (
-                  <span>
-                    Use 8+ characters with uppercase, lowercase, and a number.
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="confirmPassword">Confirm password</label>
-
-            <div
-              className={`input-wrap ${
-                confirmPassword.length > 0
-                  ? password === confirmPassword
-                    ? 'success'
-                    : 'danger'
-                  : ''
-              }`}
-            >
-              <LockIcon />
-
-              <input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Repeat your password"
-                value={confirmPassword}
-                autoComplete="new-password"
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-
-              <button
-                type="button"
-                className="eye-button"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                aria-label={
-                  showConfirmPassword ? 'Hide password' : 'Show password'
-                }
-              >
-                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            {confirmPassword.length > 0 && (
-              <div className="password-hint">
-                {password === confirmPassword ? (
-                  <span className="good">✓ Passwords match</span>
-                ) : (
-                  <span className="bad">Passwords don't match</span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <label className="terms">
-            <input
-              type="checkbox"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-            />
-
-            <span className="custom-check">{agreed ? '✓' : ''}</span>
-
-            <span className="terms-text">
-              I agree to the{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer">
-                Terms of Service
-              </a>{' '}
-              and{' '}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">
-                Privacy Policy
-              </a>
-            </span>
-          </label>
-
-          {error && <div className="error-box">{error}</div>}
-
-          {notice && <div className="notice-box">{notice}</div>}
-
-          <button
-            type="submit"
-            className={`continue-button ${canSubmit ? 'ready' : ''}`}
-            disabled={!canSubmit}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" />
-                Creating account...
-              </>
-            ) : (
-              'Create account'
-            )}
-          </button>
-        </form>
-
-        <p className="login-text">
-          Already have an account? <a href="/login">Sign in</a>
-        </p>
-      </section>
-
-      <style jsx>{`
-        * {
-          box-sizing: border-box;
-        }
-
-        .signup-page {
-          min-height: 100svh;
-          width: 100%;
-          position: relative;
-          overflow: hidden;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          padding: 32px 20px;
-
-          background:
-            radial-gradient(
-              circle at 50% -10%,
-              rgba(255, 106, 26, 0.08),
-              transparent 36%
-            ),
-            #050505;
-
-          color: #fff;
-
-          font-family:
-            Inter,
-            system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            'Segoe UI',
-            sans-serif;
-        }
-
-        .signup-page::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-
-          background-image: radial-gradient(
-            rgba(255, 255, 255, 0.09) 1px,
-            transparent 1px
-          );
-
-          background-size: 32px 32px;
-
-          mask-image: radial-gradient(
-            ellipse 65% 60% at 50% 45%,
-            #000 0%,
-            transparent 78%
-          );
-
-          -webkit-mask-image: radial-gradient(
-            ellipse 65% 60% at 50% 45%,
-            #000 0%,
-            transparent 78%
-          );
-
-          opacity: 0.28;
-        }
-
-        .signup-card {
-          position: relative;
-          z-index: 5;
-
-          width: 100%;
-          max-width: 430px;
-
-          padding: 31px 30px 25px;
-
-          border: 1px solid rgba(255, 255, 255, 0.085);
-          border-radius: 18px;
-
-          background: rgba(9, 9, 9, 0.96);
-
-          box-shadow:
-            0 24px 80px rgba(0, 0, 0, 0.65),
-            0 0 0 1px rgba(255, 255, 255, 0.015);
-
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-        }
-
-        .brand {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-
-          margin-bottom: 22px;
-
-          font-family:
-            'Space Grotesk',
-            Inter,
-            system-ui,
-            sans-serif;
-
-          font-size: 18px;
-          font-weight: 600;
-          letter-spacing: -0.4px;
-        }
-
-        .brand-icon {
-          display: block;
-          width: 30px;
-          height: 30px;
-          object-fit: contain;
-
-          filter: drop-shadow(
-            0 0 8px rgba(255, 106, 26, 0.22)
-          );
-        }
-
-        .heading {
-          text-align: center;
-        }
-
-        h1 {
-          margin: 0;
-
-          font-family:
-            'Space Grotesk',
-            Inter,
-            system-ui,
-            sans-serif;
-
-          font-size: 27px;
-          line-height: 1.15;
-          font-weight: 600;
-          letter-spacing: -0.9px;
-        }
-
-        .heading p {
-          margin: 8px 0 23px;
-
-          color: rgba(255, 255, 255, 0.43);
-
-          font-size: 12px;
-          line-height: 1.4;
-        }
-
-        .social-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 9px;
-        }
-
-        .social-button {
-          height: 43px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-
-          border: 1px solid rgba(255, 255, 255, 0.085);
-          border-radius: 9px;
-
-          background: rgba(255, 255, 255, 0.025);
-          color: rgba(255, 255, 255, 0.9);
-
-          font-family: inherit;
-          font-size: 12px;
-          font-weight: 500;
-
-          cursor: pointer;
-
-          transition:
-            border-color 0.16s ease,
-            background 0.16s ease,
-            color 0.16s ease;
-        }
-
-        .social-button:hover:not(:disabled) {
-          border-color: rgba(255, 106, 26, 0.3);
-          background: rgba(255, 106, 26, 0.055);
-          color: #fff;
-        }
-
-        .social-button:disabled {
-          opacity: 0.5;
-          cursor: default;
-        }
-
-        .divider {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-
-          margin: 20px 0;
-        }
-
-        .divider span {
-          flex: 1;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.07);
-        }
-
-        .divider p {
-          margin: 0;
-
-          color: rgba(255, 255, 255, 0.27);
-
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: 0.7px;
-        }
-
-        form {
-          width: 100%;
-        }
-
-        .field {
-          margin-bottom: 13px;
-        }
-
-        .field label {
-          display: block;
-
-          margin: 0 0 6px;
-
-          color: rgba(255, 255, 255, 0.7);
-
-          font-size: 11px;
-          font-weight: 600;
-          line-height: 1.2;
-        }
-
-        .input-wrap {
-          width: 100%;
-          height: 44px;
-
-          display: flex;
-          align-items: center;
-
-          border: 1px solid rgba(255, 255, 255, 0.09);
-          border-radius: 9px;
-
-          background: rgba(255, 255, 255, 0.025);
-
-          transition:
-            border-color 0.15s ease,
-            background 0.15s ease,
-            box-shadow 0.15s ease;
-        }
-
-        .input-wrap:hover {
-          border-color: rgba(255, 255, 255, 0.14);
-        }
-
-        .input-wrap:focus-within {
-          border-color: rgba(255, 106, 26, 0.55);
-
-          background: rgba(255, 255, 255, 0.035);
-
-          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.055);
-        }
-
-        .input-wrap.success {
-          border-color: rgba(82, 197, 116, 0.48);
-        }
-
-        .input-wrap.danger {
-          border-color: rgba(235, 78, 69, 0.52);
-        }
-
-        :global(.input-icon) {
-          width: 40px;
-          height: 100%;
-          flex: 0 0 40px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          color: rgba(255, 255, 255, 0.32);
-        }
-
-        .input-wrap:focus-within :global(.input-icon) {
-          color: rgba(255, 145, 85, 0.75);
-        }
-
-        .input-wrap input {
-          flex: 1;
-          min-width: 0;
-          height: 100%;
-
-          padding: 0;
-
-          border: none;
-          outline: none;
-
-          background: transparent;
-
-          color: #fff;
-
-          font-family: inherit;
-          font-size: 12px;
-        }
-
-        .input-wrap input::placeholder {
-          color: rgba(255, 255, 255, 0.25);
-        }
-
-        .status {
-          padding-right: 10px;
-
-          white-space: nowrap;
-
-          font-size: 9px;
-          font-weight: 600;
-        }
-
-        .status.available {
-          color: #65d38a;
-        }
-
-        .status.taken {
-          color: #ef726b;
-        }
-
-        .status.checking {
-          color: #ff965e;
-        }
-
-        .eye-button {
-          width: 40px;
-          height: 100%;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          padding: 0;
-
-          border: none;
-          background: transparent;
-
-          color: rgba(255, 255, 255, 0.3);
-
-          cursor: pointer;
-        }
-
-        .eye-button:hover {
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .hint,
-        .password-hint {
-          display: block;
-
-          margin-top: 5px;
-
-          color: rgba(255, 255, 255, 0.29);
-
-          font-size: 9px;
-          line-height: 1.35;
-        }
-
-        .good {
-          color: #65d38a;
-        }
-
-        .bad {
-          color: #ef726b;
-        }
-
-        .terms {
-          position: relative;
-
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-
-          margin: 17px 0 13px;
-
-          cursor: pointer;
-        }
-
-        .terms input {
-          position: absolute;
-
-          width: 1px;
-          height: 1px;
-
-          opacity: 0;
-          pointer-events: none;
-        }
-
-        .custom-check {
-          width: 16px;
-          height: 16px;
-          flex: 0 0 16px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          margin-top: 1px;
-
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 4px;
-
-          background: rgba(255, 255, 255, 0.02);
-
-          color: #050505;
-
-          font-size: 10px;
-          font-weight: 800;
-
-          transition:
-            background 0.15s ease,
-            border-color 0.15s ease;
-        }
-
-        .terms input:checked + .custom-check {
-          border-color: #ff6a1a;
-          background: #ff6a1a;
-        }
-
-        .terms input:focus-visible + .custom-check {
-          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.18);
-        }
-
-        .terms-text {
-          color: rgba(255, 255, 255, 0.4);
-
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        .terms-text a {
-          color: #ff8740;
-          text-decoration: none;
-        }
-
-        .terms-text a:hover {
-          color: #ffa064;
-          text-decoration: underline;
-        }
-
-        .error-box,
-        .notice-box {
-          margin-bottom: 10px;
-
-          padding: 8px 10px;
-
-          border-radius: 8px;
-
-          font-size: 10px;
-          line-height: 1.4;
-        }
-
-        .error-box {
-          border: 1px solid rgba(235, 78, 69, 0.25);
-          background: rgba(235, 78, 69, 0.065);
-          color: #ef918a;
-        }
-
-        .notice-box {
-          border: 1px solid rgba(72, 196, 112, 0.25);
-          background: rgba(72, 196, 112, 0.065);
-          color: #7fdc9f;
-        }
-
-        .continue-button {
-          width: 100%;
-          height: 44px;
-
-          border: none;
-          border-radius: 9px;
-
-          background: #ff6a1a;
-          color: #080808;
-
-          font-family: inherit;
-          font-size: 12px;
-          font-weight: 700;
-
-          opacity: 0.32;
-          cursor: not-allowed;
-
-          transition:
-            opacity 0.16s ease,
-            filter 0.16s ease,
-            transform 0.16s ease,
-            box-shadow 0.16s ease;
-        }
-
-        .continue-button.ready {
-          opacity: 1;
-          cursor: pointer;
-
-          box-shadow: 0 7px 24px rgba(255, 106, 26, 0.16);
-        }
-
-        .continue-button.ready:hover {
-          filter: brightness(1.07);
-          transform: translateY(-1px);
-          box-shadow: 0 9px 28px rgba(255, 106, 26, 0.23);
-        }
-
-        .continue-button:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .spinner {
-          display: inline-block;
-
-          width: 12px;
-          height: 12px;
-
-          margin-right: 7px;
-
-          vertical-align: -2px;
-
-          border: 2px solid rgba(0, 0, 0, 0.2);
-          border-top-color: #000;
-
-          border-radius: 50%;
-
-          animation: spin 0.7s linear infinite;
-        }
-
-        .login-text {
-          margin: 15px 0 0;
-
-          text-align: center;
-
-          color: rgba(255, 255, 255, 0.31);
-
-          font-size: 10px;
-        }
-
-        .login-text a {
-          color: #ff8740;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .login-text a:hover {
-          color: #ffa064;
-        }
-
-        .ambient {
-          position: fixed;
-
-          width: 350px;
-          height: 350px;
-
-          border-radius: 50%;
-
-          pointer-events: none;
-
-          filter: blur(100px);
-
-          z-index: 0;
-        }
-
-        .ambient-one {
-          top: -240px;
-          left: 50%;
-
-          transform: translateX(-50%);
-
-          background: rgba(255, 106, 26, 0.075);
-        }
-
-        .ambient-two {
-          right: -250px;
-          bottom: -180px;
-
-          background: rgba(255, 106, 26, 0.035);
-        }
-
-        :global(.leaves-canvas) {
-          position: fixed;
-          inset: 0;
-
-          width: 100%;
-          height: 100%;
-
-          pointer-events: none;
-
-          z-index: 3;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @media (max-width: 520px) {
-          .signup-page {
-            align-items: flex-start;
-            padding: 18px 12px;
-          }
-
-          .signup-card {
-            margin-top: 8px;
-            padding: 27px 19px 21px;
-            border-radius: 16px;
-          }
-
-          .brand {
-            margin-bottom: 19px;
-          }
-
-          h1 {
-            font-size: 25px;
-          }
-
-          .heading p {
-            margin-bottom: 21px;
-          }
-
-          .social-button {
-            height: 42px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .social-button,
-          .input-wrap,
-          .continue-button {
-            transition: none;
-          }
-        }
-      `}</style>
-    </main>
-  )
+  return <svg {...common}>{paths[type]}</svg>
 }
 
 /* =========================================================
    FALLING LEAVES
 ========================================================= */
 
+function drawLeaf(ctx, size, color, opacity) {
+  ctx.globalAlpha = opacity
+  ctx.fillStyle = color
+
+  ctx.beginPath()
+
+  ctx.moveTo(0, -size)
+
+  ctx.bezierCurveTo(
+    size * 0.95,
+    -size * 0.45,
+    size * 0.7,
+    size * 0.65,
+    0,
+    size
+  )
+
+  ctx.bezierCurveTo(
+    -size * 0.7,
+    size * 0.65,
+    -size * 0.95,
+    -size * 0.45,
+    0,
+    -size
+  )
+
+  ctx.fill()
+
+  ctx.globalAlpha = opacity * 0.8
+  ctx.strokeStyle = 'rgba(0,0,0,.7)'
+  ctx.lineWidth = 0.8
+
+  ctx.beginPath()
+  ctx.moveTo(0, -size * 0.85)
+  ctx.lineTo(0, size * 1.1)
+  ctx.stroke()
+
+  ctx.globalAlpha = 1
+}
+
+/* =========================================================
+   LEAF CANVAS
+========================================================= */
+
 function FallingLeaves() {
-  const [canvas, setCanvas] = useState(null)
+  const canvasRef = useRef(null)
 
   useEffect(() => {
-    const element = document.createElement('canvas')
-
-    element.className = 'leaves-canvas'
-    element.setAttribute('aria-hidden', 'true')
-
-    document.body.appendChild(element)
-    setCanvas(element)
-
-    return () => {
-      element.remove()
-    }
-  }, [])
-
-  useEffect(() => {
+    const canvas = canvasRef.current
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
 
-    if (!ctx) return
-
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
-
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-
-      canvas.width = window.innerWidth * dpr
-      canvas.height = window.innerHeight * dpr
-
-      canvas.style.width = '100%'
-      canvas.style.height = '100%'
-
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
     }
 
     resize()
-
     window.addEventListener('resize', resize)
 
     const colors = [
       '#ff6a1a',
-      '#ff8740',
-      '#e85a0c',
-      '#ffffff',
+      '#ff8a3d',
+      '#d94d0b',
+      '#a9360b',
+      '#f08a42',
+      '#8c2d0a',
     ]
 
-    const makeLeaf = () => ({
+    const createLeaf = () => ({
       x: Math.random() * window.innerWidth,
       y: -40 - Math.random() * window.innerHeight,
-
-      size: Math.random() * 4 + 7,
-
-      speed: Math.random() * 0.3 + 0.25,
-
-      swayAmp: Math.random() * 24 + 16,
-
-      swaySpeed: Math.random() * 0.01 + 0.005,
-
+      size: Math.random() * 5 + 7,
+      speed: Math.random() * 0.55 + 0.35,
+      swayAmp: Math.random() * 35 + 15,
+      swaySpeed: Math.random() * 0.012 + 0.006,
       phase: Math.random() * Math.PI * 2,
-
       rotation: Math.random() * Math.PI * 2,
-
-      spin: (Math.random() - 0.5) * 0.009,
-
-      opacity: Math.random() * 0.13 + 0.1,
-
+      spin: (Math.random() - 0.5) * 0.015,
+      opacity: Math.random() * 0.25 + 0.18,
       color: colors[Math.floor(Math.random() * colors.length)],
-
       baseX: 0,
     })
 
-    const leaves = Array.from({ length: 9 }, makeLeaf)
+    const leaves = Array.from(
+      { length: 24 },
+      createLeaf
+    )
 
-    leaves.forEach((leaf) => {
+    leaves.forEach(leaf => {
       leaf.baseX = leaf.x
-      leaf.y = Math.random() * window.innerHeight
     })
 
-    let animationFrame
+    let frame
     let tick = 0
 
-    const drawLeaf = (size, color, opacity) => {
-      ctx.globalAlpha = opacity
-      ctx.fillStyle = color
-
-      ctx.beginPath()
-
-      ctx.moveTo(0, -size)
-
-      ctx.bezierCurveTo(
-        size * 0.95,
-        -size * 0.45,
-        size * 0.7,
-        size * 0.65,
-        0,
-        size
-      )
-
-      ctx.bezierCurveTo(
-        -size * 0.7,
-        size * 0.65,
-        -size * 0.95,
-        -size * 0.45,
-        0,
-        -size
-      )
-
-      ctx.fill()
-
-      ctx.globalAlpha = opacity * 0.7
-      ctx.strokeStyle = '#000'
-      ctx.lineWidth = 0.7
-
-      ctx.beginPath()
-      ctx.moveTo(0, -size * 0.85)
-      ctx.lineTo(0, size * 1.15)
-      ctx.stroke()
-
-      ctx.globalAlpha = 1
-    }
-
-    const draw = () => {
+    const animate = () => {
       ctx.clearRect(
         0,
         0,
-        window.innerWidth,
-        window.innerHeight
+        canvas.width,
+        canvas.height
       )
 
-      tick += 1
+      tick++
 
-      leaves.forEach((leaf) => {
-        if (!reduceMotion) {
-          leaf.y += leaf.speed
-          leaf.rotation += leaf.spin
-        }
+      leaves.forEach(leaf => {
+        leaf.y += leaf.speed
+        leaf.rotation += leaf.spin
 
-        const sway = reduceMotion
-          ? 0
-          : Math.sin(
-              tick * leaf.swaySpeed + leaf.phase
-            ) * leaf.swayAmp
+        const sway =
+          Math.sin(
+            tick * leaf.swaySpeed + leaf.phase
+          ) * leaf.swayAmp
 
         const x = leaf.baseX + sway
 
-        if (leaf.y > window.innerHeight + 50) {
+        if (leaf.y > canvas.height + 50) {
           leaf.y = -40
-          leaf.baseX = Math.random() * window.innerWidth
+          leaf.baseX =
+            Math.random() * window.innerWidth
         }
 
         ctx.save()
@@ -1270,12 +311,14 @@ function FallingLeaves() {
         ctx.rotate(
           leaf.rotation +
             Math.sin(
-              tick * leaf.swaySpeed + leaf.phase
+              tick * leaf.swaySpeed +
+                leaf.phase
             ) *
-              0.35
+              0.45
         )
 
         drawLeaf(
+          ctx,
           leaf.size,
           leaf.color,
           leaf.opacity
@@ -1284,157 +327,2079 @@ function FallingLeaves() {
         ctx.restore()
       })
 
-      animationFrame = requestAnimationFrame(draw)
+      frame = requestAnimationFrame(animate)
     }
 
-    draw()
+    animate()
 
     return () => {
-      cancelAnimationFrame(animationFrame)
-      window.removeEventListener('resize', resize)
+      cancelAnimationFrame(frame)
+      window.removeEventListener(
+        'resize',
+        resize
+      )
     }
-  }, [canvas])
+  }, [])
 
-  return null
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      className="fall-leaves"
+    />
+  )
 }
 
 /* =========================================================
-   ICONS
+   SIDEBAR ITEM
 ========================================================= */
 
-function LockIcon() {
+function SidebarItem({
+  icon,
+  label,
+  active = false,
+  locked = false,
+}) {
   return (
-    <span className="input-icon">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="4" y="10" width="16" height="11" rx="2" />
-        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-      </svg>
-    </span>
-  )
-}
-
-function UserIcon() {
-  return (
-    <span className="input-icon">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21a8 8 0 0 1 16 0" />
-      </svg>
-    </span>
-  )
-}
-
-function MailIcon() {
-  return (
-    <span className="input-icon">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="5" width="18" height="14" rx="2" />
-        <path d="m3 7 9 6 9-6" />
-      </svg>
-    </span>
-  )
-}
-
-function EyeIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <div
+      className={`sidebar-item ${
+        active ? 'active' : ''
+      }`}
     >
-      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="2.5" />
-    </svg>
+      <Icon
+        type={icon}
+        size={16}
+      />
+
+      <span>{label}</span>
+
+      {locked && (
+        <Icon
+          type="lock"
+          size={12}
+          color="rgba(255,255,255,.35)"
+        />
+      )}
+    </div>
   )
 }
 
-function EyeOffIcon() {
+/* =========================================================
+   STAT CARD
+========================================================= */
+
+function StatCard({
+  icon,
+  label,
+  value,
+}) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m3 3 18 18" />
-      <path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.7" />
-      <path d="M6.2 6.9C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6" />
-      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
+    <div className="stat-card">
+      <div className="stat-top">
+        <span>{label}</span>
+
+        <Icon
+          type={icon}
+          size={15}
+          color="rgba(255,255,255,.35)"
+        />
+      </div>
+
+      <div className="stat-value">
+        {value}
+      </div>
+    </div>
   )
 }
 
-function GoogleIcon() {
+/* =========================================================
+   GRAPH
+========================================================= */
+
+function ViewsChart() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24">
-      <path
-        fill="#4285F4"
-        d="M21.35 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.22a4.46 4.46 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.93-4.18 2.93-7.4Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 21.6c2.63 0 4.84-.87 6.45-2.37l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.29v2.52A9.75 9.75 0 0 0 12 21.6Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M6.53 13.68A5.86 5.86 0 0 1 6.22 12c0-.58.1-1.14.31-1.68V7.8H3.29A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.2l3.24-2.52Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 6.29c1.43 0 2.72.49 3.74 1.46l2.8-2.8C16.84 3.38 14.63 2.4 12 2.4a9.75 9.75 0 0 0-8.71 5.4l3.24 2.52C7.3 8.01 9.46 6.29 12 6.29Z"
-      />
-    </svg>
+    <div className="chart">
+      <div className="chart-grid">
+        {[0, 1, 2, 3, 4].map(i => (
+          <div
+            key={i}
+            className="grid-line"
+            style={{
+              top: `${i * 25}%`,
+            }}
+          >
+            <span>
+              {4 - i}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <svg
+        className="chart-svg"
+        viewBox="0 0 900 300"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient
+            id="fallChartGradient"
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+            <stop
+              offset="0%"
+              stopColor="#ff6a1a"
+              stopOpacity=".32"
+            />
+
+            <stop
+              offset="100%"
+              stopColor="#ff6a1a"
+              stopOpacity="0"
+            />
+          </linearGradient>
+        </defs>
+
+        <path
+          d="
+            M0 275
+            L120 275
+            C160 275 170 275 205 235
+            C230 205 250 205 285 205
+            L430 205
+            C465 205 475 205 510 235
+            C545 265 565 275 605 275
+            L900 275
+            L900 300
+            L0 300
+            Z
+          "
+          fill="url(#fallChartGradient)"
+        />
+
+        <path
+          d="
+            M0 275
+            L120 275
+            C160 275 170 275 205 235
+            C230 205 250 205 285 205
+            L430 205
+            C465 205 475 205 510 235
+            C545 265 565 275 605 275
+            L900 275
+          "
+          fill="none"
+          stroke="#ff6a1a"
+          strokeWidth="2"
+        />
+      </svg>
+
+      <div className="chart-dates">
+        <span>Sep 28</span>
+        <span>Sep 29</span>
+        <span>Sep 30</span>
+        <span>Oct 01</span>
+        <span>Oct 02</span>
+        <span>Oct 03</span>
+        <span>Oct 04</span>
+      </div>
+    </div>
   )
 }
 
-function DiscordIcon() {
+/* =========================================================
+   DEVICE DONUT
+========================================================= */
+
+function DeviceChart() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path
-        fill="#fff"
-        d="M19.54 5.27A16.2 16.2 0 0 0 15.57 4l-.5 1.02a14.7 14.7 0 0 0-6.14 0L8.43 4a16.2 16.2 0 0 0-3.97 1.27C1.95 9.08 1.27 12.8 1.61 16.47a16.3 16.3 0 0 0 4.88 2.5l1.18-1.62c-.65-.24-1.28-.55-1.86-.9l.45-.35c3.59 1.68 7.49 1.68 11.03 0l.45.35c-.59.35-1.21.65-1.86.9l1.18 1.62a16.3 16.3 0 0 0 4.88-2.5c.4-4.28-.68-7.97-2.4-11.2ZM8.03 14.05c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Zm7.94 0c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Z"
-      />
-    </svg>
+    <div className="device-chart">
+      <div className="donut">
+        <div className="donut-hole" />
+      </div>
+
+      <div className="device-list">
+        <div className="device-row">
+          <div>
+            <span className="device-dot desktop" />
+            Desktop
+          </div>
+
+          <strong>1 (50%)</strong>
+        </div>
+
+        <div className="device-row">
+          <div>
+            <span className="device-dot mobile" />
+            Mobile
+          </div>
+
+          <strong>1 (50%)</strong>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================
+   COUNTRY
+========================================================= */
+
+function CountryRow({
+  flag,
+  country,
+}) {
+  return (
+    <div className="country-card">
+      <div className="country-info">
+        <span className="flag">
+          {flag}
+        </span>
+
+        <strong>
+          {country}
+        </strong>
+      </div>
+
+      <span className="country-count">
+        1 (50%)
+      </span>
+
+      <div className="country-progress">
+        <div />
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+export default function DashboardPage() {
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false)
+
+  return (
+    <main className="dashboard-page">
+      <FallingLeaves />
+
+      {/* ATMOSPHERE */}
+
+      <div className="ambient ambient-top" />
+      <div className="ambient ambient-left" />
+      <div className="ambient ambient-right" />
+
+      <div className="dot-grid" />
+      <div className="vignette" />
+
+      {/* MOBILE OVERLAY */}
+
+      {sidebarOpen && (
+        <div
+          className="mobile-overlay"
+          onClick={() =>
+            setSidebarOpen(false)
+          }
+        />
+      )}
+
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
+
+      <aside
+        className={`sidebar ${
+          sidebarOpen ? 'mobile-open' : ''
+        }`}
+      >
+        {/* BRAND */}
+
+        <div className="brand">
+          <div className="brand-icon">
+            🍂
+          </div>
+
+          <span>halo.rip</span>
+        </div>
+
+        {/* SEARCH */}
+
+        <div className="search">
+          <Icon
+            type="search"
+            size={15}
+            color="rgba(255,255,255,.45)"
+          />
+
+          <span>
+            Search Halo
+          </span>
+
+          <kbd>
+            Ctrl K
+          </kbd>
+        </div>
+
+        {/* NAV */}
+
+        <nav className="sidebar-nav">
+          <SidebarItem
+            icon="grid"
+            label="Overview"
+            active
+          />
+
+          <SidebarItem
+            icon="wand"
+            label="Customize"
+          />
+
+          <div className="nav-heading">
+            <SidebarItem
+              icon="user"
+              label="Profile"
+            />
+
+            <span className="collapse">
+              ▲
+            </span>
+          </div>
+
+          <div className="subnav">
+            <span>Assets</span>
+            <span>Badges</span>
+            <span>Links</span>
+            <span>Projects</span>
+            <span>Widgets</span>
+            <span>Section Builder</span>
+          </div>
+
+          <div className="nav-heading premium-heading">
+            <SidebarItem
+              icon="crown"
+              label="Premium"
+              locked
+            />
+
+            <span className="collapse">
+              ▲
+            </span>
+          </div>
+
+          <div className="subnav">
+            <span>Customize</span>
+            <span>Backgrounds</span>
+            <span>Metadata</span>
+          </div>
+
+          <SidebarItem
+            icon="folder"
+            label="Templates"
+          />
+
+          <div className="disabled-item">
+            <Icon
+              type="image"
+              size={15}
+            />
+
+            <span>
+              Image Host
+            </span>
+
+            <small>
+              SOON
+            </small>
+          </div>
+
+          <div className="nav-heading account-heading">
+            <SidebarItem
+              icon="settings"
+              label="Account"
+            />
+
+            <span className="collapse">
+              ▲
+            </span>
+          </div>
+
+          <div className="subnav">
+            <span>Settings</span>
+            <span>Domains</span>
+          </div>
+        </nav>
+
+        {/* PROFILE BOX */}
+
+        <div className="sidebar-profile">
+          <div className="profile-avatar">
+            🍁
+          </div>
+
+          <div>
+            <small>
+              Profile
+            </small>
+
+            <strong>
+              Share your profile
+            </strong>
+          </div>
+
+          <span className="share-icon">
+            ↗
+          </span>
+        </div>
+
+        {/* USER */}
+
+        <div className="sidebar-user">
+          <div className="user-avatar">
+            🌲
+          </div>
+
+          <div className="user-details">
+            <small>
+              Signed in as
+            </small>
+
+            <strong>
+              gun
+            </strong>
+          </div>
+
+          <Icon
+            type="settings"
+            size={14}
+            color="rgba(255,255,255,.45)"
+          />
+        </div>
+      </aside>
+
+      {/* =====================================================
+          MAIN
+      ===================================================== */}
+
+      <section className="main-content">
+
+        {/* HEADER */}
+
+        <header className="topbar">
+          <div className="breadcrumbs">
+            <span>
+              Dashboard
+            </span>
+
+            <b>›</b>
+
+            <strong>
+              Overview
+            </strong>
+          </div>
+
+          <div className="top-actions">
+            <button className="preview">
+              <Icon
+                type="eye"
+                size={14}
+              />
+
+              Live preview
+            </button>
+
+            <button className="circle-btn">
+              <Icon
+                type="bell"
+                size={15}
+              />
+            </button>
+
+            <button className="circle-btn">
+              <Icon
+                type="settings"
+                size={15}
+              />
+            </button>
+
+            <button
+              className="mobile-menu"
+              onClick={() =>
+                setSidebarOpen(true)
+              }
+            >
+              ☰
+            </button>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+
+        <div className="content">
+
+          <div className="welcome">
+            <h1>
+              Welcome back
+            </h1>
+
+            <p>
+              Here is a quick look at your halo.rip page.
+            </p>
+          </div>
+
+          {/* STATS */}
+
+          <div className="stats-grid">
+            <StatCard
+              icon="user"
+              label="Username"
+              value="gun"
+            />
+
+            <StatCard
+              icon="users"
+              label="Aliases"
+              value="0"
+            />
+
+            <StatCard
+              icon="hash"
+              label="UID"
+              value="58"
+            />
+
+            <StatCard
+              icon="eye"
+              label="Profile views"
+              value="59"
+            />
+          </div>
+
+          {/* MAIN ANALYTICS */}
+
+          <div className="analytics-grid">
+
+            {/* VIEWS */}
+
+            <section className="panel views-panel">
+
+              <div className="panel-header">
+                <div>
+                  <h2>
+                    Views
+                  </h2>
+
+                  <p>
+                    Your profile activity over the selected range. 2 total.
+                  </p>
+                </div>
+
+                <div className="chart-controls">
+
+                  <button className="select-control">
+                    <Icon
+                      type="eye"
+                      size={13}
+                    />
+
+                    Views
+
+                    <Icon
+                      type="chevron"
+                      size={12}
+                    />
+                  </button>
+
+                  <div className="range-control">
+                    <button>
+                      3d
+                    </button>
+
+                    <button className="selected">
+                      7d
+                    </button>
+
+                    <button>
+                      30d
+                    </button>
+
+                    <button>
+                      90d
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              <ViewsChart />
+
+            </section>
+
+            {/* DEVICES */}
+
+            <section className="panel devices-panel">
+
+              <div className="panel-header">
+                <div>
+                  <h2>
+                    Devices
+                  </h2>
+
+                  <p>
+                    How visitors break down by device type.
+                  </p>
+                </div>
+              </div>
+
+              <DeviceChart />
+
+            </section>
+          </div>
+
+          {/* COUNTRIES */}
+
+          <section className="panel countries-panel">
+
+            <div className="countries-header">
+
+              <div>
+                <h2>
+                  Top countries
+                </h2>
+
+                <p>
+                  Where your visitors are coming from in the selected range.
+                </p>
+              </div>
+
+              <button className="globe-button">
+                <Icon
+                  type="globe"
+                  size={14}
+                />
+
+                Show globe
+              </button>
+            </div>
+
+            <div className="countries-grid">
+
+              <CountryRow
+                flag="🇩🇰"
+                country="Denmark"
+              />
+
+              <CountryRow
+                flag="🇬🇧"
+                country="United Kingdom"
+              />
+
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+      {/* =====================================================
+          STYLES
+      ===================================================== */}
+
+      <style jsx global>{`
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          min-height: 100%;
+          background: #050505;
+        }
+
+        body {
+          font-family:
+            'Inter',
+            system-ui,
+            sans-serif;
+          color: #fff;
+        }
+
+        button {
+          font-family: inherit;
+        }
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .dashboard-page {
+          min-height: 100vh;
+          background:
+            linear-gradient(
+              180deg,
+              #090909 0%,
+              #060606 45%,
+              #030303 100%
+            );
+          position: relative;
+          overflow-x: hidden;
+        }
+
+        /* =====================================================
+           FALL ATMOSPHERE
+        ===================================================== */
+
+        .ambient {
+          position: fixed;
+          pointer-events: none;
+          z-index: 0;
+          border-radius: 50%;
+          filter: blur(35px);
+        }
+
+        .ambient-top {
+          width: 900px;
+          height: 600px;
+          top: -420px;
+          left: 50%;
+          transform: translateX(-50%);
+          background:
+            radial-gradient(
+              circle,
+              rgba(255,106,26,.20),
+              rgba(255,106,26,.055) 48%,
+              transparent 72%
+            );
+        }
+
+        .ambient-left {
+          width: 700px;
+          height: 700px;
+          left: -500px;
+          top: 35%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(255,106,26,.075),
+              transparent 68%
+            );
+        }
+
+        .ambient-right {
+          width: 700px;
+          height: 700px;
+          right: -500px;
+          top: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(180,65,10,.055),
+              transparent 68%
+            );
+        }
+
+        .dot-grid {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+
+          background-image:
+            radial-gradient(
+              rgba(255,255,255,.045) 1px,
+              transparent 1px
+            );
+
+          background-size: 28px 28px;
+
+          mask-image:
+            radial-gradient(
+              ellipse 70% 65% at 50% 35%,
+              #000 10%,
+              transparent 78%
+            );
+
+          -webkit-mask-image:
+            radial-gradient(
+              ellipse 70% 65% at 50% 35%,
+              #000 10%,
+              transparent 78%
+            );
+        }
+
+        .vignette {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 8;
+
+          background:
+            radial-gradient(
+              ellipse at center,
+              transparent 42%,
+              rgba(0,0,0,.5) 100%
+            );
+        }
+
+        .fall-leaves {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 9;
+        }
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+          position: fixed;
+          z-index: 20;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 242px;
+
+          padding: 18px 9px 10px;
+
+          background:
+            rgba(7,7,7,.93);
+
+          border-right:
+            1px solid rgba(255,255,255,.07);
+
+          display: flex;
+          flex-direction: column;
+
+          backdrop-filter:
+            blur(22px);
+
+          -webkit-backdrop-filter:
+            blur(22px);
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          height: 31px;
+          padding: 0 10px;
+          margin-bottom: 20px;
+
+          font-family:
+            'Space Grotesk',
+            sans-serif;
+
+          font-size: 20px;
+          font-weight: 700;
+
+          letter-spacing: -.7px;
+        }
+
+        .brand-icon {
+          width: 25px;
+          height: 25px;
+
+          display: grid;
+          place-items: center;
+
+          font-size: 17px;
+
+          filter:
+            drop-shadow(
+              0 0 8px
+              rgba(255,106,26,.45)
+            );
+        }
+
+        .search {
+          height: 40px;
+          border-radius: 21px;
+
+          display: flex;
+          align-items: center;
+          gap: 9px;
+
+          padding: 0 12px;
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          background:
+            rgba(255,255,255,.025);
+
+          color:
+            rgba(255,255,255,.68);
+
+          font-size: 12px;
+
+          margin-bottom: 12px;
+        }
+
+        .search kbd {
+          margin-left: auto;
+
+          font-size: 9px;
+
+          padding: 3px 6px;
+
+          border-radius: 6px;
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          background:
+            rgba(255,255,255,.035);
+
+          color:
+            rgba(255,255,255,.42);
+        }
+
+        .sidebar-nav {
+          overflow-y: auto;
+          scrollbar-width: none;
+          flex: 1;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+          display: none;
+        }
+
+        .sidebar-item {
+          height: 36px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 12px;
+
+          padding: 0 14px;
+
+          margin-bottom: 2px;
+
+          border-radius: 20px;
+
+          color:
+            rgba(255,255,255,.68);
+
+          font-size: 12px;
+
+          cursor: pointer;
+
+          transition:
+            background .2s ease,
+            color .2s ease,
+            box-shadow .2s ease;
+        }
+
+        .sidebar-item:hover {
+          color: #fff;
+          background:
+            rgba(255,106,26,.07);
+        }
+
+        .sidebar-item.active {
+          color: #ff8a4c;
+
+          background:
+            rgba(255,106,26,.12);
+
+          border:
+            1px solid rgba(255,106,26,.35);
+
+          box-shadow:
+            inset 0 0 18px
+            rgba(255,106,26,.025);
+        }
+
+        .nav-heading {
+          position: relative;
+        }
+
+        .nav-heading .sidebar-item {
+          margin-bottom: 0;
+        }
+
+        .collapse {
+          position: absolute;
+          right: 16px;
+          top: 10px;
+
+          font-size: 8px;
+
+          color:
+            rgba(255,255,255,.42);
+        }
+
+        .subnav {
+          margin:
+            0 0 7px 19px;
+
+          padding-left: 20px;
+
+          border-left:
+            1px solid rgba(255,255,255,.07);
+
+          display: flex;
+          flex-direction: column;
+        }
+
+        .subnav span {
+          height: 31px;
+
+          display: flex;
+          align-items: center;
+
+          color:
+            rgba(255,255,255,.66);
+
+          font-size: 12px;
+
+          padding-left: 13px;
+
+          cursor: pointer;
+
+          transition: color .2s ease;
+        }
+
+        .subnav span:hover {
+          color: #ff8a4c;
+        }
+
+        .premium-heading {
+          margin-top: 2px;
+        }
+
+        .account-heading {
+          margin-top: 3px;
+        }
+
+        .disabled-item {
+          height: 36px;
+
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          padding: 0 14px;
+
+          color:
+            rgba(255,255,255,.25);
+
+          font-size: 12px;
+        }
+
+        .disabled-item small {
+          margin-left: auto;
+          font-size: 8px;
+          color:
+            rgba(255,255,255,.22);
+        }
+
+        .sidebar-profile {
+          min-height: 54px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 10px;
+
+          padding: 8px 10px;
+
+          border-radius: 13px;
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          background:
+            rgba(255,255,255,.025);
+
+          margin-top: 7px;
+        }
+
+        .profile-avatar {
+          width: 31px;
+          height: 31px;
+
+          border-radius: 50%;
+
+          display: grid;
+          place-items: center;
+
+          background:
+            linear-gradient(
+              135deg,
+              #3a2111,
+              #ff6a1a
+            );
+
+          font-size: 15px;
+        }
+
+        .sidebar-profile div:nth-child(2) {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .sidebar-profile small,
+        .sidebar-user small {
+          color:
+            rgba(255,255,255,.35);
+
+          font-size: 9px;
+        }
+
+        .sidebar-profile strong {
+          font-size: 11px;
+          font-weight: 500;
+        }
+
+        .share-icon {
+          margin-left: auto;
+          color:
+            rgba(255,255,255,.38);
+          font-size: 13px;
+        }
+
+        .sidebar-user {
+          margin-top: 7px;
+
+          min-height: 52px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
+
+          padding: 8px 10px;
+
+          border-radius: 13px;
+
+          background:
+            rgba(255,255,255,.02);
+        }
+
+        .user-avatar {
+          width: 31px;
+          height: 31px;
+
+          border-radius: 50%;
+
+          display: grid;
+          place-items: center;
+
+          background:
+            linear-gradient(
+              135deg,
+              #172015,
+              #3f5434
+            );
+
+          font-size: 14px;
+        }
+
+        .user-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          flex: 1;
+        }
+
+        .user-details strong {
+          font-size: 11px;
+          font-weight: 500;
+        }
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main-content {
+          position: relative;
+          z-index: 10;
+
+          margin-left: 242px;
+
+          min-height: 100vh;
+        }
+
+        .topbar {
+          height: 57px;
+
+          display: flex;
+          align-items: center;
+
+          justify-content: space-between;
+
+          padding:
+            0 30px 0 22px;
+
+          border-bottom:
+            1px solid rgba(255,255,255,.045);
+        }
+
+        .breadcrumbs {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          font-size: 12px;
+        }
+
+        .breadcrumbs span {
+          color:
+            rgba(255,255,255,.38);
+        }
+
+        .breadcrumbs b {
+          color:
+            rgba(255,255,255,.25);
+          font-size: 17px;
+          font-weight: 400;
+        }
+
+        .breadcrumbs strong {
+          font-weight: 500;
+          color:
+            rgba(255,255,255,.76);
+        }
+
+        .top-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .preview {
+          height: 36px;
+
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          padding: 0 15px;
+
+          border-radius: 19px;
+
+          color:
+            #ff8a4c;
+
+          background:
+            rgba(255,106,26,.08);
+
+          border:
+            1px solid rgba(255,106,26,.35);
+
+          font-size: 11px;
+          font-weight: 600;
+
+          cursor: pointer;
+
+          transition: .2s ease;
+        }
+
+        .preview:hover {
+          background:
+            rgba(255,106,26,.15);
+
+          box-shadow:
+            0 0 20px
+            rgba(255,106,26,.13);
+        }
+
+        .circle-btn {
+          width: 36px;
+          height: 36px;
+
+          display: grid;
+          place-items: center;
+
+          border-radius: 50%;
+
+          background:
+            rgba(255,255,255,.025);
+
+          border:
+            1px solid rgba(255,255,255,.07);
+
+          color:
+            rgba(255,255,255,.45);
+
+          cursor: pointer;
+
+          transition: .2s ease;
+        }
+
+        .circle-btn:hover {
+          color: #ff8a4c;
+          border-color:
+            rgba(255,106,26,.3);
+        }
+
+        .mobile-menu {
+          display: none;
+        }
+
+        /* =====================================================
+           CONTENT
+        ===================================================== */
+
+        .content {
+          padding:
+            27px 22px 35px;
+
+          max-width: 1510px;
+          margin: 0 auto;
+        }
+
+        .welcome {
+          margin-bottom: 19px;
+        }
+
+        .welcome h1 {
+          font-family:
+            'Space Grotesk',
+            sans-serif;
+
+          margin: 0 0 5px;
+
+          font-size: 22px;
+
+          letter-spacing: -.6px;
+        }
+
+        .welcome p {
+          margin: 0;
+
+          color:
+            rgba(255,255,255,.43);
+
+          font-size: 12px;
+        }
+
+        /* =====================================================
+           STATS
+        ===================================================== */
+
+        .stats-grid {
+          display: grid;
+
+          grid-template-columns:
+            repeat(4, 1fr);
+
+          gap: 10px;
+
+          margin-bottom: 19px;
+        }
+
+        .stat-card {
+          min-height: 107px;
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          border-radius: 19px;
+
+          padding: 19px;
+
+          background:
+            rgba(7,7,7,.78);
+
+          transition:
+            border-color .2s ease,
+            box-shadow .2s ease,
+            transform .2s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-1px);
+
+          border-color:
+            rgba(255,106,26,.22);
+
+          box-shadow:
+            0 12px 40px
+            rgba(0,0,0,.25),
+            0 0 25px
+            rgba(255,106,26,.035);
+        }
+
+        .stat-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          margin-bottom: 22px;
+
+          color:
+            rgba(255,255,255,.43);
+
+          font-size: 11px;
+        }
+
+        .stat-value {
+          font-family:
+            'Space Grotesk',
+            sans-serif;
+
+          font-size: 22px;
+
+          font-weight: 600;
+
+          letter-spacing: -.5px;
+        }
+
+        /* =====================================================
+           ANALYTICS GRID
+        ===================================================== */
+
+        .analytics-grid {
+          display: grid;
+
+          grid-template-columns:
+            minmax(0, 3fr)
+            minmax(310px, 1.05fr);
+
+          gap: 13px;
+
+          margin-bottom: 19px;
+        }
+
+        .panel {
+          background:
+            rgba(7,7,7,.8);
+
+          border:
+            1px solid rgba(255,255,255,.075);
+
+          border-radius: 18px;
+
+          overflow: hidden;
+        }
+
+        .panel-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+
+          padding: 22px 22px 0;
+        }
+
+        .panel-header h2,
+        .countries-header h2 {
+          margin: 0 0 6px;
+
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .panel-header p,
+        .countries-header p {
+          margin: 0;
+
+          color:
+            rgba(255,255,255,.38);
+
+          font-size: 11px;
+        }
+
+        .views-panel {
+          min-height: 410px;
+        }
+
+        .chart-controls {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .select-control {
+          height: 34px;
+
+          display: flex;
+          align-items: center;
+          gap: 7px;
+
+          padding: 0 11px;
+
+          border-radius: 18px;
+
+          background:
+            rgba(255,255,255,.025);
+
+          border:
+            1px solid rgba(255,255,255,.08);
+
+          color:
+            rgba(255,255,255,.6);
+
+          font-size: 10px;
+        }
+
+        .range-control {
+          display: flex;
+
+          padding: 3px;
+
+          border-radius: 18px;
+
+          background:
+            rgba(255,255,255,.025);
+
+          border:
+            1px solid rgba(255,255,255,.07);
+        }
+
+        .range-control button {
+          height: 28px;
+
+          min-width: 31px;
+
+          border: 0;
+
+          border-radius: 14px;
+
+          background: transparent;
+
+          color:
+            rgba(255,255,255,.4);
+
+          font-size: 9px;
+
+          cursor: pointer;
+        }
+
+        .range-control button.selected {
+          color:
+            #ff8a4c;
+
+          background:
+            rgba(255,106,26,.12);
+
+          border:
+            1px solid rgba(255,106,26,.3);
+        }
+
+        /* =====================================================
+           CHART
+        ===================================================== */
+
+        .chart {
+          height: 325px;
+
+          margin:
+            9px 20px 0;
+
+          position: relative;
+        }
+
+        .chart-grid {
+          position: absolute;
+          inset:
+            13px 0 31px 0;
+        }
+
+        .grid-line {
+          position: absolute;
+
+          left: 39px;
+          right: 0;
+
+          border-top:
+            1px solid
+            rgba(255,255,255,.045);
+        }
+
+        .grid-line span {
+          position: absolute;
+
+          left: -24px;
+          top: -7px;
+
+          color:
+            rgba(255,255,255,.32);
+
+          font-size: 9px;
+        }
+
+        .chart-svg {
+          position: absolute;
+
+          left: 39px;
+          right: 0;
+
+          bottom: 28px;
+
+          width:
+            calc(100% - 39px);
+
+          height: 245px;
+        }
+
+        .chart-dates {
+          position: absolute;
+
+          left: 39px;
+          right: 0;
+          bottom: 2px;
+
+          display: flex;
+
+          justify-content: space-between;
+
+          color:
+            rgba(255,255,255,.35);
+
+          font-size: 9px;
+        }
+
+        /* =====================================================
+           DEVICES
+        ===================================================== */
+
+        .devices-panel {
+          min-height: 410px;
+        }
+
+        .device-chart {
+          height: 330px;
+
+          display: flex;
+          flex-direction: column;
+
+          align-items: center;
+
+          padding-top: 42px;
+        }
+
+        .donut {
+          width: 126px;
+          height: 126px;
+
+          border-radius: 50%;
+
+          background:
+            conic-gradient(
+              #f09b67 0deg 180deg,
+              #ff75ae 180deg 360deg
+            );
+
+          display: grid;
+          place-items: center;
+
+          transform:
+            rotate(-90deg);
+
+          box-shadow:
+            0 0 25px
+            rgba(255,106,26,.07);
+        }
+
+        .donut-hole {
+          width: 90px;
+          height: 90px;
+
+          border-radius: 50%;
+
+          background:
+            #0a0a0a;
+        }
+
+        .device-list {
+          width: 75%;
+
+          margin-top: 36px;
+        }
+
+        .device-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          padding: 7px 0;
+
+          color:
+            rgba(255,255,255,.43);
+
+          font-size: 10px;
+        }
+
+        .device-row > div {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .device-row strong {
+          color:
+            rgba(255,255,255,.7);
+
+          font-size: 10px;
+          font-weight: 500;
+        }
+
+        .device-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
+        .device-dot.desktop {
+          background: #f09b67;
+        }
+
+        .device-dot.mobile {
+          background: #ff75ae;
+        }
+
+        /* =====================================================
+           COUNTRIES
+        ===================================================== */
+
+        .countries-panel {
+          padding-bottom: 22px;
+        }
+
+        .countries-header {
+          display: flex;
+
+          justify-content: space-between;
+          align-items: flex-start;
+
+          padding:
+            21px 22px 18px;
+        }
+
+        .globe-button {
+          height: 34px;
+
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          padding: 0 13px;
+
+          border-radius: 18px;
+
+          background:
+            rgba(255,106,26,.06);
+
+          border:
+            1px solid rgba(255,106,26,.28);
+
+          color:
+            #ff8a4c;
+
+          font-size: 10px;
+
+          cursor: pointer;
+        }
+
+        .countries-grid {
+          display: grid;
+
+          grid-template-columns:
+            repeat(2, 1fr);
+
+          gap: 10px;
+
+          padding:
+            0 22px;
+        }
+
+        .country-card {
+          min-height: 52px;
+
+          position: relative;
+
+          display: flex;
+          align-items: center;
+
+          padding: 0 12px;
+
+          border-radius: 13px;
+
+          background:
+            rgba(255,255,255,.018);
+
+          border:
+            1px solid rgba(255,255,255,.065);
+
+          overflow: hidden;
+        }
+
+        .country-info {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+
+          font-size: 11px;
+        }
+
+        .country-info strong {
+          font-weight: 600;
+        }
+
+        .flag {
+          width: 28px;
+          height: 22px;
+
+          display: grid;
+          place-items: center;
+
+          font-size: 21px;
+        }
+
+        .country-count {
+          margin-left: auto;
+
+          margin-right: 3px;
+
+          color:
+            rgba(255,255,255,.55);
+
+          font-size: 10px;
+
+          z-index: 2;
+        }
+
+        .country-progress {
+          position: absolute;
+
+          left: 52px;
+          right: 60px;
+          bottom: 6px;
+
+          height: 3px;
+
+          border-radius: 3px;
+
+          background:
+            rgba(255,255,255,.06);
+        }
+
+        .country-progress div {
+          width: 50%;
+          height: 100%;
+
+          border-radius: inherit;
+
+          background:
+            linear-gradient(
+              90deg,
+              #ff6a1a,
+              #ff9b5d
+            );
+
+          box-shadow:
+            0 0 8px
+            rgba(255,106,26,.2);
+        }
+
+        /* =====================================================
+           MOBILE OVERLAY
+        ===================================================== */
+
+        .mobile-overlay {
+          display: none;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 1050px) {
+
+          .sidebar {
+            width: 215px;
+          }
+
+          .main-content {
+            margin-left: 215px;
+          }
+
+          .analytics-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .devices-panel {
+            min-height: 350px;
+          }
+
+          .device-chart {
+            height: 280px;
+          }
+
+          .stats-grid {
+            grid-template-columns:
+              repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 760px) {
+
+          .sidebar {
+            transform:
+              translateX(-100%);
+
+            transition:
+              transform .25s ease;
+
+            box-shadow:
+              20px 0 60px
+              rgba(0,0,0,.6);
+          }
+
+          .sidebar.mobile-open {
+            transform:
+              translateX(0);
+          }
+
+          .mobile-overlay {
+            display: block;
+
+            position: fixed;
+            inset: 0;
+
+            background:
+              rgba(0,0,0,.55);
+
+            backdrop-filter:
+              blur(4px);
+
+            z-index: 19;
+          }
+
+          .main-content {
+            margin-left: 0;
+          }
+
+          .topbar {
+            padding:
+              0 14px;
+          }
+
+          .mobile-menu {
+            width: 36px;
+            height: 36px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 50%;
+
+            border:
+              1px solid rgba(255,255,255,.08);
+
+            background:
+              rgba(255,255,255,.025);
+
+            color:
+              rgba(255,255,255,.7);
+          }
+
+          .content {
+            padding:
+              22px 13px 30px;
+          }
+
+          .preview {
+            display: none;
+          }
+
+          .circle-btn {
+            display: none;
+          }
+
+          .stats-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .stat-card {
+            min-height: 100px;
+          }
+
+          .panel-header {
+            flex-direction: column;
+            gap: 15px;
+          }
+
+          .chart-controls {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .countries-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 520px) {
+
+          .breadcrumbs span,
+          .breadcrumbs b {
+            display: none;
+          }
+
+          .breadcrumbs strong {
+            font-size: 11px;
+          }
+
+          .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+          }
+
+          .stat-card {
+            padding: 14px;
+            border-radius: 15px;
+          }
+
+          .stat-top {
+            margin-bottom: 17px;
+          }
+
+          .stat-value {
+            font-size: 19px;
+          }
+
+          .views-panel,
+          .devices-panel {
+            min-height: 390px;
+          }
+
+          .chart {
+            margin-left: 12px;
+            margin-right: 12px;
+          }
+
+          .range-control button {
+            min-width: 27px;
+          }
+
+          .select-control {
+            padding: 0 8px;
+          }
+
+          .countries-header {
+            gap: 15px;
+          }
+
+          .globe-button {
+            white-space: nowrap;
+          }
+        }
+
+      `}</style>
+    </main>
   )
 }
