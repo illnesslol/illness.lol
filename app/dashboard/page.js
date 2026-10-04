@@ -1,1985 +1,1440 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { TransitionLink } from '../../components/PageTransition'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/app/lib/supabase-client'
+import { useTransition } from '@/components/PageTransition'
 
-const C = {
-  bg: '#050505',
-  panel: '#0a0a0a',
-  panel2: '#0d0d0d',
-  border: 'rgba(255,255,255,.075)',
-  borderStrong: 'rgba(255,255,255,.11)',
-  text: '#fff',
-  muted: 'rgba(255,255,255,.52)',
-  faint: 'rgba(255,255,255,.32)',
-  orange: '#ff6a1a',
-  orange2: '#ff8b3d',
-}
+export default function SignupPage() {
+  const { navigate } = useTransition()
 
-function Icon({ children, className = '' }) {
-  return (
-    <span className={`icon ${className}`} aria-hidden="true">
-      {children}
-    </span>
-  )
-}
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
-function NavItem({ href, icon, children, active = false, soon = false }) {
-  return (
-    <TransitionLink
-      href={href}
-      className={`nav-item ${active ? 'active' : ''}`}
-    >
-      <Icon>{icon}</Icon>
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-      <span className="nav-label">
-        {children}
-      </span>
+  const [usernameStatus, setUsernameStatus] = useState('idle')
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState('')
+  const [agreed, setAgreed] = useState(false)
 
-      {soon && <em>SOON</em>}
-    </TransitionLink>
-  )
-}
+  useEffect(() => {
+    const clean = username.trim().toLowerCase()
 
-function StatCard({ label, value, icon }) {
-  return (
-    <div className="stat-card">
-      <div className="stat-card-top">
-        <span>{label}</span>
-        <Icon>{icon}</Icon>
-      </div>
+    if (!clean) {
+      setUsernameStatus('idle')
+      return
+    }
 
-      <strong>{value}</strong>
-    </div>
-  )
-}
+    if (clean.length > 24 || !/^[a-z0-9_]+$/.test(clean)) {
+      setUsernameStatus('invalid')
+      return
+    }
 
-function Chart() {
-  const points = useMemo(
-    () => [
-      0, 0, 0, 1, 1, 1, 2, 2,
-      3, 2, 4, 3, 5, 4, 6, 5,
-      4, 3, 4, 2, 1, 2, 1, 0,
-    ],
-    []
-  )
+    let cancelled = false
 
-  const width = 1000
-  const height = 250
-  const max = 7
+    const timer = setTimeout(async () => {
+      setUsernameStatus('checking')
 
-  const coordinates = points.map((value, index) => {
-    const x = (index / (points.length - 1)) * width
-    const y = height - 25 - (value / max) * 175
+      const { data, error } = await supabase.rpc('username_available', {
+        name: clean,
+      })
 
-    return { x, y }
-  })
+      if (cancelled) return
 
-  const path = coordinates
-    .map(
-      ({ x, y }, index) =>
-        `${index === 0 ? 'M' : 'L'} ${x} ${y}`
-    )
-    .join(' ')
+      if (error) {
+        console.error('Username check failed:', error)
+        setUsernameStatus('error')
+        return
+      }
 
-  const area = `${path} L ${width} ${height} L 0 ${height} Z`
+      setUsernameStatus(data ? 'available' : 'taken')
+    }, 350)
 
-  return (
-    <div className="chart-container">
-      <svg
-        className="chart"
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id="viewsGradient"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
-            <stop
-              offset="0%"
-              stopColor={C.orange}
-              stopOpacity=".25"
-            />
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [username])
 
-            <stop
-              offset="100%"
-              stopColor={C.orange}
-              stopOpacity="0"
-            />
-          </linearGradient>
-        </defs>
+  const passwordStrong =
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password)
 
-        {[0, 1, 2, 3, 4].map((line) => (
-          <line
-            key={line}
-            x1="0"
-            x2={width}
-            y1={30 + line * 44}
-            y2={30 + line * 44}
-            stroke="rgba(255,255,255,.045)"
-            strokeWidth="1"
-          />
-        ))}
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
 
-        <path
-          d={area}
-          fill="url(#viewsGradient)"
-        />
+  const usernameOk =
+    usernameStatus === 'available' || usernameStatus === 'error'
 
-        <path
-          d={path}
-          fill="none"
-          stroke={C.orange2}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+  const canSubmit =
+    username.trim().length >= 1 &&
+    username.trim().length <= 24 &&
+    usernameOk &&
+    emailValid &&
+    passwordStrong &&
+    password === confirmPassword &&
+    agreed &&
+    !loading &&
+    !oauthLoading
 
-      <div className="chart-labels">
-        <span>Sep 28</span>
-        <span>Sep 30</span>
-        <span>Oct 02</span>
-        <span>Oct 04</span>
-      </div>
-    </div>
-  )
-}
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
-function Donut() {
-  return (
-    <div className="device-content">
-      <div className="donut">
-        <div className="donut-center">
-          <strong>2</strong>
-          <span>views</span>
-        </div>
-      </div>
+    setError('')
+    setNotice('')
 
-      <div className="device-legend">
-        <div className="legend-row">
-          <div className="legend-name">
-            <span className="legend-dot pink" />
-            Desktop
-          </div>
+    const cleanUsername = username.trim().toLowerCase()
+    const cleanEmail = email.trim().toLowerCase()
 
-          <strong>1 (50%)</strong>
-        </div>
+    if (!agreed) {
+      setError('Please agree to the Terms of Service and Privacy Policy.')
+      return
+    }
 
-        <div className="legend-row">
-          <div className="legend-name">
-            <span className="legend-dot gold" />
-            Mobile
-          </div>
+    if (
+      cleanUsername.length < 1 ||
+      cleanUsername.length > 24 ||
+      !/^[a-z0-9_]+$/.test(cleanUsername)
+    ) {
+      setError(
+        'Username must be 1–24 characters and can only contain letters, numbers, and underscores.'
+      )
+      return
+    }
 
-          <strong>1 (50%)</strong>
-        </div>
-      </div>
-    </div>
-  )
-}
+    if (!usernameOk) {
+      setError('Please choose an available username.')
+      return
+    }
 
-function Country({ flag, name, value }) {
-  return (
-    <div className="country-card">
-      <div className="country-flag">
-        {flag}
-      </div>
+    if (!emailValid) {
+      setError('Please enter a valid email address.')
+      return
+    }
 
-      <div className="country-info">
-        <div className="country-title">
-          {name}
-        </div>
+    if (!passwordStrong) {
+      setError(
+        'Password must be at least 8 characters and include an uppercase letter, lowercase letter, and number.'
+      )
+      return
+    }
 
-        <div className="country-progress">
-          <span />
-        </div>
-      </div>
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
 
-      <div className="country-value">
-        {value}
-      </div>
-    </div>
-  )
-}
+    setLoading(true)
 
-export default function DashboardPage() {
-  const [range, setRange] = useState('7d')
-  const [menuOpen, setMenuOpen] = useState(false)
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            username: cleanUsername,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      })
+
+      if (error) {
+        console.error('Signup failed:', error)
+
+        const msg = (error.message || '').toLowerCase()
+
+        if (msg.includes('database error')) {
+          setError(
+            'That username may already be taken, or the profile could not be created. Try a different username.'
+          )
+        } else {
+          setError(error.message)
+        }
+
+        setLoading(false)
+        return
+      }
+
+      if (data.user && data.user.identities?.length === 0) {
+        setError('An account with this email already exists. Try signing in.')
+        setLoading(false)
+        return
+      }
+
+      if (data.session) {
+        navigate('/dashboard')
+        return
+      }
+
+      setNotice(
+        'Account created! Check your email to confirm your account, then sign in.'
+      )
+
+      setLoading(false)
+    } catch (err) {
+      console.error(err)
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  const handleOAuth = async (provider) => {
+    setError('')
+    setNotice('')
+    setOauthLoading(provider)
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      })
+
+      if (error) {
+        setError(error.message)
+        setOauthLoading('')
+      }
+    } catch (err) {
+      console.error(err)
+      setError('Unable to continue with that provider.')
+      setOauthLoading('')
+    }
+  }
 
   return (
-    <main className="dashboard">
+    <main className="signup-page">
+      <FallingLeaves />
 
-      {/* Background */}
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
 
-      <div className="background-glow glow-1" />
-      <div className="background-glow glow-2" />
-
-      {/* Sidebar */}
-
-      <aside className="sidebar">
-
-        <TransitionLink href="/" className="brand">
+      <section className="signup-card">
+        <div className="brand">
           <img
             src="/icon.png"
             alt=""
+            width={32}
+            height={32}
+            className="brand-icon"
           />
-
           <span>illness.lol</span>
-        </TransitionLink>
-
-        <div className="search-box">
-          <span className="search-symbol">
-            ⌕
-          </span>
-
-          <span>Search Halo</span>
-
-          <kbd>Ctrl K</kbd>
         </div>
 
-        <div className="sidebar-nav">
-
-          <NavItem
-            href="/dashboard"
-            icon="▦"
-            active
-          >
-            Overview
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/customize"
-            icon="✣"
-          >
-            Customize
-          </NavItem>
-
+        <div className="heading">
+          <h1>Create account</h1>
+          <p>Create your illness.lol account</p>
         </div>
 
-        <SidebarHeading>
-          Profile
-        </SidebarHeading>
-
-        <div className="sidebar-nav nested">
-
-          <NavItem
-            href="/dashboard/assets"
-            icon="•"
+        <div className="social-row">
+          <button
+            type="button"
+            className="social-button"
+            onClick={() => handleOAuth('discord')}
+            disabled={!!oauthLoading || loading}
           >
-            Assets
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/badges"
-            icon="◇"
-          >
-            Badges
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/links"
-            icon="↗"
-          >
-            Links
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/projects"
-            icon="▱"
-          >
-            Projects
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/widgets"
-            icon="⊞"
-          >
-            Widgets
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/sections"
-            icon="≡"
-          >
-            Section Builder
-          </NavItem>
-
-        </div>
-
-        <SidebarHeading premium>
-          Premium
-        </SidebarHeading>
-
-        <div className="sidebar-nav nested">
-
-          <NavItem
-            href="/dashboard/premium/customize"
-            icon="•"
-          >
-            Customize
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/premium/backgrounds"
-            icon="•"
-          >
-            Backgrounds
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/premium/metadata"
-            icon="•"
-          >
-            Metadata
-          </NavItem>
-
-        </div>
-
-        <div className="sidebar-nav">
-
-          <NavItem
-            href="/dashboard/templates"
-            icon="▤"
-          >
-            Templates
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/image-host"
-            icon="▣"
-            soon
-          >
-            Image Host
-          </NavItem>
-
-        </div>
-
-        <SidebarHeading>
-          Account
-        </SidebarHeading>
-
-        <div className="sidebar-nav nested">
-
-          <NavItem
-            href="/dashboard/settings"
-            icon="•"
-          >
-            Settings
-          </NavItem>
-
-          <NavItem
-            href="/dashboard/domains"
-            icon="•"
-          >
-            Domains
-          </NavItem>
-
-        </div>
-
-        <div className="sidebar-bottom">
-
-          <TransitionLink
-            href="/gun"
-            className="share-card"
-          >
-            <div className="share-icon">
-              ✣
-            </div>
-
-            <div className="share-text">
-              <small>Profile</small>
-              <strong>Share your profile</strong>
-            </div>
-
-            <span className="share-arrow">
-              ↗
+            <DiscordIcon />
+            <span>
+              {oauthLoading === 'discord' ? 'Connecting...' : 'Discord'}
             </span>
-          </TransitionLink>
+          </button>
 
-          <div className="signed-in">
-
-            <div className="avatar">
-              🍂
-            </div>
-
-            <div className="signed-text">
-              <small>Signed in as</small>
-              <strong>gun</strong>
-            </div>
-
-            <TransitionLink
-              href="/dashboard/settings"
-              className="settings-icon"
-            >
-              ⚙
-            </TransitionLink>
-
-          </div>
-
+          <button
+            type="button"
+            className="social-button"
+            onClick={() => handleOAuth('google')}
+            disabled={!!oauthLoading || loading}
+          >
+            <GoogleIcon />
+            <span>
+              {oauthLoading === 'google' ? 'Connecting...' : 'Google'}
+            </span>
+          </button>
         </div>
 
-      </aside>
+        <div className="divider">
+          <span />
+          <p>OR</p>
+          <span />
+        </div>
 
-      {/* Main */}
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="username">Username</label>
 
-      <section className="main">
+            <div
+              className={`input-wrap ${
+                usernameStatus === 'available'
+                  ? 'success'
+                  : usernameStatus === 'taken' ||
+                      usernameStatus === 'invalid'
+                    ? 'danger'
+                    : ''
+              }`}
+            >
+              <UserIcon />
 
-        {/* Topbar */}
+              <input
+                id="username"
+                type="text"
+                placeholder="your_username"
+                value={username}
+                maxLength={24}
+                autoComplete="username"
+                onChange={(e) =>
+                  setUsername(
+                    e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+                  )
+                }
+              />
 
-        <header className="topbar">
+              {usernameStatus === 'checking' && (
+                <span className="status checking">Checking</span>
+              )}
 
-          <div className="breadcrumbs">
-            <span>Dashboard</span>
-            <b>›</b>
-            <strong>Overview</strong>
+              {usernameStatus === 'available' && (
+                <span className="status available">✓ Available</span>
+              )}
+
+              {usernameStatus === 'taken' && (
+                <span className="status taken">Taken</span>
+              )}
+
+              {usernameStatus === 'error' && (
+                <span className="status checking">Couldn't check</span>
+              )}
+            </div>
+
+            {usernameStatus === 'invalid' && username.length > 0 && (
+              <small className="hint">
+                1–24 characters. Letters, numbers, and underscores only.
+              </small>
+            )}
           </div>
 
-          <div className="top-actions">
+          <div className="field">
+            <label htmlFor="email">Email</label>
 
-            <TransitionLink
-              href="/gun"
-              className="live-preview"
-            >
-              <span className="live-dot" />
-              Live preview
-            </TransitionLink>
+            <div className="input-wrap">
+              <MailIcon />
 
-            <button
-              className="top-button"
-              type="button"
-            >
-              ♟
-            </button>
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
 
-            <button
-              className="top-button"
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              ⚙
-            </button>
+          <div className="field">
+            <label htmlFor="password">Password</label>
 
-            {menuOpen && (
-              <div className="quick-menu">
+            <div className="input-wrap">
+              <LockIcon />
 
-                <TransitionLink href="/dashboard/settings">
-                  Settings
-                </TransitionLink>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Create a strong password"
+                value={password}
+                autoComplete="new-password"
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-                <TransitionLink href="/logout">
-                  Log out
-                </TransitionLink>
+              <button
+                type="button"
+                className="eye-button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
 
+            {password.length > 0 && (
+              <div className="password-hint">
+                {passwordStrong ? (
+                  <span className="good">✓ Strong password</span>
+                ) : (
+                  <span>
+                    Use 8+ characters with uppercase, lowercase, and a number.
+                  </span>
+                )}
               </div>
             )}
-
           </div>
 
-        </header>
+          <div className="field">
+            <label htmlFor="confirmPassword">Confirm password</label>
 
-        {/* Heading */}
+            <div
+              className={`input-wrap ${
+                confirmPassword.length > 0
+                  ? password === confirmPassword
+                    ? 'success'
+                    : 'danger'
+                  : ''
+              }`}
+            >
+              <LockIcon />
 
-        <section className="page-heading">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                autoComplete="new-password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
 
-          <h1>Welcome back</h1>
+              <button
+                type="button"
+                className="eye-button"
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+                aria-label={
+                  showConfirmPassword ? 'Hide password' : 'Show password'
+                }
+              >
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
 
-          <p>
-            Here is a quick look at your illness.lol page.
-          </p>
-
-        </section>
-
-        {/* Stats */}
-
-        <section className="stats-grid">
-
-          <StatCard
-            label="Username"
-            value="gun"
-            icon="◎"
-          />
-
-          <StatCard
-            label="Aliases"
-            value="0"
-            icon="♟"
-          />
-
-          <StatCard
-            label="UID"
-            value="58"
-            icon="#"
-          />
-
-          <StatCard
-            label="Profile views"
-            value="59"
-            icon="◉"
-          />
-
-        </section>
-
-        {/* Analytics */}
-
-        <section className="analytics-grid">
-
-          {/* Views */}
-
-          <div className="panel views-panel">
-
-            <div className="panel-header">
-
-              <div>
-                <h2>Views</h2>
-
-                <p>
-                  Your profile activity over the selected range.
-                  <b> 2 total.</b>
-                </p>
-              </div>
-
-              <div className="range-controls">
-
-                <button className="metric-button">
-                  ◉ &nbsp; Views⌄
-                </button>
-
-                {['3d', '7d', '30d', '90d'].map(
-                  (item) => (
-                    <button
-                      key={item}
-                      className={
-                        range === item
-                          ? 'range-button active'
-                          : 'range-button'
-                      }
-                      onClick={() => setRange(item)}
-                    >
-                      {item}
-                    </button>
-                  )
+            {confirmPassword.length > 0 && (
+              <div className="password-hint">
+                {password === confirmPassword ? (
+                  <span className="good">✓ Passwords match</span>
+                ) : (
+                  <span className="bad">Passwords don't match</span>
                 )}
-
               </div>
-
-            </div>
-
-            <Chart />
-
+            )}
           </div>
 
-          {/* Devices */}
-
-          <div className="panel devices-panel">
-
-            <div className="panel-header">
-              <div>
-                <h2>Devices</h2>
-
-                <p>
-                  How visitors break down by device type.
-                </p>
-              </div>
-            </div>
-
-            <Donut />
-
-          </div>
-
-        </section>
-
-        {/* Countries */}
-
-        <section className="panel countries-panel">
-
-          <div className="countries-header">
-
-            <div>
-              <h2>Top countries</h2>
-
-              <p>
-                Where your visitors are coming from in the selected range.
-              </p>
-            </div>
-
-            <button className="globe-button">
-              ◎ &nbsp; Show globe
-            </button>
-
-          </div>
-
-          <div className="country-grid">
-
-            <Country
-              flag="🇩🇰"
-              name="Denmark"
-              value="1 (50%)"
+          <label className="terms">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
             />
 
-            <Country
-              flag="🇬🇧"
-              name="United Kingdom"
-              value="1 (50%)"
-            />
+            <span className="custom-check">{agreed ? '✓' : ''}</span>
 
-          </div>
+            <span className="terms-text">
+              I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer">
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+            </span>
+          </label>
 
-        </section>
+          {error && <div className="error-box">{error}</div>}
 
+          {notice && <div className="notice-box">{notice}</div>}
+
+          <button
+            type="submit"
+            className={`continue-button ${canSubmit ? 'ready' : ''}`}
+            disabled={!canSubmit}
+          >
+            {loading ? (
+              <>
+                <span className="spinner" />
+                Creating account...
+              </>
+            ) : (
+              'Create account'
+            )}
+          </button>
+        </form>
+
+        <p className="login-text">
+          Already have an account? <a href="/login">Sign in</a>
+        </p>
       </section>
 
-      <style jsx global>{`
-
-        /* =====================================================
-           RESET
-        ===================================================== */
-
+      <style jsx>{`
         * {
           box-sizing: border-box;
         }
 
-        html,
-        body {
-          margin: 0;
-          padding: 0;
-          min-height: 100%;
-          background: #050505;
-          color: #fff;
-          font-family:
-            Inter,
-            ui-sans-serif,
-            system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            sans-serif;
-        }
+        .signup-page {
+          min-height: 100svh;
+          width: 100%;
+          position: relative;
+          overflow: hidden;
 
-        body {
-          overflow-x: hidden;
-        }
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
-        button,
-        input {
-          font: inherit;
-        }
+          padding: 32px 20px;
 
-        button {
-          color: inherit;
-        }
-
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        /* =====================================================
-           PAGE
-        ===================================================== */
-
-        .dashboard {
-          min-height: 100vh;
           background:
             radial-gradient(
-              circle at 52% -10%,
-              rgba(255,106,26,.065),
-              transparent 30%
+              circle at 50% -10%,
+              rgba(255, 106, 26, 0.08),
+              transparent 36%
             ),
             #050505;
 
-          position: relative;
-          isolation: isolate;
+          color: #fff;
+
+          font-family:
+            Inter,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            sans-serif;
         }
 
-        .background-glow {
+        .signup-page::before {
+          content: '';
           position: fixed;
+          inset: 0;
           pointer-events: none;
-          z-index: -1;
-          border-radius: 50%;
-          filter: blur(70px);
+
+          background-image: radial-gradient(
+            rgba(255, 255, 255, 0.09) 1px,
+            transparent 1px
+          );
+
+          background-size: 32px 32px;
+
+          mask-image: radial-gradient(
+            ellipse 65% 60% at 50% 45%,
+            #000 0%,
+            transparent 78%
+          );
+
+          -webkit-mask-image: radial-gradient(
+            ellipse 65% 60% at 50% 45%,
+            #000 0%,
+            transparent 78%
+          );
+
+          opacity: 0.28;
         }
 
-        .glow-1 {
-          width: 700px;
-          height: 400px;
-          top: -300px;
-          left: 43%;
-          background: rgba(255,106,26,.1);
-        }
+        .signup-card {
+          position: relative;
+          z-index: 5;
 
-        .glow-2 {
-          width: 500px;
-          height: 500px;
-          right: -350px;
-          top: 25%;
-          background: rgba(255,106,26,.035);
-        }
+          width: 100%;
+          max-width: 430px;
 
-        /* =====================================================
-           SIDEBAR
-        ===================================================== */
+          padding: 31px 30px 25px;
 
-        .sidebar {
-          position: fixed;
-          inset: 0 auto 0 0;
-          width: 228px;
-          z-index: 20;
+          border: 1px solid rgba(255, 255, 255, 0.085);
+          border-radius: 18px;
 
-          display: flex;
-          flex-direction: column;
+          background: rgba(9, 9, 9, 0.96);
 
-          padding: 18px 9px 12px;
+          box-shadow:
+            0 24px 80px rgba(0, 0, 0, 0.65),
+            0 0 0 1px rgba(255, 255, 255, 0.015);
 
-          background:
-            rgba(7,7,7,.97);
-
-          border-right:
-            1px solid
-            rgba(255,255,255,.075);
-
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-
-        .sidebar::-webkit-scrollbar {
-          width: 4px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,.08);
-          border-radius: 99px;
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
         }
 
         .brand {
-          height: 39px;
-
           display: flex;
           align-items: center;
+          justify-content: center;
+          gap: 8px;
 
-          gap: 9px;
+          margin-bottom: 22px;
 
-          padding: 0 8px;
+          font-family:
+            'Space Grotesk',
+            Inter,
+            system-ui,
+            sans-serif;
 
-          margin-bottom: 17px;
-
-          font-size: 16px;
-          font-weight: 650;
-          letter-spacing: -.3px;
+          font-size: 18px;
+          font-weight: 600;
+          letter-spacing: -0.4px;
         }
 
-        .brand img {
-          width: 29px;
-          height: 29px;
+        .brand-icon {
+          display: block;
+          width: 30px;
+          height: 30px;
           object-fit: contain;
 
-          filter:
-            drop-shadow(
-              0 0 9px
-              rgba(255,106,26,.3)
-            );
+          filter: drop-shadow(
+            0 0 8px rgba(255, 106, 26, 0.22)
+          );
         }
 
-        /* SEARCH */
+        .heading {
+          text-align: center;
+        }
 
-        .search-box {
-          height: 35px;
+        h1 {
+          margin: 0;
+
+          font-family:
+            'Space Grotesk',
+            Inter,
+            system-ui,
+            sans-serif;
+
+          font-size: 27px;
+          line-height: 1.15;
+          font-weight: 600;
+          letter-spacing: -0.9px;
+        }
+
+        .heading p {
+          margin: 8px 0 23px;
+
+          color: rgba(255, 255, 255, 0.43);
+
+          font-size: 12px;
+          line-height: 1.4;
+        }
+
+        .social-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 9px;
+        }
+
+        .social-button {
+          height: 43px;
 
           display: flex;
           align-items: center;
+          justify-content: center;
+          gap: 8px;
 
-          gap: 7px;
-
-          padding: 0 9px;
-
+          border: 1px solid rgba(255, 255, 255, 0.085);
           border-radius: 9px;
 
-          border:
-            1px solid
-            rgba(255,255,255,.075);
+          background: rgba(255, 255, 255, 0.025);
+          color: rgba(255, 255, 255, 0.9);
 
-          background: #0b0b0b;
-
-          color:
-            rgba(255,255,255,.42);
-
-          font-size: 11px;
-
-          margin-bottom: 12px;
-        }
-
-        .search-symbol {
-          font-size: 17px;
-          line-height: 1;
-        }
-
-        .search-box kbd {
-          margin-left: auto;
-
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          background: #111;
-
-          border-radius: 5px;
-
-          padding: 3px 5px;
-
-          color:
-            rgba(255,255,255,.28);
-
-          font-size: 8px;
-        }
-
-        /* NAV */
-
-        .sidebar-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
-        }
-
-        .nav-item {
-          height: 31px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          padding: 0 10px;
-
-          border-radius: 8px;
-
-          color:
-            rgba(255,255,255,.58);
-
+          font-family: inherit;
           font-size: 12px;
-
-          transition:
-            color .16s ease,
-            background .16s ease,
-            transform .16s ease;
-        }
-
-        .nav-item:hover {
-          color: #fff;
-
-          background:
-            rgba(255,106,26,.055);
-
-          transform: translateX(1px);
-        }
-
-        .nav-item.active {
-          color: #ff8a3d;
-
-          background:
-            rgba(255,106,26,.09);
-
-          border:
-            1px solid
-            rgba(255,106,26,.18);
-        }
-
-        .nav-item .icon {
-          width: 15px;
-          flex: 0 0 15px;
-
-          display: inline-flex;
-          justify-content: center;
-
-          color:
-            rgba(255,255,255,.32);
-
-          font-size: 12px;
-        }
-
-        .nav-item.active .icon {
-          color: #ff6a1a;
-        }
-
-        .nav-label {
-          white-space: nowrap;
-        }
-
-        .nav-item em {
-          margin-left: auto;
-
-          color:
-            rgba(255,255,255,.25);
-
-          font-style: normal;
-
-          font-size: 7px;
-          font-weight: 600;
-        }
-
-        .nested {
-          margin-left: 17px;
-
-          padding-left: 7px;
-
-          border-left:
-            1px solid
-            rgba(255,255,255,.075);
-        }
-
-        /* HEADINGS */
-
-        .sidebar-heading {
-          height: 34px;
-
-          display: flex;
-          align-items: end;
-
-          padding: 0 11px 6px;
-
-          margin-top: 9px;
-
-          color:
-            rgba(255,255,255,.36);
-
-          font-size: 10px;
-        }
-
-        .sidebar-heading .caret {
-          margin-left: auto;
-          font-size: 9px;
-        }
-
-        .sidebar-heading.premium {
-          color:
-            rgba(255,255,255,.4);
-        }
-
-        /* SIDEBAR BOTTOM */
-
-        .sidebar-bottom {
-          margin-top: auto;
-          padding-top: 14px;
-        }
-
-        .share-card {
-          min-height: 51px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 8px;
-
-          padding: 8px 9px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          border-radius: 12px;
-
-          background: #0d0d0d;
-
-          transition:
-            border-color .18s ease,
-            background .18s ease;
-        }
-
-        .share-card:hover {
-          border-color:
-            rgba(255,106,26,.2);
-
-          background: #101010;
-        }
-
-        .share-icon {
-          width: 29px;
-          height: 29px;
-
-          display: grid;
-          place-items: center;
-
-          flex: 0 0 29px;
-
-          border-radius: 8px;
-
-          background: #151515;
-
-          color:
-            rgba(255,255,255,.55);
-        }
-
-        .share-text {
-          min-width: 0;
-
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .share-text small,
-        .signed-text small {
-          color:
-            rgba(255,255,255,.28);
-
-          font-size: 8px;
-        }
-
-        .share-text strong,
-        .signed-text strong {
-          color:
-            rgba(255,255,255,.75);
-
-          font-size: 10px;
-          font-weight: 600;
-        }
-
-        .share-arrow {
-          margin-left: auto;
-          color:
-            rgba(255,255,255,.3);
-        }
-
-        .signed-in {
-          display: flex;
-          align-items: center;
-
-          gap: 8px;
-
-          padding: 11px 6px 0;
-        }
-
-        .avatar {
-          width: 28px;
-          height: 28px;
-
-          display: grid;
-          place-items: center;
-
-          border-radius: 50%;
-
-          background:
-            linear-gradient(
-              135deg,
-              #3a210d,
-              #14100b
-            );
-
-          border:
-            1px solid
-            rgba(255,106,26,.18);
-
-          font-size: 13px;
-        }
-
-        .signed-text {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .settings-icon {
-          margin-left: auto;
-
-          color:
-            rgba(255,255,255,.3);
-
-          font-size: 12px;
-        }
-
-        /* =====================================================
-           MAIN
-        ===================================================== */
-
-        .main {
-          min-height: 100vh;
-
-          margin-left: 228px;
-
-          width: calc(100% - 228px);
-
-          padding: 0 23px 34px;
-
-          position: relative;
-        }
-
-        /* TOPBAR */
-
-        .topbar {
-          height: 57px;
-
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          border-bottom:
-            1px solid
-            rgba(255,255,255,.035);
-        }
-
-        .breadcrumbs {
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          color:
-            rgba(255,255,255,.29);
-
-          font-size: 10px;
-        }
-
-        .breadcrumbs b {
-          color:
-            rgba(255,255,255,.17);
-
-          font-weight: 400;
-        }
-
-        .breadcrumbs strong {
-          color:
-            rgba(255,255,255,.5);
-
           font-weight: 500;
-        }
-
-        .top-actions {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-
-          position: relative;
-        }
-
-        .live-preview,
-        .top-button {
-          height: 34px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          background: #0b0b0b;
-
-          border-radius: 18px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
 
           cursor: pointer;
 
           transition:
-            background .18s ease,
-            border-color .18s ease;
+            border-color 0.16s ease,
+            background 0.16s ease,
+            color 0.16s ease;
         }
 
-        .live-preview {
-          padding: 0 13px;
-
-          gap: 6px;
-
-          color:
-            rgba(255,255,255,.78);
-
-          font-size: 11px;
-        }
-
-        .live-preview:hover {
-          border-color:
-            rgba(255,106,26,.25);
-
-          background:
-            rgba(255,106,26,.05);
-        }
-
-        .live-dot {
-          width: 7px;
-          height: 7px;
-
-          border-radius: 50%;
-
-          border:
-            1px solid
-            rgba(255,255,255,.75);
-
-          box-shadow:
-            0 0 5px
-            rgba(255,255,255,.35);
-        }
-
-        .top-button {
-          width: 34px;
-
-          color:
-            rgba(255,255,255,.6);
-        }
-
-        .top-button:hover {
-          background: #111;
+        .social-button:hover:not(:disabled) {
+          border-color: rgba(255, 106, 26, 0.3);
+          background: rgba(255, 106, 26, 0.055);
           color: #fff;
         }
 
-        .quick-menu {
-          position: absolute;
-
-          right: 0;
-          top: 42px;
-
-          width: 140px;
-
-          padding: 5px;
-
-          background: #111;
-
-          border:
-            1px solid
-            rgba(255,255,255,.09);
-
-          border-radius: 10px;
-
-          box-shadow:
-            0 20px 50px
-            rgba(0,0,0,.65);
-
-          z-index: 100;
+        .social-button:disabled {
+          opacity: 0.5;
+          cursor: default;
         }
 
-        .quick-menu a {
+        .divider {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+
+          margin: 20px 0;
+        }
+
+        .divider span {
+          flex: 1;
+          height: 1px;
+          background: rgba(255, 255, 255, 0.07);
+        }
+
+        .divider p {
+          margin: 0;
+
+          color: rgba(255, 255, 255, 0.27);
+
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.7px;
+        }
+
+        form {
+          width: 100%;
+        }
+
+        .field {
+          margin-bottom: 13px;
+        }
+
+        .field label {
           display: block;
 
-          padding: 9px 10px;
-
-          border-radius: 7px;
-
-          color:
-            rgba(255,255,255,.6);
-
-          font-size: 11px;
-        }
-
-        .quick-menu a:hover {
-          color: #fff;
-
-          background:
-            rgba(255,106,26,.08);
-        }
-
-        /* HEADING */
-
-        .page-heading {
-          padding: 26px 0 18px;
-        }
-
-        .page-heading h1 {
-          margin: 0;
-
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
-
-          font-size: 23px;
-          line-height: 1.2;
-
-          font-weight: 650;
-
-          letter-spacing: -.65px;
-        }
-
-        .page-heading p {
-          margin: 6px 0 0;
-
-          color:
-            rgba(255,255,255,.31);
-
-          font-size: 11px;
-        }
-
-        /* =====================================================
-           STATS
-        ===================================================== */
-
-        .stats-grid {
-          display: grid;
-
-          grid-template-columns:
-            repeat(4, minmax(0, 1fr));
-
-          gap: 9px;
-        }
-
-        .stat-card {
-          height: 104px;
-
-          padding: 17px 19px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          border-radius: 17px;
-
-          background:
-            linear-gradient(
-              135deg,
-              #0b0b0b,
-              #080808
-            );
-
-          transition:
-            transform .18s ease,
-            border-color .18s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-2px);
-
-          border-color:
-            rgba(255,106,26,.18);
-        }
-
-        .stat-card-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          color:
-            rgba(255,255,255,.32);
-
-          font-size: 10px;
-
-          margin-bottom: 17px;
-        }
-
-        .stat-card-top .icon {
-          font-size: 12px;
-        }
-
-        .stat-card strong {
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
-
-          font-size: 23px;
-
-          line-height: 1;
-
-          font-weight: 600;
-
-          letter-spacing: -.4px;
-        }
-
-        /* =====================================================
-           ANALYTICS GRID
-        ===================================================== */
-
-        .analytics-grid {
-          display: grid;
-
-          grid-template-columns:
-            minmax(0, 3fr)
-            minmax(290px, .9fr);
-
-          gap: 13px;
-
-          margin-top: 16px;
-        }
-
-        .panel {
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          border-radius: 18px;
-
-          background:
-            rgba(8,8,8,.93);
-
-          overflow: hidden;
-        }
-
-        .views-panel,
-        .devices-panel {
-          min-height: 389px;
-        }
-
-        .panel-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-
-          gap: 15px;
-
-          padding: 23px 21px 0;
-        }
-
-        .panel-header h2,
-        .countries-header h2 {
           margin: 0 0 6px;
 
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
+          color: rgba(255, 255, 255, 0.7);
 
-          font-size: 14px;
-
-          line-height: 1.2;
-
+          font-size: 11px;
           font-weight: 600;
+          line-height: 1.2;
         }
 
-        .panel-header p,
-        .countries-header p {
-          margin: 0;
+        .input-wrap {
+          width: 100%;
+          height: 44px;
 
-          color:
-            rgba(255,255,255,.29);
-
-          font-size: 10px;
-
-          line-height: 1.5;
-        }
-
-        .panel-header p b {
-          color:
-            rgba(255,255,255,.48);
-
-          font-weight: 500;
-        }
-
-        /* =====================================================
-           RANGE
-        ===================================================== */
-
-        .range-controls {
           display: flex;
           align-items: center;
 
-          height: 32px;
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          border-radius: 9px;
 
-          padding: 3px;
+          background: rgba(255, 255, 255, 0.025);
 
-          border:
-            1px solid
-            rgba(255,255,255,.075);
-
-          border-radius: 17px;
-
-          background: #0c0c0c;
-
-          flex-shrink: 0;
+          transition:
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease;
         }
 
-        .range-controls button {
-          height: 24px;
+        .input-wrap:hover {
+          border-color: rgba(255, 255, 255, 0.14);
+        }
 
-          border: 0;
+        .input-wrap:focus-within {
+          border-color: rgba(255, 106, 26, 0.55);
+
+          background: rgba(255, 255, 255, 0.035);
+
+          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.055);
+        }
+
+        .input-wrap.success {
+          border-color: rgba(82, 197, 116, 0.48);
+        }
+
+        .input-wrap.danger {
+          border-color: rgba(235, 78, 69, 0.52);
+        }
+
+        :global(.input-icon) {
+          width: 40px;
+          height: 100%;
+          flex: 0 0 40px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          color: rgba(255, 255, 255, 0.32);
+        }
+
+        .input-wrap:focus-within :global(.input-icon) {
+          color: rgba(255, 145, 85, 0.75);
+        }
+
+        .input-wrap input {
+          flex: 1;
+          min-width: 0;
+          height: 100%;
+
+          padding: 0;
+
+          border: none;
+          outline: none;
 
           background: transparent;
 
-          border-radius: 13px;
+          color: #fff;
 
-          padding: 0 8px;
+          font-family: inherit;
+          font-size: 12px;
+        }
 
-          color:
-            rgba(255,255,255,.28);
+        .input-wrap input::placeholder {
+          color: rgba(255, 255, 255, 0.25);
+        }
+
+        .status {
+          padding-right: 10px;
+
+          white-space: nowrap;
 
           font-size: 9px;
-
-          cursor: pointer;
-        }
-
-        .range-controls .metric-button {
-          padding: 0 10px;
-
-          color:
-            rgba(255,255,255,.52);
-
-          border-right:
-            1px solid
-            rgba(255,255,255,.07);
-
-          border-radius: 12px;
-        }
-
-        .range-controls .range-button.active {
-          color: #ff8a3d;
-
-          background:
-            rgba(255,106,26,.1);
-
-          border:
-            1px solid
-            rgba(255,106,26,.25);
-        }
-
-        /* =====================================================
-           CHART
-        ===================================================== */
-
-        .chart-container {
-          height: 292px;
-
-          padding: 27px 20px 13px;
-        }
-
-        .chart {
-          display: block;
-
-          width: 100%;
-
-          height: 247px;
-        }
-
-        .chart-labels {
-          display: flex;
-          justify-content: space-between;
-
-          padding: 0 7px;
-
-          color:
-            rgba(255,255,255,.28);
-
-          font-size: 9px;
-        }
-
-        /* =====================================================
-           DEVICES
-        ===================================================== */
-
-        .device-content {
-          height: 300px;
-
-          display: flex;
-          flex-direction: column;
-
-          align-items: center;
-          justify-content: center;
-
-          padding-top: 4px;
-        }
-
-        .donut {
-          width: 122px;
-          height: 122px;
-
-          border-radius: 50%;
-
-          background:
-            conic-gradient(
-              #ee8bb1 0deg 180deg,
-              #ffb34d 180deg 360deg
-            );
-
-          display: grid;
-          place-items: center;
-        }
-
-        .donut-center {
-          width: 84px;
-          height: 84px;
-
-          border-radius: 50%;
-
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-
-          background: #090909;
-
-          box-shadow:
-            inset 0 0 0 1px
-            rgba(255,255,255,.025);
-        }
-
-        .donut-center strong {
-          font-family:
-            "Space Grotesk",
-            Inter,
-            sans-serif;
-
-          font-size: 17px;
-          line-height: 1;
-        }
-
-        .donut-center span {
-          margin-top: 3px;
-
-          color:
-            rgba(255,255,255,.32);
-
-          font-size: 8px;
-        }
-
-        .device-legend {
-          width: 155px;
-
-          display: flex;
-          flex-direction: column;
-
-          gap: 10px;
-
-          margin-top: 24px;
-        }
-
-        .legend-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          font-size: 10px;
-
-          color:
-            rgba(255,255,255,.5);
-        }
-
-        .legend-name {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .legend-row strong {
-          font-weight: 500;
-
-          color:
-            rgba(255,255,255,.5);
-        }
-
-        .legend-dot {
-          width: 7px;
-          height: 7px;
-
-          border-radius: 50%;
-        }
-
-        .legend-dot.pink {
-          background: #ee8bb1;
-        }
-
-        .legend-dot.gold {
-          background: #ffb34d;
-        }
-
-        /* =====================================================
-           COUNTRIES
-        ===================================================== */
-
-        .countries-panel {
-          margin-top: 16px;
-
-          padding-bottom: 20px;
-        }
-
-        .countries-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          padding: 22px 21px 17px;
-        }
-
-        .globe-button {
-          height: 32px;
-
-          padding: 0 13px;
-
-          border-radius: 17px;
-
-          border:
-            1px solid
-            rgba(255,106,26,.35);
-
-          background:
-            rgba(255,106,26,.06);
-
-          color: #ff8a3d;
-
-          font-size: 9px;
-
-          cursor: pointer;
-
-          transition:
-            background .18s ease;
-        }
-
-        .globe-button:hover {
-          background:
-            rgba(255,106,26,.1);
-        }
-
-        .country-grid {
-          display: grid;
-
-          grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-
-          gap: 10px;
-
-          padding: 0 21px;
-        }
-
-        .country-card {
-          min-height: 52px;
-
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          padding: 9px 11px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.065);
-
-          background: #101010;
-
-          border-radius: 12px;
-        }
-
-        .country-flag {
-          font-size: 18px;
-
-          line-height: 1;
-        }
-
-        .country-info {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .country-title {
-          color:
-            rgba(255,255,255,.72);
-
-          font-size: 10px;
-
           font-weight: 600;
         }
 
-        .country-progress {
-          height: 4px;
-
-          margin-top: 7px;
-
-          border-radius: 99px;
-
-          background:
-            rgba(255,255,255,.045);
-
-          overflow: hidden;
+        .status.available {
+          color: #65d38a;
         }
 
-        .country-progress span {
-          display: block;
+        .status.taken {
+          color: #ef726b;
+        }
 
-          width: 70%;
+        .status.checking {
+          color: #ff965e;
+        }
+
+        .eye-button {
+          width: 40px;
           height: 100%;
 
-          border-radius: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
-          background:
-            linear-gradient(
-              90deg,
-              #ff6a1a,
-              #ff8a3d
-            );
+          padding: 0;
+
+          border: none;
+          background: transparent;
+
+          color: rgba(255, 255, 255, 0.3);
+
+          cursor: pointer;
         }
 
-        .country-value {
-          color:
-            rgba(255,255,255,.43);
+        .eye-button:hover {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .hint,
+        .password-hint {
+          display: block;
+
+          margin-top: 5px;
+
+          color: rgba(255, 255, 255, 0.29);
 
           font-size: 9px;
-
-          white-space: nowrap;
+          line-height: 1.35;
         }
 
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (max-width: 1150px) {
-
-          .sidebar {
-            width: 210px;
-          }
-
-          .main {
-            margin-left: 210px;
-            width: calc(100% - 210px);
-          }
-
-          .analytics-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .devices-panel {
-            min-height: 330px;
-          }
-
-          .device-content {
-            height: 255px;
-          }
-
+        .good {
+          color: #65d38a;
         }
 
-        @media (max-width: 850px) {
+        .bad {
+          color: #ef726b;
+        }
 
-          .sidebar {
-            position: relative;
+        .terms {
+          position: relative;
 
-            width: 100%;
-            height: auto;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
 
-            padding: 13px 14px;
+          margin: 17px 0 13px;
 
-            border-right: 0;
+          cursor: pointer;
+        }
 
-            border-bottom:
-              1px solid
-              rgba(255,255,255,.075);
+        .terms input {
+          position: absolute;
+
+          width: 1px;
+          height: 1px;
+
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .custom-check {
+          width: 16px;
+          height: 16px;
+          flex: 0 0 16px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          margin-top: 1px;
+
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+
+          background: rgba(255, 255, 255, 0.02);
+
+          color: #050505;
+
+          font-size: 10px;
+          font-weight: 800;
+
+          transition:
+            background 0.15s ease,
+            border-color 0.15s ease;
+        }
+
+        .terms input:checked + .custom-check {
+          border-color: #ff6a1a;
+          background: #ff6a1a;
+        }
+
+        .terms input:focus-visible + .custom-check {
+          box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.18);
+        }
+
+        .terms-text {
+          color: rgba(255, 255, 255, 0.4);
+
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .terms-text a {
+          color: #ff8740;
+          text-decoration: none;
+        }
+
+        .terms-text a:hover {
+          color: #ffa064;
+          text-decoration: underline;
+        }
+
+        .error-box,
+        .notice-box {
+          margin-bottom: 10px;
+
+          padding: 8px 10px;
+
+          border-radius: 8px;
+
+          font-size: 10px;
+          line-height: 1.4;
+        }
+
+        .error-box {
+          border: 1px solid rgba(235, 78, 69, 0.25);
+          background: rgba(235, 78, 69, 0.065);
+          color: #ef918a;
+        }
+
+        .notice-box {
+          border: 1px solid rgba(72, 196, 112, 0.25);
+          background: rgba(72, 196, 112, 0.065);
+          color: #7fdc9f;
+        }
+
+        .continue-button {
+          width: 100%;
+          height: 44px;
+
+          border: none;
+          border-radius: 9px;
+
+          background: #ff6a1a;
+          color: #080808;
+
+          font-family: inherit;
+          font-size: 12px;
+          font-weight: 700;
+
+          opacity: 0.32;
+          cursor: not-allowed;
+
+          transition:
+            opacity 0.16s ease,
+            filter 0.16s ease,
+            transform 0.16s ease,
+            box-shadow 0.16s ease;
+        }
+
+        .continue-button.ready {
+          opacity: 1;
+          cursor: pointer;
+
+          box-shadow: 0 7px 24px rgba(255, 106, 26, 0.16);
+        }
+
+        .continue-button.ready:hover {
+          filter: brightness(1.07);
+          transform: translateY(-1px);
+          box-shadow: 0 9px 28px rgba(255, 106, 26, 0.23);
+        }
+
+        .continue-button:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        .spinner {
+          display: inline-block;
+
+          width: 12px;
+          height: 12px;
+
+          margin-right: 7px;
+
+          vertical-align: -2px;
+
+          border: 2px solid rgba(0, 0, 0, 0.2);
+          border-top-color: #000;
+
+          border-radius: 50%;
+
+          animation: spin 0.7s linear infinite;
+        }
+
+        .login-text {
+          margin: 15px 0 0;
+
+          text-align: center;
+
+          color: rgba(255, 255, 255, 0.31);
+
+          font-size: 10px;
+        }
+
+        .login-text a {
+          color: #ff8740;
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .login-text a:hover {
+          color: #ffa064;
+        }
+
+        .ambient {
+          position: fixed;
+
+          width: 350px;
+          height: 350px;
+
+          border-radius: 50%;
+
+          pointer-events: none;
+
+          filter: blur(100px);
+
+          z-index: 0;
+        }
+
+        .ambient-one {
+          top: -240px;
+          left: 50%;
+
+          transform: translateX(-50%);
+
+          background: rgba(255, 106, 26, 0.075);
+        }
+
+        .ambient-two {
+          right: -250px;
+          bottom: -180px;
+
+          background: rgba(255, 106, 26, 0.035);
+        }
+
+        :global(.leaves-canvas) {
+          position: fixed;
+          inset: 0;
+
+          width: 100%;
+          height: 100%;
+
+          pointer-events: none;
+
+          z-index: 3;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @media (max-width: 520px) {
+          .signup-page {
+            align-items: flex-start;
+            padding: 18px 12px;
+          }
+
+          .signup-card {
+            margin-top: 8px;
+            padding: 27px 19px 21px;
+            border-radius: 16px;
           }
 
           .brand {
-            margin: 0;
+            margin-bottom: 19px;
           }
 
-          .search-box,
-          .sidebar-nav,
-          .sidebar-heading,
-          .sidebar-bottom {
-            display: none;
+          h1 {
+            font-size: 25px;
           }
 
-          .main {
-            margin-left: 0;
-
-            width: 100%;
-
-            padding:
-              0 14px 30px;
+          .heading p {
+            margin-bottom: 21px;
           }
 
-          .topbar {
-            height: 55px;
+          .social-button {
+            height: 42px;
           }
-
-          .stats-grid {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-          }
-
         }
 
-        @media (max-width: 600px) {
-
-          .page-heading {
-            padding-top: 21px;
+        @media (prefers-reduced-motion: reduce) {
+          .social-button,
+          .input-wrap,
+          .continue-button {
+            transition: none;
           }
-
-          .page-heading h1 {
-            font-size: 21px;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .panel-header {
-            display: block;
-          }
-
-          .range-controls {
-            width: max-content;
-            margin-top: 15px;
-          }
-
-          .country-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .countries-header {
-            align-items: flex-start;
-            gap: 12px;
-          }
-
-          .live-preview {
-            display: none;
-          }
-
-          .chart-container {
-            padding-left: 10px;
-            padding-right: 10px;
-          }
-
         }
-
-        @media (max-width: 430px) {
-
-          .main {
-            padding-left: 10px;
-            padding-right: 10px;
-          }
-
-          .top-actions {
-            gap: 4px;
-          }
-
-          .top-button {
-            width: 31px;
-            height: 31px;
-          }
-
-          .page-heading p {
-            font-size: 10px;
-          }
-
-          .panel {
-            border-radius: 15px;
-          }
-
-          .panel-header,
-          .countries-header {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .country-grid {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-        }
-
       `}</style>
     </main>
   )
 }
 
-function SidebarHeading({ children, premium = false }) {
-  return (
-    <div
-      className={`sidebar-heading ${
-        premium ? 'premium' : ''
-      }`}
-    >
-      <span>
-        {premium ? '♛ ' : ''}
-        {children}
-      </span>
+/* =========================================================
+   FALLING LEAVES
+========================================================= */
 
-      <span className="caret">
-        ⌃
-      </span>
-    </div>
+function FallingLeaves() {
+  const [canvas, setCanvas] = useState(null)
+
+  useEffect(() => {
+    const element = document.createElement('canvas')
+
+    element.className = 'leaves-canvas'
+    element.setAttribute('aria-hidden', 'true')
+
+    document.body.appendChild(element)
+    setCanvas(element)
+
+    return () => {
+      element.remove()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) return
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
+
+      canvas.style.width = '100%'
+      canvas.style.height = '100%'
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    resize()
+
+    window.addEventListener('resize', resize)
+
+    const colors = [
+      '#ff6a1a',
+      '#ff8740',
+      '#e85a0c',
+      '#ffffff',
+    ]
+
+    const makeLeaf = () => ({
+      x: Math.random() * window.innerWidth,
+      y: -40 - Math.random() * window.innerHeight,
+
+      size: Math.random() * 4 + 7,
+
+      speed: Math.random() * 0.3 + 0.25,
+
+      swayAmp: Math.random() * 24 + 16,
+
+      swaySpeed: Math.random() * 0.01 + 0.005,
+
+      phase: Math.random() * Math.PI * 2,
+
+      rotation: Math.random() * Math.PI * 2,
+
+      spin: (Math.random() - 0.5) * 0.009,
+
+      opacity: Math.random() * 0.13 + 0.1,
+
+      color: colors[Math.floor(Math.random() * colors.length)],
+
+      baseX: 0,
+    })
+
+    const leaves = Array.from({ length: 9 }, makeLeaf)
+
+    leaves.forEach((leaf) => {
+      leaf.baseX = leaf.x
+      leaf.y = Math.random() * window.innerHeight
+    })
+
+    let animationFrame
+    let tick = 0
+
+    const drawLeaf = (size, color, opacity) => {
+      ctx.globalAlpha = opacity
+      ctx.fillStyle = color
+
+      ctx.beginPath()
+
+      ctx.moveTo(0, -size)
+
+      ctx.bezierCurveTo(
+        size * 0.95,
+        -size * 0.45,
+        size * 0.7,
+        size * 0.65,
+        0,
+        size
+      )
+
+      ctx.bezierCurveTo(
+        -size * 0.7,
+        size * 0.65,
+        -size * 0.95,
+        -size * 0.45,
+        0,
+        -size
+      )
+
+      ctx.fill()
+
+      ctx.globalAlpha = opacity * 0.7
+      ctx.strokeStyle = '#000'
+      ctx.lineWidth = 0.7
+
+      ctx.beginPath()
+      ctx.moveTo(0, -size * 0.85)
+      ctx.lineTo(0, size * 1.15)
+      ctx.stroke()
+
+      ctx.globalAlpha = 1
+    }
+
+    const draw = () => {
+      ctx.clearRect(
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+      )
+
+      tick += 1
+
+      leaves.forEach((leaf) => {
+        if (!reduceMotion) {
+          leaf.y += leaf.speed
+          leaf.rotation += leaf.spin
+        }
+
+        const sway = reduceMotion
+          ? 0
+          : Math.sin(
+              tick * leaf.swaySpeed + leaf.phase
+            ) * leaf.swayAmp
+
+        const x = leaf.baseX + sway
+
+        if (leaf.y > window.innerHeight + 50) {
+          leaf.y = -40
+          leaf.baseX = Math.random() * window.innerWidth
+        }
+
+        ctx.save()
+
+        ctx.translate(x, leaf.y)
+
+        ctx.rotate(
+          leaf.rotation +
+            Math.sin(
+              tick * leaf.swaySpeed + leaf.phase
+            ) *
+              0.35
+        )
+
+        drawLeaf(
+          leaf.size,
+          leaf.color,
+          leaf.opacity
+        )
+
+        ctx.restore()
+      })
+
+      animationFrame = requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('resize', resize)
+    }
+  }, [canvas])
+
+  return null
+}
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+function LockIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="4" y="10" width="16" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </svg>
+    </span>
+  )
+}
+
+function UserIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </svg>
+    </span>
+  )
+}
+
+function MailIcon() {
+  return (
+    <span className="input-icon">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+    </span>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m3 3 18 18" />
+      <path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.7" />
+      <path d="M6.2 6.9C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M21.35 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.22a4.46 4.46 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.93-4.18 2.93-7.4Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 21.6c2.63 0 4.84-.87 6.45-2.37l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.29v2.52A9.75 9.75 0 0 0 12 21.6Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M6.53 13.68A5.86 5.86 0 0 1 6.22 12c0-.58.1-1.14.31-1.68V7.8H3.29A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.2l3.24-2.52Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 6.29c1.43 0 2.72.49 3.74 1.46l2.8-2.8C16.84 3.38 14.63 2.4 12 2.4a9.75 9.75 0 0 0-8.71 5.4l3.24 2.52C7.3 8.01 9.46 6.29 12 6.29Z"
+      />
+    </svg>
+  )
+}
+
+function DiscordIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        fill="#fff"
+        d="M19.54 5.27A16.2 16.2 0 0 0 15.57 4l-.5 1.02a14.7 14.7 0 0 0-6.14 0L8.43 4a16.2 16.2 0 0 0-3.97 1.27C1.95 9.08 1.27 12.8 1.61 16.47a16.3 16.3 0 0 0 4.88 2.5l1.18-1.62c-.65-.24-1.28-.55-1.86-.9l.45-.35c3.59 1.68 7.49 1.68 11.03 0l.45.35c-.59.35-1.21.65-1.86.9l1.18 1.62a16.3 16.3 0 0 0 4.88-2.5c.4-4.28-.68-7.97-2.4-11.2ZM8.03 14.05c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Zm7.94 0c-1.08 0-1.96-1-1.96-2.22s.86-2.22 1.96-2.22 1.98 1 1.96 2.22c0 1.22-.86 2.22-1.96 2.22Z"
+      />
+    </svg>
   )
 }
