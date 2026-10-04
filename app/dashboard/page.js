@@ -5,33 +5,38 @@ import { TransitionLink } from '../../components/PageTransition'
 
 const C = {
   bg: '#050505',
-  panel: '#0b0b0b',
-  panel2: '#101010',
-  line: 'rgba(255,255,255,.08)',
+  panel: '#0a0a0a',
+  panel2: '#0d0d0d',
+  border: 'rgba(255,255,255,.075)',
+  borderStrong: 'rgba(255,255,255,.11)',
   text: '#fff',
-  muted: 'rgba(255,255,255,.58)',
-  faint: 'rgba(255,255,255,.36)',
+  muted: 'rgba(255,255,255,.52)',
+  faint: 'rgba(255,255,255,.32)',
   orange: '#ff6a1a',
-  orange2: '#ff8a3d',
-  orangeSoft: 'rgba(255,106,26,.11)',
+  orange2: '#ff8b3d',
 }
 
-function Icon({ children }) {
+function Icon({ children, className = '' }) {
   return (
-    <span className="icon" aria-hidden="true">
+    <span className={`icon ${className}`} aria-hidden="true">
       {children}
     </span>
   )
 }
 
-function NavItem({ href, icon, children, active = false }) {
+function NavItem({ href, icon, children, active = false, soon = false }) {
   return (
     <TransitionLink
       href={href}
       className={`nav-item ${active ? 'active' : ''}`}
     >
       <Icon>{icon}</Icon>
-      <span>{children}</span>
+
+      <span className="nav-label">
+        {children}
+      </span>
+
+      {soon && <em>SOON</em>}
     </TransitionLink>
   )
 }
@@ -39,7 +44,7 @@ function NavItem({ href, icon, children, active = false }) {
 function StatCard({ label, value, icon }) {
   return (
     <div className="stat-card">
-      <div className="stat-top">
+      <div className="stat-card-top">
         <span>{label}</span>
         <Icon>{icon}</Icon>
       </div>
@@ -59,46 +64,45 @@ function Chart() {
     []
   )
 
-  const width = 900
-  const height = 260
+  const width = 1000
+  const height = 250
   const max = 7
 
-  const path = points
-    .map((value, index) => {
-      const x =
-        (index / (points.length - 1)) *
-        width
+  const coordinates = points.map((value, index) => {
+    const x = (index / (points.length - 1)) * width
+    const y = height - 25 - (value / max) * 175
 
-      const y =
-        height -
-        28 -
-        (value / max) * 190
+    return { x, y }
+  })
 
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
-    })
+  const path = coordinates
+    .map(
+      ({ x, y }, index) =>
+        `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+    )
     .join(' ')
 
-  const area =
-    `${path} L ${width} ${height} L 0 ${height} Z`
+  const area = `${path} L ${width} ${height} L 0 ${height} Z`
 
   return (
-    <div className="chart-wrap">
+    <div className="chart-container">
       <svg
+        className="chart"
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
       >
         <defs>
           <linearGradient
-            id="fallChart"
+            id="viewsGradient"
             x1="0"
-            x2="0"
             y1="0"
+            x2="0"
             y2="1"
           >
             <stop
               offset="0%"
               stopColor={C.orange}
-              stopOpacity=".28"
+              stopOpacity=".25"
             />
 
             <stop
@@ -109,20 +113,21 @@ function Chart() {
           </linearGradient>
         </defs>
 
-        {[0, 1, 2, 3, 4].map(i => (
+        {[0, 1, 2, 3, 4].map((line) => (
           <line
-            key={i}
+            key={line}
             x1="0"
             x2={width}
-            y1={32 + i * 48}
-            y2={32 + i * 48}
-            stroke="rgba(255,255,255,.055)"
+            y1={30 + line * 44}
+            y2={30 + line * 44}
+            stroke="rgba(255,255,255,.045)"
+            strokeWidth="1"
           />
         ))}
 
         <path
           d={area}
-          fill="url(#fallChart)"
+          fill="url(#viewsGradient)"
         />
 
         <path
@@ -147,26 +152,31 @@ function Chart() {
 
 function Donut() {
   return (
-    <div className="donut-area">
+    <div className="device-content">
       <div className="donut">
-        <div className="donut-hole">
-          2
-          <br />
-          <small>views</small>
+        <div className="donut-center">
+          <strong>2</strong>
+          <span>views</span>
         </div>
       </div>
 
-      <div className="legend">
-        <div>
-          <i className="dot orange" />
-          Desktop
-          <b>1 (50%)</b>
+      <div className="device-legend">
+        <div className="legend-row">
+          <div className="legend-name">
+            <span className="legend-dot pink" />
+            Desktop
+          </div>
+
+          <strong>1 (50%)</strong>
         </div>
 
-        <div>
-          <i className="dot gold" />
-          Mobile
-          <b>1 (50%)</b>
+        <div className="legend-row">
+          <div className="legend-name">
+            <span className="legend-dot gold" />
+            Mobile
+          </div>
+
+          <strong>1 (50%)</strong>
         </div>
       </div>
     </div>
@@ -175,84 +185,64 @@ function Donut() {
 
 function Country({ flag, name, value }) {
   return (
-    <div className="country">
-      <span className="flag">
+    <div className="country-card">
+      <div className="country-flag">
         {flag}
-      </span>
+      </div>
 
-      <div style={{ flex: 1 }}>
-        <div className="country-name">
+      <div className="country-info">
+        <div className="country-title">
           {name}
         </div>
 
-        <div className="country-bar" />
+        <div className="country-progress">
+          <span />
+        </div>
       </div>
 
-      <span className="country-value">
+      <div className="country-value">
         {value}
-      </span>
+      </div>
     </div>
   )
 }
 
 export default function DashboardPage() {
   const [range, setRange] = useState('7d')
-  const [menuOpen, setMenuOpen] =
-    useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <main className="dashboard-shell">
+    <main className="dashboard">
 
-      {/* FALL ATMOSPHERE */}
+      {/* Background */}
 
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
+      <div className="background-glow glow-1" />
+      <div className="background-glow glow-2" />
 
-      <div className="leaf leaf-a">
-        🍂
-      </div>
-
-      <div className="leaf leaf-b">
-        🍁
-      </div>
-
-      <div className="leaf leaf-c">
-        🍂
-      </div>
-
-      {/* SIDEBAR */}
+      {/* Sidebar */}
 
       <aside className="sidebar">
 
-        <TransitionLink
-          href="/"
-          className="brand"
-        >
+        <TransitionLink href="/" className="brand">
           <img
             src="/icon.png"
             alt=""
           />
 
-          <span>
-            illness.lol
-          </span>
+          <span>illness.lol</span>
         </TransitionLink>
 
-        <div className="search">
-          <span className="search-icon">
+        <div className="search-box">
+          <span className="search-symbol">
             ⌕
           </span>
 
-          <span>
-            Search Halo
-          </span>
+          <span>Search Halo</span>
 
-          <kbd>
-            Ctrl K
-          </kbd>
+          <kbd>Ctrl K</kbd>
         </div>
 
-        <div className="nav-section">
+        <div className="sidebar-nav">
 
           <NavItem
             href="/dashboard"
@@ -271,17 +261,11 @@ export default function DashboardPage() {
 
         </div>
 
-        <div className="nav-heading">
-          <span>
-            Profile
-          </span>
+        <SidebarHeading>
+          Profile
+        </SidebarHeading>
 
-          <span>
-            ⌃
-          </span>
-        </div>
-
-        <div className="nav-section nested">
+        <div className="sidebar-nav nested">
 
           <NavItem
             href="/dashboard/assets"
@@ -327,12 +311,11 @@ export default function DashboardPage() {
 
         </div>
 
-        <div className="nav-heading premium">
-          <span>♛ Premium</span>
-          <small>▣</small>
-        </div>
+        <SidebarHeading premium>
+          Premium
+        </SidebarHeading>
 
-        <div className="nav-section nested">
+        <div className="sidebar-nav nested">
 
           <NavItem
             href="/dashboard/premium/customize"
@@ -357,7 +340,7 @@ export default function DashboardPage() {
 
         </div>
 
-        <div className="nav-section">
+        <div className="sidebar-nav">
 
           <NavItem
             href="/dashboard/templates"
@@ -369,27 +352,18 @@ export default function DashboardPage() {
           <NavItem
             href="/dashboard/image-host"
             icon="▣"
+            soon
           >
             Image Host
-
-            <em>
-              SOON
-            </em>
           </NavItem>
 
         </div>
 
-        <div className="nav-heading">
-          <span>
-            Account
-          </span>
+        <SidebarHeading>
+          Account
+        </SidebarHeading>
 
-          <span>
-            ⌃
-          </span>
-        </div>
-
-        <div className="nav-section nested">
+        <div className="sidebar-nav nested">
 
           <NavItem
             href="/dashboard/settings"
@@ -407,87 +381,85 @@ export default function DashboardPage() {
 
         </div>
 
-        <div className="share-card">
+        <div className="sidebar-bottom">
 
-          <div className="share-icon">
-            ✣
+          <TransitionLink
+            href="/gun"
+            className="share-card"
+          >
+            <div className="share-icon">
+              ✣
+            </div>
+
+            <div className="share-text">
+              <small>Profile</small>
+              <strong>Share your profile</strong>
+            </div>
+
+            <span className="share-arrow">
+              ↗
+            </span>
+          </TransitionLink>
+
+          <div className="signed-in">
+
+            <div className="avatar">
+              🍂
+            </div>
+
+            <div className="signed-text">
+              <small>Signed in as</small>
+              <strong>gun</strong>
+            </div>
+
+            <TransitionLink
+              href="/dashboard/settings"
+              className="settings-icon"
+            >
+              ⚙
+            </TransitionLink>
+
           </div>
-
-          <div>
-            <small>
-              Profile
-            </small>
-
-            <strong>
-              Share your profile
-            </strong>
-          </div>
-
-          <span>
-            ↗
-          </span>
-
-        </div>
-
-        <div className="signed-in">
-
-          <span className="mini-avatar">
-            🍂
-          </span>
-
-          <div>
-            <small>
-              Signed in as
-            </small>
-
-            <strong>
-              gun
-            </strong>
-          </div>
-
-          <span>
-            ⚙
-          </span>
 
         </div>
 
       </aside>
 
-      {/* CONTENT */}
+      {/* Main */}
 
-      <section className="content">
+      <section className="main">
 
-        {/* TOP BAR */}
+        {/* Topbar */}
 
         <header className="topbar">
 
-          <div className="crumb">
-            Dashboard
-            <span>›</span>
-            <b>
-              Overview
-            </b>
+          <div className="breadcrumbs">
+            <span>Dashboard</span>
+            <b>›</b>
+            <strong>Overview</strong>
           </div>
 
           <div className="top-actions">
 
             <TransitionLink
               href="/gun"
-              className="preview"
+              className="live-preview"
             >
-              ◉ &nbsp;Live preview
+              <span className="live-dot" />
+              Live preview
             </TransitionLink>
 
-            <button>
+            <button
+              className="top-button"
+              type="button"
+            >
               ♟
             </button>
 
             <button
-              onClick={() =>
-                setMenuOpen(
-                  value => !value
-                )
-              }
+              className="top-button"
+              type="button"
+              onClick={() => setMenuOpen(!menuOpen)}
             >
               ⚙
             </button>
@@ -495,15 +467,11 @@ export default function DashboardPage() {
             {menuOpen && (
               <div className="quick-menu">
 
-                <TransitionLink
-                  href="/dashboard/settings"
-                >
+                <TransitionLink href="/dashboard/settings">
                   Settings
                 </TransitionLink>
 
-                <TransitionLink
-                  href="/logout"
-                >
+                <TransitionLink href="/logout">
                   Log out
                 </TransitionLink>
 
@@ -514,28 +482,21 @@ export default function DashboardPage() {
 
         </header>
 
-        {/* HEADER */}
+        {/* Heading */}
 
-        <div className="heading">
+        <section className="page-heading">
 
-          <div>
+          <h1>Welcome back</h1>
 
-            <h1>
-              Welcome back
-            </h1>
+          <p>
+            Here is a quick look at your illness.lol page.
+          </p>
 
-            <p>
-              Here is a quick look at
-              your illness.lol page.
-            </p>
+        </section>
 
-          </div>
+        {/* Stats */}
 
-        </div>
-
-        {/* STAT CARDS */}
-
-        <div className="stats">
+        <section className="stats-grid">
 
           <StatCard
             label="Username"
@@ -561,63 +522,48 @@ export default function DashboardPage() {
             icon="◉"
           />
 
-        </div>
+        </section>
 
-        {/* MAIN GRID */}
+        {/* Analytics */}
 
-        <div className="main-grid">
+        <section className="analytics-grid">
 
-          {/* VIEWS */}
+          {/* Views */}
 
-          <section className="panel views-panel">
+          <div className="panel views-panel">
 
-            <div className="panel-head">
+            <div className="panel-header">
 
               <div>
-
-                <h2>
-                  Views
-                </h2>
+                <h2>Views</h2>
 
                 <p>
-                  Your profile activity
-                  over the selected range.
-                  {' '}
-                  <b>
-                    2 total.
-                  </b>
+                  Your profile activity over the selected range.
+                  <b> 2 total.</b>
                 </p>
-
               </div>
 
-              <div className="controls">
+              <div className="range-controls">
 
-                <button className="metric">
+                <button className="metric-button">
                   ◉ &nbsp; Views⌄
                 </button>
 
-                {[
-                  '3d',
-                  '7d',
-                  '30d',
-                  '90d',
-                ].map(value => (
-
-                  <button
-                    key={value}
-                    className={
-                      range === value
-                        ? 'selected'
-                        : ''
-                    }
-                    onClick={() =>
-                      setRange(value)
-                    }
-                  >
-                    {value}
-                  </button>
-
-                ))}
+                {['3d', '7d', '30d', '90d'].map(
+                  (item) => (
+                    <button
+                      key={item}
+                      className={
+                        range === item
+                          ? 'range-button active'
+                          : 'range-button'
+                      }
+                      onClick={() => setRange(item)}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
 
               </div>
 
@@ -625,62 +571,49 @@ export default function DashboardPage() {
 
             <Chart />
 
-          </section>
+          </div>
 
-          {/* DEVICES */}
+          {/* Devices */}
 
-          <section className="panel devices-panel">
+          <div className="panel devices-panel">
 
-            <div className="panel-head">
-
+            <div className="panel-header">
               <div>
-
-                <h2>
-                  Devices
-                </h2>
+                <h2>Devices</h2>
 
                 <p>
-                  How visitors break
-                  down by device type.
+                  How visitors break down by device type.
                 </p>
-
               </div>
-
             </div>
 
             <Donut />
 
-          </section>
+          </div>
 
-        </div>
+        </section>
 
-        {/* COUNTRIES */}
+        {/* Countries */}
 
         <section className="panel countries-panel">
 
-          <div className="countries-head">
+          <div className="countries-header">
 
             <div>
-
-              <h2>
-                Top countries
-              </h2>
+              <h2>Top countries</h2>
 
               <p>
-                Where your visitors are
-                coming from in the selected
-                range.
+                Where your visitors are coming from in the selected range.
               </p>
-
             </div>
 
-            <button className="globe">
+            <button className="globe-button">
               ◎ &nbsp; Show globe
             </button>
 
           </div>
 
-          <div className="countries">
+          <div className="country-grid">
 
             <Country
               flag="🇩🇰"
@@ -700,9 +633,11 @@ export default function DashboardPage() {
 
       </section>
 
-      {/* STYLES */}
-
       <style jsx global>{`
+
+        /* =====================================================
+           RESET
+        ===================================================== */
 
         * {
           box-sizing: border-box;
@@ -711,477 +646,470 @@ export default function DashboardPage() {
         html,
         body {
           margin: 0;
+          padding: 0;
+          min-height: 100%;
           background: #050505;
           color: #fff;
           font-family:
             Inter,
+            ui-sans-serif,
             system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
             sans-serif;
         }
 
-        a {
-          text-decoration: none;
-          color: inherit;
+        body {
+          overflow-x: hidden;
+        }
+
+        button,
+        input {
+          font: inherit;
         }
 
         button {
-          font: inherit;
           color: inherit;
         }
 
-        /* =========================
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        /* =====================================================
            PAGE
-        ========================= */
+        ===================================================== */
 
-        .dashboard-shell {
+        .dashboard {
           min-height: 100vh;
-          background: #050505;
+          background:
+            radial-gradient(
+              circle at 52% -10%,
+              rgba(255,106,26,.065),
+              transparent 30%
+            ),
+            #050505;
+
           position: relative;
-          overflow: hidden;
+          isolation: isolate;
         }
 
-        /* =========================
-           FALL BACKGROUND
-        ========================= */
-
-        .ambient {
+        .background-glow {
           position: fixed;
+          pointer-events: none;
+          z-index: -1;
           border-radius: 50%;
-          pointer-events: none;
-          filter: blur(30px);
-          z-index: 0;
+          filter: blur(70px);
         }
 
-        .ambient-one {
-          width: 800px;
-          height: 500px;
+        .glow-1 {
+          width: 700px;
+          height: 400px;
           top: -300px;
-          left: 35%;
-
-          background:
-            radial-gradient(
-              circle,
-              rgba(255,106,26,.13),
-              transparent 68%
-            );
+          left: 43%;
+          background: rgba(255,106,26,.1);
         }
 
-        .ambient-two {
-          width: 600px;
-          height: 600px;
-          right: -300px;
+        .glow-2 {
+          width: 500px;
+          height: 500px;
+          right: -350px;
           top: 25%;
-
-          background:
-            radial-gradient(
-              circle,
-              rgba(186,88,18,.07),
-              transparent 70%
-            );
+          background: rgba(255,106,26,.035);
         }
 
-        /* =========================
-           FALLING LEAVES
-        ========================= */
-
-        .leaf {
-          position: fixed;
-          z-index: 1;
-          pointer-events: none;
-
-          opacity: .22;
-
-          font-size: 24px;
-
-          filter:
-            drop-shadow(
-              0 0 8px
-              rgba(255,106,26,.25)
-            );
-
-          animation:
-            fall 12s linear infinite;
-        }
-
-        .leaf-a {
-          left: 28%;
-          top: -40px;
-        }
-
-        .leaf-b {
-          left: 70%;
-          top: -70px;
-          animation-delay: 4s;
-        }
-
-        .leaf-c {
-          left: 87%;
-          top: -90px;
-          animation-delay: 8s;
-        }
-
-        @keyframes fall {
-
-          to {
-            transform:
-              translate3d(
-                -80px,
-                110vh,
-                0
-              )
-              rotate(260deg);
-          }
-
-        }
-
-        /* =========================
+        /* =====================================================
            SIDEBAR
-        ========================= */
+        ===================================================== */
 
         .sidebar {
           position: fixed;
-          z-index: 5;
-
           inset: 0 auto 0 0;
-
-          width: 247px;
-
-          background:
-            rgba(7,7,7,.96);
-
-          border-right:
-            1px solid
-            rgba(255,255,255,.08);
-
-          padding:
-            20px 10px 12px;
+          width: 228px;
+          z-index: 20;
 
           display: flex;
           flex-direction: column;
+
+          padding: 18px 9px 12px;
+
+          background:
+            rgba(7,7,7,.97);
+
+          border-right:
+            1px solid
+            rgba(255,255,255,.075);
+
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        .sidebar::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,.08);
+          border-radius: 99px;
         }
 
         .brand {
-          display: flex;
-          align-items: center;
-
-          gap: 10px;
-
-          padding:
-            0 9px 24px;
-
-          font-family:
-            'Space Grotesk',
-            Inter,
-            sans-serif;
-
-          font-size: 21px;
-          font-weight: 600;
-        }
-
-        .brand img {
-          width: 29px;
-          height: 29px;
-
-          filter:
-            drop-shadow(
-              0 0 10px
-              rgba(255,106,26,.35)
-            );
-        }
-
-        /* SEARCH */
-
-        .search {
-          height: 45px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.08);
-
-          background: #0b0b0b;
-
-          border-radius: 12px;
-
-          padding:
-            0 12px;
+          height: 39px;
 
           display: flex;
           align-items: center;
 
           gap: 9px;
 
-          color:
-            rgba(255,255,255,.58);
+          padding: 0 8px;
 
-          font-size: 13px;
+          margin-bottom: 17px;
 
-          margin-bottom: 15px;
+          font-size: 16px;
+          font-weight: 650;
+          letter-spacing: -.3px;
         }
 
-        .search-icon {
-          font-size: 20px;
+        .brand img {
+          width: 29px;
+          height: 29px;
+          object-fit: contain;
+
+          filter:
+            drop-shadow(
+              0 0 9px
+              rgba(255,106,26,.3)
+            );
         }
 
-        .search kbd {
-          margin-left: auto;
+        /* SEARCH */
 
-          border:
-            1px solid
-            rgba(255,255,255,.08);
-
-          border-radius: 7px;
-
-          padding:
-            3px 6px;
-
-          color:
-            rgba(255,255,255,.36);
-
-          font-size: 10px;
-        }
-
-        /* NAV */
-
-        .nav-section {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .nav-item {
-          height: 38px;
-
-          border-radius: 10px;
+        .search-box {
+          height: 35px;
 
           display: flex;
           align-items: center;
 
-          gap: 11px;
+          gap: 7px;
 
-          padding:
-            0 12px;
+          padding: 0 9px;
+
+          border-radius: 9px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.075);
+
+          background: #0b0b0b;
 
           color:
-            rgba(255,255,255,.7);
+            rgba(255,255,255,.42);
 
-          font-size: 13px;
+          font-size: 11px;
+
+          margin-bottom: 12px;
+        }
+
+        .search-symbol {
+          font-size: 17px;
+          line-height: 1;
+        }
+
+        .search-box kbd {
+          margin-left: auto;
+
+          border:
+            1px solid
+            rgba(255,255,255,.075);
+
+          background: #111;
+
+          border-radius: 5px;
+
+          padding: 3px 5px;
+
+          color:
+            rgba(255,255,255,.28);
+
+          font-size: 8px;
+        }
+
+        /* NAV */
+
+        .sidebar-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+        }
+
+        .nav-item {
+          height: 31px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
+
+          padding: 0 10px;
+
+          border-radius: 8px;
+
+          color:
+            rgba(255,255,255,.58);
+
+          font-size: 12px;
 
           transition:
-            background .2s ease,
-            color .2s ease,
-            transform .2s ease;
+            color .16s ease,
+            background .16s ease,
+            transform .16s ease;
         }
 
         .nav-item:hover {
-          background:
-            rgba(255,106,26,.07);
-
           color: #fff;
 
-          transform:
-            translateX(2px);
+          background:
+            rgba(255,106,26,.055);
+
+          transform: translateX(1px);
         }
 
         .nav-item.active {
           color: #ff8a3d;
 
           background:
-            rgba(255,106,26,.11);
-
-          border:
-            1px solid
-            rgba(255,106,26,.28);
-        }
-
-        .icon {
-          width: 17px;
-          text-align: center;
-
-          color:
-            rgba(255,255,255,.36);
-
-          font-size: 14px;
-        }
-
-        .nav-item.active .icon {
-          color: #ff6a1a;
-        }
-
-        .nav-heading {
-          display: flex;
-          align-items: center;
-
-          gap: 6px;
-
-          padding:
-            17px 13px 7px;
-
-          color:
-            rgba(255,255,255,.58);
-
-          font-size: 12px;
-        }
-
-        .nav-heading > span:last-child {
-          margin-left: auto;
-        }
-
-        .nav-heading.premium {
-          gap: 8px;
-        }
-
-        .nav-heading.premium small {
-          margin-left: auto;
-        }
-
-        .nested {
-          border-left:
-            1px solid
-            rgba(255,255,255,.08);
-
-          margin-left: 18px;
-
-          padding-left: 7px;
-        }
-
-        .nav-item em {
-          margin-left: auto;
-
-          font-size: 7px;
-
-          color:
-            rgba(255,255,255,.36);
-
-          font-style: normal;
-        }
-
-        /* SHARE CARD */
-
-        .share-card {
-          margin-top: auto;
-
-          padding: 11px;
-
-          border:
-            1px solid
-            rgba(255,255,255,.08);
-
-          border-radius: 13px;
-
-          background: #0d0d0d;
-
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-        }
-
-        .share-card .share-icon {
-          width: 31px;
-          height: 31px;
-
-          border-radius: 9px;
-
-          background: #151515;
-
-          display: grid;
-          place-items: center;
-        }
-
-        .share-card div:nth-child(2) {
-          display: flex;
-          flex-direction: column;
-
-          gap: 3px;
-        }
-
-        .share-card small,
-        .signed-in small {
-          font-size: 10px;
-
-          color:
-            rgba(255,255,255,.36);
-        }
-
-        .share-card strong,
-        .signed-in strong {
-          font-size: 12px;
-        }
-
-        .share-card > span {
-          margin-left: auto;
-
-          color:
-            rgba(255,255,255,.36);
-        }
-
-        /* SIGNED IN */
-
-        .signed-in {
-          display: flex;
-          align-items: center;
-
-          gap: 9px;
-
-          padding:
-            12px 8px 0;
-        }
-
-        .signed-in > div {
-          display: flex;
-          flex-direction: column;
-
-          gap: 3px;
-        }
-
-        .signed-in > span:last-child {
-          margin-left: auto;
-
-          color:
-            rgba(255,255,255,.36);
-        }
-
-        .mini-avatar {
-          width: 29px;
-          height: 29px;
-
-          border-radius: 50%;
-
-          display: grid;
-          place-items: center;
-
-          background:
-            linear-gradient(
-              135deg,
-              #39200c,
-              #15100a
-            );
+            rgba(255,106,26,.09);
 
           border:
             1px solid
             rgba(255,106,26,.18);
         }
 
-        /* =========================
-           CONTENT
-        ========================= */
+        .nav-item .icon {
+          width: 15px;
+          flex: 0 0 15px;
 
-        .content {
-          position: relative;
-          z-index: 2;
+          display: inline-flex;
+          justify-content: center;
 
-          margin-left: 247px;
+          color:
+            rgba(255,255,255,.32);
 
-          padding:
-            0 24px 40px;
-
-          max-width: 1800px;
+          font-size: 12px;
         }
 
-        /* TOP BAR */
+        .nav-item.active .icon {
+          color: #ff6a1a;
+        }
+
+        .nav-label {
+          white-space: nowrap;
+        }
+
+        .nav-item em {
+          margin-left: auto;
+
+          color:
+            rgba(255,255,255,.25);
+
+          font-style: normal;
+
+          font-size: 7px;
+          font-weight: 600;
+        }
+
+        .nested {
+          margin-left: 17px;
+
+          padding-left: 7px;
+
+          border-left:
+            1px solid
+            rgba(255,255,255,.075);
+        }
+
+        /* HEADINGS */
+
+        .sidebar-heading {
+          height: 34px;
+
+          display: flex;
+          align-items: end;
+
+          padding: 0 11px 6px;
+
+          margin-top: 9px;
+
+          color:
+            rgba(255,255,255,.36);
+
+          font-size: 10px;
+        }
+
+        .sidebar-heading .caret {
+          margin-left: auto;
+          font-size: 9px;
+        }
+
+        .sidebar-heading.premium {
+          color:
+            rgba(255,255,255,.4);
+        }
+
+        /* SIDEBAR BOTTOM */
+
+        .sidebar-bottom {
+          margin-top: auto;
+          padding-top: 14px;
+        }
+
+        .share-card {
+          min-height: 51px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 8px;
+
+          padding: 8px 9px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.075);
+
+          border-radius: 12px;
+
+          background: #0d0d0d;
+
+          transition:
+            border-color .18s ease,
+            background .18s ease;
+        }
+
+        .share-card:hover {
+          border-color:
+            rgba(255,106,26,.2);
+
+          background: #101010;
+        }
+
+        .share-icon {
+          width: 29px;
+          height: 29px;
+
+          display: grid;
+          place-items: center;
+
+          flex: 0 0 29px;
+
+          border-radius: 8px;
+
+          background: #151515;
+
+          color:
+            rgba(255,255,255,.55);
+        }
+
+        .share-text {
+          min-width: 0;
+
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .share-text small,
+        .signed-text small {
+          color:
+            rgba(255,255,255,.28);
+
+          font-size: 8px;
+        }
+
+        .share-text strong,
+        .signed-text strong {
+          color:
+            rgba(255,255,255,.75);
+
+          font-size: 10px;
+          font-weight: 600;
+        }
+
+        .share-arrow {
+          margin-left: auto;
+          color:
+            rgba(255,255,255,.3);
+        }
+
+        .signed-in {
+          display: flex;
+          align-items: center;
+
+          gap: 8px;
+
+          padding: 11px 6px 0;
+        }
+
+        .avatar {
+          width: 28px;
+          height: 28px;
+
+          display: grid;
+          place-items: center;
+
+          border-radius: 50%;
+
+          background:
+            linear-gradient(
+              135deg,
+              #3a210d,
+              #14100b
+            );
+
+          border:
+            1px solid
+            rgba(255,106,26,.18);
+
+          font-size: 13px;
+        }
+
+        .signed-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .settings-icon {
+          margin-left: auto;
+
+          color:
+            rgba(255,255,255,.3);
+
+          font-size: 12px;
+        }
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main {
+          min-height: 100vh;
+
+          margin-left: 228px;
+
+          width: calc(100% - 228px);
+
+          padding: 0 23px 34px;
+
+          position: relative;
+        }
+
+        /* TOPBAR */
 
         .topbar {
-          height: 70px;
+          height: 57px;
 
           display: flex;
           align-items: center;
@@ -1189,579 +1117,674 @@ export default function DashboardPage() {
 
           border-bottom:
             1px solid
-            rgba(255,255,255,.025);
+            rgba(255,255,255,.035);
         }
 
-        .crumb {
-          font-size: 12px;
+        .breadcrumbs {
+          display: flex;
+          align-items: center;
+
+          gap: 9px;
 
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.29);
+
+          font-size: 10px;
         }
 
-        .crumb span {
-          padding:
-            0 9px;
-        }
-
-        .crumb b {
+        .breadcrumbs b {
           color:
-            rgba(255,255,255,.58);
+            rgba(255,255,255,.17);
+
+          font-weight: 400;
+        }
+
+        .breadcrumbs strong {
+          color:
+            rgba(255,255,255,.5);
 
           font-weight: 500;
         }
 
         .top-actions {
-          position: relative;
-
           display: flex;
           align-items: center;
+          gap: 7px;
 
-          gap: 8px;
+          position: relative;
         }
 
-        .top-actions button,
-        .preview {
-          height: 36px;
-
-          border-radius: 20px;
+        .live-preview,
+        .top-button {
+          height: 34px;
 
           border:
             1px solid
-            rgba(255,255,255,.08);
+            rgba(255,255,255,.075);
 
-          background: #0c0c0c;
+          background: #0b0b0b;
 
-          padding:
-            0 12px;
+          border-radius: 18px;
 
-          display: grid;
-          place-items: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
           cursor: pointer;
+
+          transition:
+            background .18s ease,
+            border-color .18s ease;
         }
 
-        .preview {
-          color: #ff8a3d;
+        .live-preview {
+          padding: 0 13px;
 
+          gap: 6px;
+
+          color:
+            rgba(255,255,255,.78);
+
+          font-size: 11px;
+        }
+
+        .live-preview:hover {
           border-color:
-            rgba(255,106,26,.35);
+            rgba(255,106,26,.25);
 
-          padding:
-            0 17px;
+          background:
+            rgba(255,106,26,.05);
+        }
 
-          font-size: 12px;
+        .live-dot {
+          width: 7px;
+          height: 7px;
+
+          border-radius: 50%;
+
+          border:
+            1px solid
+            rgba(255,255,255,.75);
+
+          box-shadow:
+            0 0 5px
+            rgba(255,255,255,.35);
+        }
+
+        .top-button {
+          width: 34px;
+
+          color:
+            rgba(255,255,255,.6);
+        }
+
+        .top-button:hover {
+          background: #111;
+          color: #fff;
         }
 
         .quick-menu {
           position: absolute;
 
           right: 0;
-          top: 44px;
+          top: 42px;
+
+          width: 140px;
+
+          padding: 5px;
 
           background: #111;
 
           border:
             1px solid
-            rgba(255,255,255,.08);
+            rgba(255,255,255,.09);
 
-          border-radius: 12px;
-
-          padding: 6px;
-
-          width: 130px;
+          border-radius: 10px;
 
           box-shadow:
-            0 15px 40px #000;
+            0 20px 50px
+            rgba(0,0,0,.65);
 
-          z-index: 20;
+          z-index: 100;
         }
 
         .quick-menu a {
           display: block;
 
-          padding: 8px;
+          padding: 9px 10px;
 
           border-radius: 7px;
 
-          font-size: 12px;
-
           color:
-            rgba(255,255,255,.58);
+            rgba(255,255,255,.6);
+
+          font-size: 11px;
         }
 
         .quick-menu a:hover {
+          color: #fff;
+
           background:
             rgba(255,106,26,.08);
-
-          color: #fff;
         }
 
         /* HEADING */
 
-        .heading {
-          padding:
-            27px 0 19px;
+        .page-heading {
+          padding: 26px 0 18px;
         }
 
-        .heading h1 {
+        .page-heading h1 {
+          margin: 0;
+
           font-family:
-            'Space Grotesk',
+            "Space Grotesk",
             Inter,
             sans-serif;
 
-          font-size: 25px;
+          font-size: 23px;
+          line-height: 1.2;
 
-          margin:
-            0 0 5px;
+          font-weight: 650;
 
-          letter-spacing: -.6px;
-
-          font-weight: 600;
+          letter-spacing: -.65px;
         }
 
-        .heading p,
-        .panel p {
-          margin: 0;
+        .page-heading p {
+          margin: 6px 0 0;
 
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.31);
 
-          font-size: 12px;
+          font-size: 11px;
         }
 
-        /* =========================
+        /* =====================================================
            STATS
-        ========================= */
+        ===================================================== */
 
-        .stats {
+        .stats-grid {
           display: grid;
 
           grid-template-columns:
-            repeat(4, 1fr);
+            repeat(4, minmax(0, 1fr));
 
-          gap: 10px;
+          gap: 9px;
         }
 
         .stat-card {
-          height: 111px;
+          height: 104px;
+
+          padding: 17px 19px;
 
           border:
             1px solid
-            rgba(255,255,255,.08);
+            rgba(255,255,255,.075);
+
+          border-radius: 17px;
 
           background:
             linear-gradient(
               135deg,
               #0b0b0b,
-              #090909
+              #080808
             );
 
-          border-radius: 20px;
-
-          padding: 20px;
-
           transition:
-            border-color .2s ease,
-            transform .2s ease,
-            box-shadow .2s ease;
+            transform .18s ease,
+            border-color .18s ease;
         }
 
         .stat-card:hover {
-          transform:
-            translateY(-2px);
+          transform: translateY(-2px);
 
           border-color:
             rgba(255,106,26,.18);
-
-          box-shadow:
-            0 12px 35px
-            rgba(0,0,0,.3);
         }
 
-        .stat-top {
+        .stat-card-top {
           display: flex;
           justify-content: space-between;
+          align-items: center;
 
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.32);
 
+          font-size: 10px;
+
+          margin-bottom: 17px;
+        }
+
+        .stat-card-top .icon {
           font-size: 12px;
-
-          margin-bottom: 20px;
         }
 
         .stat-card strong {
           font-family:
-            'Space Grotesk',
+            "Space Grotesk",
             Inter,
             sans-serif;
 
-          font-size: 25px;
+          font-size: 23px;
+
+          line-height: 1;
 
           font-weight: 600;
+
+          letter-spacing: -.4px;
         }
 
-        /* =========================
-           PANELS
-        ========================= */
+        /* =====================================================
+           ANALYTICS GRID
+        ===================================================== */
 
-        .main-grid {
+        .analytics-grid {
           display: grid;
 
           grid-template-columns:
             minmax(0, 3fr)
-            minmax(300px, 1fr);
+            minmax(290px, .9fr);
 
-          gap: 14px;
+          gap: 13px;
 
-          margin-top: 18px;
+          margin-top: 16px;
         }
 
         .panel {
           border:
             1px solid
-            rgba(255,255,255,.08);
+            rgba(255,255,255,.075);
+
+          border-radius: 18px;
 
           background:
-            rgba(8,8,8,.9);
-
-          border-radius: 20px;
+            rgba(8,8,8,.93);
 
           overflow: hidden;
         }
 
-        .views-panel {
-          min-height: 420px;
-        }
-
+        .views-panel,
         .devices-panel {
-          min-height: 420px;
+          min-height: 389px;
         }
 
-        .panel-head {
+        .panel-header {
           display: flex;
-
+          align-items: flex-start;
           justify-content: space-between;
 
           gap: 15px;
 
-          padding:
-            25px 23px 0;
+          padding: 23px 21px 0;
         }
 
-        .panel h2 {
+        .panel-header h2,
+        .countries-header h2 {
+          margin: 0 0 6px;
+
           font-family:
-            'Space Grotesk',
+            "Space Grotesk",
             Inter,
             sans-serif;
 
-          font-size: 15px;
+          font-size: 14px;
 
-          margin:
-            0 0 7px;
+          line-height: 1.2;
 
           font-weight: 600;
         }
 
-        .panel-head p b {
+        .panel-header p,
+        .countries-header p {
+          margin: 0;
+
           color:
-            rgba(255,255,255,.58);
+            rgba(255,255,255,.29);
+
+          font-size: 10px;
+
+          line-height: 1.5;
+        }
+
+        .panel-header p b {
+          color:
+            rgba(255,255,255,.48);
 
           font-weight: 500;
         }
 
-        /* =========================
-           CHART CONTROLS
-        ========================= */
+        /* =====================================================
+           RANGE
+        ===================================================== */
 
-        .controls {
+        .range-controls {
           display: flex;
           align-items: center;
 
-          gap: 2px;
-
-          background: #0c0c0c;
-
-          border:
-            1px solid
-            rgba(255,255,255,.08);
-
-          border-radius: 19px;
+          height: 32px;
 
           padding: 3px;
 
-          height: 36px;
+          border:
+            1px solid
+            rgba(255,255,255,.075);
+
+          border-radius: 17px;
+
+          background: #0c0c0c;
+
+          flex-shrink: 0;
         }
 
-        .controls button {
+        .range-controls button {
+          height: 24px;
+
           border: 0;
 
           background: transparent;
 
-          border-radius: 14px;
+          border-radius: 13px;
 
-          padding:
-            6px 9px;
+          padding: 0 8px;
 
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.28);
 
-          font-size: 11px;
+          font-size: 9px;
 
           cursor: pointer;
         }
 
-        .controls button.selected {
+        .range-controls .metric-button {
+          padding: 0 10px;
+
+          color:
+            rgba(255,255,255,.52);
+
+          border-right:
+            1px solid
+            rgba(255,255,255,.07);
+
+          border-radius: 12px;
+        }
+
+        .range-controls .range-button.active {
+          color: #ff8a3d;
+
           background:
-            rgba(255,106,26,.11);
+            rgba(255,106,26,.1);
 
           border:
             1px solid
-            rgba(255,106,26,.3);
-
-          color: #ff8a3d;
+            rgba(255,106,26,.25);
         }
 
-        .controls .metric {
-          border-right:
-            1px solid
-            rgba(255,255,255,.08);
-
-          border-radius: 14px;
-
-          color:
-            rgba(255,255,255,.58);
-        }
-
-        /* =========================
+        /* =====================================================
            CHART
-        ========================= */
+        ===================================================== */
 
-        .chart-wrap {
-          height: 310px;
+        .chart-container {
+          height: 292px;
 
-          padding:
-            30px 22px 14px;
+          padding: 27px 20px 13px;
         }
 
-        .chart-wrap svg {
+        .chart {
+          display: block;
+
           width: 100%;
-          height: 245px;
+
+          height: 247px;
         }
 
         .chart-labels {
           display: flex;
-
           justify-content: space-between;
 
+          padding: 0 7px;
+
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.28);
 
-          font-size: 10px;
-
-          padding:
-            0 8px;
+          font-size: 9px;
         }
 
-        /* =========================
-           DONUT
-        ========================= */
+        /* =====================================================
+           DEVICES
+        ===================================================== */
 
-        .donut-area {
+        .device-content {
+          height: 300px;
+
           display: flex;
           flex-direction: column;
 
           align-items: center;
           justify-content: center;
 
-          height: 330px;
+          padding-top: 4px;
         }
 
         .donut {
-          width: 130px;
-          height: 130px;
+          width: 122px;
+          height: 122px;
 
           border-radius: 50%;
 
           background:
             conic-gradient(
-              #f18eb3 0 50%,
-              #ffb14a 50% 100%
+              #ee8bb1 0deg 180deg,
+              #ffb34d 180deg 360deg
             );
 
           display: grid;
           place-items: center;
-
-          box-shadow:
-            0 0 35px
-            rgba(255,106,26,.05);
         }
 
-        .donut-hole {
-          width: 92px;
-          height: 92px;
+        .donut-center {
+          width: 84px;
+          height: 84px;
 
           border-radius: 50%;
 
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+
           background: #090909;
 
-          display: grid;
-          place-items: center;
-
-          align-content: center;
-
-          text-align: center;
-
-          font-family:
-            'Space Grotesk';
-
-          font-size: 20px;
-
-          font-weight: 600;
+          box-shadow:
+            inset 0 0 0 1px
+            rgba(255,255,255,.025);
         }
 
-        .donut-hole small {
-          font-family: Inter;
+        .donut-center strong {
+          font-family:
+            "Space Grotesk",
+            Inter,
+            sans-serif;
 
-          font-size: 9px;
+          font-size: 17px;
+          line-height: 1;
+        }
 
-          font-weight: 400;
+        .donut-center span {
+          margin-top: 3px;
 
           color:
-            rgba(255,255,255,.36);
+            rgba(255,255,255,.32);
+
+          font-size: 8px;
         }
 
-        .legend {
-          margin-top: 28px;
+        .device-legend {
+          width: 155px;
 
           display: flex;
           flex-direction: column;
 
-          gap: 11px;
+          gap: 10px;
 
-          width: 170px;
-
-          color:
-            rgba(255,255,255,.58);
-
-          font-size: 11px;
+          margin-top: 24px;
         }
 
-        .legend div {
+        .legend-row {
           display: flex;
-          align-items: center;
-
-          gap: 8px;
-        }
-
-        .legend b {
-          margin-left: auto;
-
-          color:
-            rgba(255,255,255,.58);
-
-          font-weight: 500;
-        }
-
-        .dot {
-          width: 8px;
-          height: 8px;
-
-          border-radius: 50%;
-
-          display: inline-block;
-        }
-
-        .dot.orange {
-          background: #f18eb3;
-        }
-
-        .dot.gold {
-          background: #ffb14a;
-        }
-
-        /* =========================
-           COUNTRIES
-        ========================= */
-
-        .countries-panel {
-          margin-top: 18px;
-
-          padding-bottom: 22px;
-        }
-
-        .countries-head {
-          display: flex;
-
           justify-content: space-between;
           align-items: center;
 
-          padding: 23px;
+          font-size: 10px;
+
+          color:
+            rgba(255,255,255,.5);
         }
 
-        .globe {
+        .legend-name {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .legend-row strong {
+          font-weight: 500;
+
+          color:
+            rgba(255,255,255,.5);
+        }
+
+        .legend-dot {
+          width: 7px;
+          height: 7px;
+
+          border-radius: 50%;
+        }
+
+        .legend-dot.pink {
+          background: #ee8bb1;
+        }
+
+        .legend-dot.gold {
+          background: #ffb34d;
+        }
+
+        /* =====================================================
+           COUNTRIES
+        ===================================================== */
+
+        .countries-panel {
+          margin-top: 16px;
+
+          padding-bottom: 20px;
+        }
+
+        .countries-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          padding: 22px 21px 17px;
+        }
+
+        .globe-button {
+          height: 32px;
+
+          padding: 0 13px;
+
+          border-radius: 17px;
+
           border:
             1px solid
             rgba(255,106,26,.35);
 
           background:
-            rgba(255,106,26,.08);
+            rgba(255,106,26,.06);
 
           color: #ff8a3d;
 
-          border-radius: 18px;
-
-          padding:
-            8px 13px;
-
-          font-size: 11px;
+          font-size: 9px;
 
           cursor: pointer;
+
+          transition:
+            background .18s ease;
         }
 
-        .countries {
+        .globe-button:hover {
+          background:
+            rgba(255,106,26,.1);
+        }
+
+        .country-grid {
           display: grid;
 
           grid-template-columns:
-            1fr 1fr;
+            repeat(2, minmax(0, 1fr));
 
-          gap: 12px;
+          gap: 10px;
 
-          padding:
-            0 23px;
+          padding: 0 21px;
         }
 
-        .country {
-          border:
-            1px solid
-            rgba(255,255,255,.07);
-
-          background: #101010;
-
-          border-radius: 14px;
-
-          padding: 11px;
+        .country-card {
+          min-height: 52px;
 
           display: flex;
           align-items: center;
 
-          gap: 10px;
+          gap: 9px;
+
+          padding: 9px 11px;
+
+          border:
+            1px solid
+            rgba(255,255,255,.065);
+
+          background: #101010;
+
+          border-radius: 12px;
         }
 
-        .country .flag {
-          font-size: 22px;
+        .country-flag {
+          font-size: 18px;
+
+          line-height: 1;
         }
 
-        .country-name {
-          font-size: 12px;
+        .country-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .country-title {
+          color:
+            rgba(255,255,255,.72);
+
+          font-size: 10px;
+
           font-weight: 600;
         }
 
-        .country-bar {
-          height: 5px;
+        .country-progress {
+          height: 4px;
+
+          margin-top: 7px;
 
           border-radius: 99px;
+
+          background:
+            rgba(255,255,255,.045);
+
+          overflow: hidden;
+        }
+
+        .country-progress span {
+          display: block;
+
+          width: 70%;
+          height: 100%;
+
+          border-radius: inherit;
 
           background:
             linear-gradient(
@@ -1769,50 +1792,47 @@ export default function DashboardPage() {
               #ff6a1a,
               #ff8a3d
             );
-
-          margin-top: 8px;
-
-          width: 70%;
         }
 
         .country-value {
-          margin-left: auto;
-
           color:
-            rgba(255,255,255,.58);
+            rgba(255,255,255,.43);
 
-          font-size: 11px;
+          font-size: 9px;
+
+          white-space: nowrap;
         }
 
-        /* =========================
+        /* =====================================================
            RESPONSIVE
-        ========================= */
+        ===================================================== */
 
-        @media (max-width: 1050px) {
+        @media (max-width: 1150px) {
 
           .sidebar {
-            width: 215px;
+            width: 210px;
           }
 
-          .content {
-            margin-left: 215px;
+          .main {
+            margin-left: 210px;
+            width: calc(100% - 210px);
           }
 
-          .main-grid {
+          .analytics-grid {
             grid-template-columns: 1fr;
           }
 
           .devices-panel {
-            min-height: 300px;
+            min-height: 330px;
           }
 
-          .donut-area {
-            height: 260px;
+          .device-content {
+            height: 255px;
           }
 
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 850px) {
 
           .sidebar {
             position: relative;
@@ -1820,91 +1840,146 @@ export default function DashboardPage() {
             width: 100%;
             height: auto;
 
+            padding: 13px 14px;
+
             border-right: 0;
 
             border-bottom:
               1px solid
-              rgba(255,255,255,.08);
-
-            padding-bottom: 15px;
-          }
-
-          .sidebar .nav-section,
-          .sidebar .nav-heading,
-          .sidebar .search,
-          .share-card,
-          .signed-in {
-            display: none;
+              rgba(255,255,255,.075);
           }
 
           .brand {
-            padding-bottom: 0;
+            margin: 0;
           }
 
-          .content {
+          .search-box,
+          .sidebar-nav,
+          .sidebar-heading,
+          .sidebar-bottom {
+            display: none;
+          }
+
+          .main {
             margin-left: 0;
+
+            width: 100%;
 
             padding:
               0 14px 30px;
           }
 
           .topbar {
-            height: 62px;
+            height: 55px;
           }
 
-          .stats {
+          .stats-grid {
             grid-template-columns:
-              1fr 1fr;
-          }
-
-          .countries {
-            grid-template-columns: 1fr;
-          }
-
-          .top-actions .preview {
-            display: none;
+              repeat(2, minmax(0, 1fr));
           }
 
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 600px) {
 
-          .stats {
+          .page-heading {
+            padding-top: 21px;
+          }
+
+          .page-heading h1 {
+            font-size: 21px;
+          }
+
+          .stats-grid {
             grid-template-columns: 1fr;
           }
 
-          .panel-head {
+          .panel-header {
             display: block;
           }
 
-          .controls {
-            margin-top: 16px;
-
+          .range-controls {
             width: max-content;
+            margin-top: 15px;
           }
 
-          .views-panel,
-          .devices-panel {
-            min-height: 360px;
+          .country-grid {
+            grid-template-columns: 1fr;
           }
 
-          .heading {
-            padding-top: 22px;
+          .countries-header {
+            align-items: flex-start;
+            gap: 12px;
           }
 
-          .chart-wrap {
+          .live-preview {
+            display: none;
+          }
+
+          .chart-container {
             padding-left: 10px;
             padding-right: 10px;
           }
 
-          .country-bar {
-            width: 55%;
+        }
+
+        @media (max-width: 430px) {
+
+          .main {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .top-actions {
+            gap: 4px;
+          }
+
+          .top-button {
+            width: 31px;
+            height: 31px;
+          }
+
+          .page-heading p {
+            font-size: 10px;
+          }
+
+          .panel {
+            border-radius: 15px;
+          }
+
+          .panel-header,
+          .countries-header {
+            padding-left: 16px;
+            padding-right: 16px;
+          }
+
+          .country-grid {
+            padding-left: 16px;
+            padding-right: 16px;
           }
 
         }
 
       `}</style>
-
     </main>
+  )
+}
+
+function SidebarHeading({ children, premium = false }) {
+  return (
+    <div
+      className={`sidebar-heading ${
+        premium ? 'premium' : ''
+      }`}
+    >
+      <span>
+        {premium ? '♛ ' : ''}
+        {children}
+      </span>
+
+      <span className="caret">
+        ⌃
+      </span>
+    </div>
   )
 }
