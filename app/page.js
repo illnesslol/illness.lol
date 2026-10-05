@@ -171,8 +171,7 @@ function drawLeaf(
 
   ctx.fill()
 
-  ctx.globalAlpha =
-    opacity * 0.9
+  ctx.globalAlpha = opacity * 0.9
 
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
@@ -202,19 +201,9 @@ function drawLeaf(
 export default function HomePage() {
   const canvasRef = useRef(null)
 
-  const [visible, setVisible] =
-    useState(false)
-
-  const [authChecked, setAuthChecked] =
-    useState(false)
-
-  const [loggedIn, setLoggedIn] =
-    useState(false)
-
-
-  /* =======================================================
-     ANIMATION + AUTH
-  ======================================================= */
+  const [visible, setVisible] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -224,48 +213,33 @@ export default function HomePage() {
     fetch('/api/me')
       .then(res => res.json())
       .then(data => {
-        setLoggedIn(
-          Boolean(data.loggedIn)
-        )
-
+        setLoggedIn(Boolean(data.loggedIn))
         setAuthChecked(true)
       })
       .catch(() => {
         setAuthChecked(true)
       })
 
-
     const canvas = canvasRef.current
 
     if (!canvas) {
-      return () =>
-        clearTimeout(timer)
+      return () => clearTimeout(timer)
     }
 
-    const ctx =
-      canvas.getContext('2d')
+    const ctx = canvas.getContext('2d')
 
-    const reduceMotion =
-      window.matchMedia(
-        '(prefers-reduced-motion: reduce)'
-      ).matches
-
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
 
     const resize = () => {
-      canvas.width =
-        window.innerWidth
-
-      canvas.height =
-        window.innerHeight
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
     }
 
     resize()
 
-    window.addEventListener(
-      'resize',
-      resize
-    )
-
+    window.addEventListener('resize', resize)
 
     const leafColors = [
       '#ff6a1a',
@@ -274,34 +248,26 @@ export default function HomePage() {
       '#ffffff',
     ]
 
-
-    const makeLeaf = (
-      spreadY = false
-    ) => ({
+    const makeLeaf = (spreadY = false) => ({
       x:
         Math.random() *
         window.innerWidth,
 
       y: spreadY
-        ? Math.random() *
-          window.innerHeight
-        : -30 -
-          Math.random() * 120,
+        ? Math.random() * window.innerHeight
+        : -30 - Math.random() * 120,
 
       size:
         Math.random() * 6 + 9,
 
       speed:
-        Math.random() * 0.35 +
-        0.35,
+        Math.random() * 0.35 + 0.35,
 
       swayAmp:
-        Math.random() * 30 +
-        20,
+        Math.random() * 30 + 20,
 
       swaySpeed:
-        Math.random() * 0.012 +
-        0.006,
+        Math.random() * 0.012 + 0.006,
 
       phase:
         Math.random() *
@@ -314,12 +280,10 @@ export default function HomePage() {
         2,
 
       spin:
-        (Math.random() - 0.5) *
-        0.012,
+        (Math.random() - 0.5) * 0.012,
 
       opacity:
-        Math.random() * 0.2 +
-        0.22,
+        Math.random() * 0.2 + 0.22,
 
       color:
         leafColors[
@@ -332,22 +296,17 @@ export default function HomePage() {
       baseX: 0,
     })
 
-
-    const leaves =
-      Array.from(
-        { length: 7 },
-        () => makeLeaf(true)
-      )
-
+    const leaves = Array.from(
+      { length: 7 },
+      () => makeLeaf(true)
+    )
 
     leaves.forEach(l => {
       l.baseX = l.x
     })
 
-
     let animationFrame
     let tick = 0
-
 
     const draw = () => {
       ctx.clearRect(
@@ -359,28 +318,21 @@ export default function HomePage() {
 
       tick += 1
 
-
       leaves.forEach(l => {
         if (!reduceMotion) {
           l.y += l.speed
           l.rotation += l.spin
         }
 
+        const sway = reduceMotion
+          ? 0
+          : Math.sin(
+              tick *
+                l.swaySpeed +
+                l.phase
+            ) * l.swayAmp
 
-        const sway =
-          reduceMotion
-            ? 0
-            : Math.sin(
-                tick *
-                  l.swaySpeed +
-                  l.phase
-              ) *
-              l.swayAmp
-
-
-        const x =
-          l.baseX + sway
-
+        const x = l.baseX + sway
 
         if (
           l.y >
@@ -393,15 +345,9 @@ export default function HomePage() {
             canvas.width
         }
 
-
         ctx.save()
 
-
-        ctx.translate(
-          x,
-          l.y
-        )
-
+        ctx.translate(x, l.y)
 
         ctx.rotate(
           l.rotation +
@@ -409,10 +355,8 @@ export default function HomePage() {
               tick *
                 l.swaySpeed +
                 l.phase
-            ) *
-              0.5
+            ) * 0.5
         )
-
 
         drawLeaf(
           ctx,
@@ -421,18 +365,14 @@ export default function HomePage() {
           l.opacity
         )
 
-
         ctx.restore()
       })
-
 
       animationFrame =
         requestAnimationFrame(draw)
     }
 
-
     draw()
-
 
     return () => {
       clearTimeout(timer)
@@ -448,28 +388,21 @@ export default function HomePage() {
     }
   }, [])
 
-
   return (
     <main
       style={{
         minHeight: '100vh',
-
-        background:
-          '#050505',
-
+        background: '#050505',
         color: '#fff',
-
         fontFamily:
           "'Inter', system-ui, sans-serif",
-
         position: 'relative',
-
         overflow: 'hidden',
       }}
     >
 
       {/* =====================================================
-          ATMOSPHERIC BACKGROUND
+          BACKGROUND
       ===================================================== */}
 
       <div
@@ -515,146 +448,84 @@ export default function HomePage() {
         }}
       />
 
-
-      {/* =====================================================
-          LARGE SOFT CENTER LIGHT
-      ===================================================== */}
-
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           width: 1000,
           height: 1000,
-
           left: '50%',
           top: '28%',
-
           transform:
             'translate(-50%, -50%)',
-
           borderRadius: '50%',
-
           background:
             'radial-gradient(circle, rgba(255,106,26,.065), rgba(255,106,26,.018) 38%, transparent 70%)',
-
-          filter:
-            'blur(25px)',
-
+          filter: 'blur(25px)',
           pointerEvents: 'none',
-
           zIndex: 0,
         }}
       />
-
-
-      {/* =====================================================
-          TOP ORANGE LIGHT
-      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           top: -500,
           left: '50%',
-
           transform:
             'translateX(-50%)',
-
           width: 1200,
           height: 850,
-
           borderRadius: '50%',
-
           background:
             'radial-gradient(circle, rgba(255,106,26,.16), rgba(255,106,26,.04) 42%, transparent 70%)',
-
-          filter:
-            'blur(12px)',
-
+          filter: 'blur(12px)',
           pointerEvents: 'none',
-
           zIndex: 0,
         }}
       />
-
-
-      {/* =====================================================
-          SIDE AMBIENT GLOW — LEFT
-      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           left: -350,
           top: '38%',
-
           width: 700,
           height: 700,
-
           borderRadius: '50%',
-
           background:
             'radial-gradient(circle, rgba(255,106,26,.055), transparent 68%)',
-
-          filter:
-            'blur(20px)',
-
+          filter: 'blur(20px)',
           pointerEvents: 'none',
-
           zIndex: 0,
         }}
       />
-
-
-      {/* =====================================================
-          SIDE AMBIENT GLOW — RIGHT
-      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           right: -350,
           top: '48%',
-
           width: 700,
           height: 700,
-
           borderRadius: '50%',
-
           background:
             'radial-gradient(circle, rgba(255,80,10,.045), transparent 68%)',
-
-          filter:
-            'blur(20px)',
-
+          filter: 'blur(20px)',
           pointerEvents: 'none',
-
           zIndex: 0,
         }}
       />
-
-
-      {/* =====================================================
-          DOT GRID
-      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           inset: 0,
-
           zIndex: 0,
-
           pointerEvents: 'none',
 
           backgroundImage:
@@ -671,27 +542,18 @@ export default function HomePage() {
         }}
       />
 
-
-      {/* =====================================================
-          SUBTLE VIGNETTE
-      ===================================================== */}
-
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           inset: 0,
-
           zIndex: 0,
-
           pointerEvents: 'none',
 
           background:
             'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%)',
         }}
       />
-
 
       {/* =====================================================
           FALLING LEAVES
@@ -702,18 +564,13 @@ export default function HomePage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
-
           inset: 0,
-
           width: '100%',
           height: '100%',
-
           pointerEvents: 'none',
-
           zIndex: 1,
         }}
       />
-
 
       {/* =====================================================
           GLOBAL STYLES
@@ -780,9 +637,6 @@ export default function HomePage() {
             transform:
               translateX(-50%)
               scale(.82) !important;
-
-            transform-origin:
-              top center;
           }
         }
 
@@ -809,7 +663,6 @@ export default function HomePage() {
               scale(.58) !important;
 
             height: 300px !important;
-
             margin-top: 10px !important;
           }
 
@@ -852,7 +705,6 @@ export default function HomePage() {
           .footer-grid {
             grid-template-columns:
               1fr !important;
-
             gap: 32px !important;
           }
 
@@ -862,11 +714,8 @@ export default function HomePage() {
           }
 
           .footer-bottom {
-            align-items:
-              flex-start !important;
-
-            flex-direction:
-              column !important;
+            align-items: flex-start !important;
+            flex-direction: column !important;
           }
         }
       `}</style>
@@ -880,11 +729,8 @@ export default function HomePage() {
         className="nav"
         style={{
           position: 'absolute',
-
           top: 21,
-
           left: '50%',
-
           transform:
             'translateX(-50%)',
 
@@ -911,7 +757,6 @@ export default function HomePage() {
             '0 15px 50px rgba(0,0,0,.4), 0 0 35px rgba(255,106,26,.025)',
 
           display: 'flex',
-
           alignItems: 'center',
 
           padding:
@@ -921,21 +766,14 @@ export default function HomePage() {
         }}
       >
 
-        {/* BRAND */}
-
         <TransitionLink
           href="/"
           style={{
             display: 'flex',
-
             alignItems: 'center',
-
             gap: 12,
-
             color: '#fff',
-
             textDecoration: 'none',
-
             minWidth: 200,
           }}
         >
@@ -946,7 +784,6 @@ export default function HomePage() {
             height={30}
             style={{
               display: 'block',
-
               filter:
                 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
@@ -957,11 +794,8 @@ export default function HomePage() {
             style={{
               fontFamily:
                 "'Space Grotesk', sans-serif",
-
               fontSize: 21,
-
               fontWeight: 600,
-
               letterSpacing: '-.7px',
             }}
           >
@@ -970,43 +804,33 @@ export default function HomePage() {
         </TransitionLink>
 
 
-        {/* CENTER LINKS */}
-
         <div
           className="desktop-links"
           style={{
             position: 'absolute',
-
             left: '50%',
-
             transform:
               'translateX(-50%)',
 
             display: 'flex',
-
             alignItems: 'center',
-
             gap: 5,
           }}
         >
           {[
             ['Help Center', '/help'],
-
             [
               'Discord',
               'https://discord.gg/R4tyQ4h3K5',
             ],
-
             [
               'Leaderboard',
               '/leaderboard',
             ],
-
             [
               'Pricing',
               '/pricing',
             ],
-
             [
               'Questions',
               '/questions',
@@ -1017,42 +841,31 @@ export default function HomePage() {
                 key={label}
                 href={href}
                 className="nav-link"
-
                 target={
                   label === 'Discord'
                     ? '_blank'
                     : undefined
                 }
-
                 rel={
                   label === 'Discord'
                     ? 'noopener noreferrer'
                     : undefined
                 }
-
                 style={{
                   color:
                     COLORS.muted,
-
                   textDecoration:
                     'none',
-
                   fontSize: 14,
-
                   padding:
                     '9px 13px',
-
                   whiteSpace:
                     'nowrap',
-
                   border:
                     '1px solid transparent',
-
                   borderRadius: 12,
-
                   background:
                     'transparent',
-
                   boxShadow:
                     'none',
                 }}
@@ -1064,16 +877,11 @@ export default function HomePage() {
         </div>
 
 
-        {/* RIGHT SIDE */}
-
         <div
           style={{
             marginLeft: 'auto',
-
             display: 'flex',
-
             alignItems: 'center',
-
             gap: 8,
           }}
         >
@@ -1085,23 +893,16 @@ export default function HomePage() {
               style={{
                 color:
                   COLORS.muted,
-
                 textDecoration:
                   'none',
-
                 fontSize: 14,
-
                 padding:
                   '9px 13px',
-
                 border:
                   '1px solid transparent',
-
                 borderRadius: 12,
-
                 background:
                   'transparent',
-
                 boxShadow:
                   'none',
               }}
@@ -1110,7 +911,6 @@ export default function HomePage() {
             </AccentLink>
           )}
 
-
           {authChecked &&
           loggedIn ? (
             <AccentLink
@@ -1118,25 +918,17 @@ export default function HomePage() {
               className="hero-button"
               style={{
                 color: '#fff',
-
                 background:
                   'rgba(255,106,26,.16)',
-
                 border:
                   '1px solid rgba(255,106,26,.55)',
-
                 textDecoration:
                   'none',
-
                 fontSize: 14,
-
                 fontWeight: 500,
-
                 padding:
                   '11px 17px',
-
                 borderRadius: 25,
-
                 boxShadow:
                   '0 0 12px rgba(255,106,26,.08)',
               }}
@@ -1149,25 +941,17 @@ export default function HomePage() {
               className="hero-button"
               style={{
                 color: '#000',
-
                 background:
                   COLORS.orange,
-
                 textDecoration:
                   'none',
-
                 fontSize: 14,
-
                 fontWeight: 600,
-
                 padding:
                   '12px 19px',
-
                 borderRadius: 25,
-
                 border:
                   '1px solid transparent',
-
                 boxShadow:
                   '0 0 18px rgba(255,106,26,.25)',
               }}
@@ -1188,7 +972,6 @@ export default function HomePage() {
         className="hero"
         style={{
           position: 'relative',
-
           zIndex: 2,
 
           minHeight: 650,
@@ -1198,9 +981,7 @@ export default function HomePage() {
           textAlign: 'center',
 
           display: 'flex',
-
           flexDirection: 'column',
-
           alignItems: 'center',
 
           opacity:
@@ -1273,14 +1054,9 @@ export default function HomePage() {
         <div
           style={{
             display: 'flex',
-
             gap: 10,
-
             alignItems: 'center',
-
-            justifyContent:
-              'center',
-
+            justifyContent: 'center',
             flexWrap: 'wrap',
           }}
         >
@@ -1372,6 +1148,10 @@ export default function HomePage() {
 
       {/* =====================================================
           SHOWCASE
+          
+          Dashboard is now on the LEFT.
+          Placeholder is on the RIGHT.
+          The entire group is centered.
       ===================================================== */}
 
       <section
@@ -1381,7 +1161,11 @@ export default function HomePage() {
 
           zIndex: 3,
 
-          width: 1500,
+          /*
+           * This width keeps the entire composition centered
+           * instead of pushing the dashboard too far right.
+           */
+          width: 1180,
 
           height: 500,
 
@@ -1392,39 +1176,32 @@ export default function HomePage() {
 
           transform:
             'translateX(-50%)',
+
+          display: 'flex',
+
+          alignItems: 'center',
+
+          justifyContent:
+            'center',
+
+          gap: 35,
         }}
       >
 
         {/* =================================================
-            REAL DASHBOARD IMAGE — LEFT
+            DASHBOARD IMAGE — LEFT
         ================================================= */}
 
         <div
           style={{
-            position: 'absolute',
-
-            /*
-             * Move the dashboard farther left.
-             * Change this to -150, -200, etc.
-             * if you want it even farther out.
-             */
-            left: -100,
-
-            top: 20,
-
-            width: 820,
-
-            height: 480,
+            width: 720,
+            flexShrink: 0,
 
             display: 'flex',
-
             alignItems: 'center',
-
             justifyContent: 'center',
 
-            perspective: 1400,
-
-            zIndex: 2,
+            position: 'relative',
           }}
         >
           <img
@@ -1433,26 +1210,21 @@ export default function HomePage() {
             style={{
               display: 'block',
 
-              width: 790,
-
+              width: 720,
               height: 'auto',
 
-              borderRadius: 26,
+              maxWidth: 'none',
+
+              borderRadius: 25,
 
               border:
-                `2px solid ${COLORS.orangeBorder}`,
+                '2px solid rgba(255,106,26,.5)',
 
               boxShadow:
                 '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
 
-              objectFit: 'cover',
-
-              /*
-               * Positive Y rotation makes the
-               * dashboard face inward toward the right.
-               */
               transform:
-                'perspective(1400px) rotateY(8deg) rotateZ(4deg)',
+                'perspective(1200px) rotateY(8deg) rotateZ(3deg)',
 
               transformOrigin:
                 'center center',
@@ -1462,20 +1234,26 @@ export default function HomePage() {
 
 
         {/* =================================================
-            RIGHT PLACEHOLDER
+            PLACEHOLDER — RIGHT
         ================================================= */}
 
         <div
           style={{
-            position: 'absolute',
+            width: 360,
+            height: 400,
 
-            right: 20,
+            flexShrink: 0,
 
-            top: 85,
+            borderRadius: 24,
 
-            width: 500,
+            border:
+              '2px solid rgba(255,106,26,.42)',
 
-            height: 330,
+            background:
+              'linear-gradient(145deg, rgba(255,106,26,.08), rgba(10,10,10,.96))',
+
+            boxShadow:
+              '0 20px 70px rgba(0,0,0,.8), 0 0 30px rgba(255,106,26,.08)',
 
             display: 'flex',
 
@@ -1483,64 +1261,100 @@ export default function HomePage() {
 
             justifyContent: 'center',
 
-            border:
-              '1px solid rgba(255,106,26,.16)',
+            textAlign: 'center',
 
-            borderRadius: 26,
-
-            background:
-              'linear-gradient(135deg, rgba(255,106,26,.035), rgba(255,255,255,.012))',
-
-            boxShadow:
-              '0 25px 80px rgba(0,0,0,.5)',
-
-            transform:
-              'perspective(1200px) rotateY(-5deg) rotateZ(-2deg)',
+            position: 'relative',
 
             overflow: 'hidden',
 
-            zIndex: 1,
+            transform:
+              'perspective(1000px) rotateY(-4deg) rotateZ(-1deg)',
           }}
         >
 
+          {/* subtle glow */}
+
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+
+              width: 300,
+              height: 300,
+
+              left: '50%',
+              top: '50%',
+
+              transform:
+                'translate(-50%, -50%)',
+
+              borderRadius: '50%',
+
+              background:
+                'radial-gradient(circle, rgba(255,106,26,.12), transparent 70%)',
+
+              pointerEvents: 'none',
+            }}
+          />
+
           <div
             style={{
-              textAlign: 'center',
-
-              color:
-                'rgba(255,255,255,.28)',
-
-              fontFamily:
-                "'Space Grotesk', sans-serif",
+              position: 'relative',
+              zIndex: 1,
             }}
           >
+            <div
+              style={{
+                color:
+                  'rgba(255,106,26,.55)',
+
+                fontSize: 12,
+
+                fontWeight: 600,
+
+                letterSpacing:
+                  '2px',
+
+                textTransform:
+                  'uppercase',
+
+                marginBottom: 12,
+              }}
+            >
+              Coming Soon
+            </div>
 
             <div
               style={{
+                color: '#fff',
+
+                fontFamily:
+                  "'Space Grotesk', sans-serif",
+
                 fontSize: 28,
 
                 fontWeight: 600,
 
-                marginBottom: 8,
+                letterSpacing:
+                  '-.8px',
               }}
             >
               Placeholder
             </div>
 
-
             <div
               style={{
+                color:
+                  'rgba(255,255,255,.38)',
+
                 fontSize: 13,
 
-                color:
-                  'rgba(255,255,255,.18)',
+                marginTop: 8,
               }}
             >
-              Your profile preview goes here
+              More features
             </div>
-
           </div>
-
         </div>
 
 
@@ -1552,9 +1366,8 @@ export default function HomePage() {
           style={{
             position: 'absolute',
 
-            left: -150,
-
-            right: -150,
+            left: -100,
+            right: -100,
 
             bottom: -80,
 
@@ -1600,7 +1413,6 @@ export default function HomePage() {
       <section
         style={{
           position: 'relative',
-
           zIndex: 6,
 
           maxWidth: 1180,
@@ -1644,19 +1456,15 @@ export default function HomePage() {
           }}
         >
 
-          {/* CTA GLOW */}
-
           <div
             aria-hidden="true"
             style={{
               position: 'absolute',
 
               width: 450,
-
               height: 450,
 
               left: '50%',
-
               top: '50%',
 
               transform:
@@ -1674,7 +1482,6 @@ export default function HomePage() {
           <div
             style={{
               position: 'relative',
-
               zIndex: 1,
             }}
           >
@@ -1835,7 +1642,6 @@ export default function HomePage() {
             </div>
 
           </div>
-
         </div>
 
 
@@ -1866,8 +1672,6 @@ export default function HomePage() {
               gap: 45,
             }}
           >
-
-            {/* BRAND */}
 
             <div>
 
@@ -1938,8 +1742,6 @@ export default function HomePage() {
             </div>
 
 
-            {/* PRODUCT */}
-
             <div>
 
               <FooterTitle>
@@ -1964,8 +1766,6 @@ export default function HomePage() {
 
             </div>
 
-
-            {/* RESOURCES */}
 
             <div>
 
@@ -1995,8 +1795,6 @@ export default function HomePage() {
 
             </div>
 
-
-            {/* LEGAL */}
 
             <div>
 
