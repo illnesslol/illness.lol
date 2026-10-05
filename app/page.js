@@ -17,7 +17,6 @@ const COLORS = {
   line: 'rgba(255,255,255,.08)',
 }
 
-
 /* =========================================================
    ACCENT LINK
 ========================================================= */
@@ -42,7 +41,6 @@ function AccentLink({
       onMouseLeave={() => setHovered(false)}
       style={{
         ...style,
-
         transition:
           'color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease',
 
@@ -72,7 +70,6 @@ function AccentLink({
   )
 }
 
-
 /* =========================================================
    FOOTER COMPONENTS
 ========================================================= */
@@ -91,7 +88,6 @@ function FooterTitle({ children }) {
     </div>
   )
 }
-
 
 function FooterLink({
   href,
@@ -133,7 +129,6 @@ function FooterLink({
   )
 }
 
-
 /* =========================================================
    PLACEHOLDER AVATAR
 ========================================================= */
@@ -154,492 +149,6 @@ function PlaceholderAvatar({ small = false }) {
     />
   )
 }
-
-
-/* =========================================================
-   FAKE ICON
-========================================================= */
-
-function FakeIcon() {
-  return (
-    <div
-      style={{
-        width: 22,
-        height: 22,
-        borderRadius: 6,
-        background:
-          'rgba(255,106,26,.22)',
-        border:
-          '1px solid rgba(255,106,26,.25)',
-      }}
-    />
-  )
-}
-
-
-/* =========================================================
-   DASHBOARD PLACEHOLDER
-========================================================= */
-
-function DashboardPlaceholder() {
-  return (
-    <div
-      className="dashboard-placeholder"
-      style={{
-        width: 790,
-        height: 465,
-        background: '#050505',
-        border:
-          `2px solid ${COLORS.orangeBorder}`,
-        borderRadius: 26,
-        boxShadow:
-          '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
-        overflow: 'hidden',
-        display: 'flex',
-        transform:
-          'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
-        transformOrigin:
-          'center center',
-      }}
-    >
-
-      {/* SIDEBAR */}
-
-      <div
-        style={{
-          width: 170,
-          background: COLORS.surface,
-          borderRight:
-            `1px solid ${COLORS.line}`,
-          padding: 16,
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 9,
-            marginBottom: 22,
-          }}
-        >
-          <PlaceholderAvatar small />
-
-          <div>
-            <div
-              style={{
-                fontSize: 9,
-                color: '#fff',
-                fontWeight: 600,
-              }}
-            >
-              Welcome back, $
-            </div>
-
-            <div
-              style={{
-                fontSize: 7,
-                color: COLORS.faint,
-              }}
-            >
-              illness.lol
-            </div>
-          </div>
-        </div>
-
-        {[
-          'account',
-          'customize',
-          'links',
-          'premium',
-          'image host',
-        ].map((item, i) => (
-          <div
-            key={item}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 9,
-              padding: '8px 9px',
-              borderRadius: 8,
-              marginBottom: 4,
-              background:
-                i === 0
-                  ? 'rgba(255,106,26,.22)'
-                  : 'transparent',
-              color:
-                i === 0
-                  ? '#fff'
-                  : 'rgba(255,255,255,.72)',
-              fontSize: 9,
-            }}
-          >
-            <FakeIcon />
-            {item}
-          </div>
-        ))}
-
-        <div
-          style={{
-            marginTop: 70,
-            padding: 10,
-            borderRadius: 10,
-            background:
-              'rgba(255,255,255,.035)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 8,
-              color: COLORS.muted,
-              marginBottom: 8,
-            }}
-          >
-            Have a question or need support?
-          </div>
-
-          <div
-            style={{
-              height: 27,
-              borderRadius: 7,
-              background:
-                'linear-gradient(90deg,#ff6a1a,#ff8a3d)',
-              color: '#000',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 8,
-            }}
-          >
-            Join Discord
-          </div>
-        </div>
-      </div>
-
-
-      {/* CONTENT */}
-
-      <div
-        style={{
-          flex: 1,
-          padding: 22,
-          minWidth: 0,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10,
-            color: '#fff',
-            marginBottom: 15,
-          }}
-        >
-          Account Overview
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              '1.2fr 1fr 1fr 1fr',
-            gap: 9,
-            marginBottom: 20,
-          }}
-        >
-          {[
-            ['Username', '$'],
-            ['Alias', 'hirs'],
-            ['UID', '1'],
-            ['Profile Views', '4,801'],
-          ].map(([title, value]) => (
-            <div
-              key={title}
-              style={{
-                background:
-                  'rgba(255,106,26,.12)',
-                borderRadius: 9,
-                padding: 12,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  marginBottom: 8,
-                }}
-              >
-                <FakeIcon />
-
-                <span
-                  style={{
-                    fontSize: 7,
-                    color: COLORS.muted,
-                  }}
-                >
-                  {title}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  fontSize: 10,
-                  color: '#fff',
-                }}
-              >
-                {value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div
-          style={{
-            fontSize: 9,
-            color: '#fff',
-            marginBottom: 9,
-          }}
-        >
-          Account Statistics
-        </div>
-
-        <div
-          style={{
-            height: 205,
-            borderRadius: 13,
-            background: '#080808',
-            border:
-              '1px solid rgba(255,255,255,.05)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              left: 18,
-              top: 16,
-              color: COLORS.faint,
-              fontSize: 7,
-            }}
-          >
-            Profile Views in the last 12 hours
-          </div>
-
-          <svg
-            viewBox="0 0 600 180"
-            preserveAspectRatio="none"
-            style={{
-              position: 'absolute',
-              left: 15,
-              right: 15,
-              bottom: 10,
-              width:
-                'calc(100% - 30px)',
-              height: 155,
-            }}
-          >
-            <defs>
-              <linearGradient
-                id="chartGradient"
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="#ff6a1a"
-                  stopOpacity=".45"
-                />
-
-                <stop
-                  offset="100%"
-                  stopColor="#ff6a1a"
-                  stopOpacity=".03"
-                />
-              </linearGradient>
-            </defs>
-
-            <path
-              d="
-                M0 150
-                L45 150
-                C70 150 75 120 100 120
-                C125 120 125 150 150 150
-                C175 150 180 50 200 50
-                C220 50 235 150 255 150
-                C275 150 280 60 305 60
-                C330 60 345 150 365 150
-                C385 150 390 110 410 110
-                C430 110 440 150 460 150
-                C480 150 490 75 510 75
-                C530 75 545 150 565 150
-                L600 150
-                L600 180
-                L0 180
-                Z
-              "
-              fill="url(#chartGradient)"
-            />
-
-            <path
-              d="
-                M0 150
-                L45 150
-                C70 150 75 120 100 120
-                C125 120 125 150 150 150
-                C175 150 180 50 200 50
-                C220 50 235 150 255 150
-                C275 150 280 60 305 60
-                C330 60 345 150 365 150
-                C385 150 390 110 410 110
-                C430 110 440 150 460 150
-                C480 150 490 75 510 75
-                C530 75 545 150 565 150
-                L600 150
-              "
-              fill="none"
-              stroke="#ff6a1a"
-              strokeWidth="2"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-
-/* =========================================================
-   PROFILE PLACEHOLDER
-========================================================= */
-
-function ProfilePlaceholder({
-  className = '',
-  style = {},
-  username = 'username',
-  image = 1,
-}) {
-  const backgrounds = [
-    'linear-gradient(135deg,#0d0d0d,#241508)',
-    'linear-gradient(135deg,#111111,#3a1f0b)',
-    'linear-gradient(135deg,#141414,#5a2d0c)',
-  ]
-
-  return (
-    <div
-      className={`profile-placeholder ${className}`}
-      style={{
-        position: 'absolute',
-        width: 390,
-        height: 410,
-        borderRadius: 24,
-        overflow: 'hidden',
-        border:
-          `2px solid ${COLORS.orangeBorder}`,
-        background: '#050505',
-        boxShadow:
-          '0 20px 70px rgba(0,0,0,.8), 0 0 30px rgba(255,106,26,.1)',
-        ...style,
-      }}
-    >
-
-      {/* IMAGE */}
-
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            backgrounds[image - 1],
-        }}
-      />
-
-      {/* DARK OVERLAY */}
-
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(to bottom,rgba(0,0,0,.05) 20%,rgba(0,0,0,.9) 90%)',
-        }}
-      />
-
-      {/* CONTENT */}
-
-      <div
-        style={{
-          position: 'absolute',
-          left: 22,
-          right: 22,
-          bottom: 20,
-        }}
-      >
-        <PlaceholderAvatar />
-
-        <div
-          style={{
-            marginTop: 12,
-            fontFamily:
-              "'Space Grotesk', sans-serif",
-            fontSize: 19,
-            fontWeight: 700,
-          }}
-        >
-          {username}
-        </div>
-
-        <div
-          style={{
-            marginTop: 5,
-            color: COLORS.faint,
-            fontSize: 9,
-          }}
-        >
-          Welcome to my profile!
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            gap: 7,
-            marginTop: 15,
-          }}
-        >
-          {[1, 2, 3, 4].map(i => (
-            <div
-              key={i}
-              style={{
-                width: 31,
-                height: 31,
-                borderRadius: 8,
-                background:
-                  'rgba(255,255,255,.1)',
-                border:
-                  '1px solid rgba(255,255,255,.12)',
-              }}
-            />
-          ))}
-        </div>
-
-        <div
-          style={{
-            height: 39,
-            marginTop: 14,
-            borderRadius: 10,
-            background:
-              'rgba(255,255,255,.09)',
-            border:
-              '1px solid rgba(255,255,255,.1)',
-          }}
-        />
-      </div>
-    </div>
-  )
-}
-
 
 /* =========================================================
    FALLING LEAVES
@@ -678,9 +187,7 @@ function drawLeaf(
 
   ctx.fill()
 
-  ctx.globalAlpha =
-    opacity * 0.9
-
+  ctx.globalAlpha = opacity * 0.9
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
 
@@ -700,7 +207,6 @@ function drawLeaf(
 
   ctx.globalAlpha = 1
 }
-
 
 /* =========================================================
    HOME PAGE
@@ -1151,7 +657,6 @@ export default function HomePage() {
         }}
       />
 
-
       {/* =====================================================
           FALLING LEAVES
       ===================================================== */}
@@ -1168,7 +673,6 @@ export default function HomePage() {
           zIndex: 1,
         }}
       />
-
 
       {/* =====================================================
           GLOBAL STYLES
@@ -1320,7 +824,6 @@ export default function HomePage() {
         }
       `}</style>
 
-
       {/* =====================================================
           NAVIGATION
       ===================================================== */}
@@ -1412,7 +915,6 @@ export default function HomePage() {
           </span>
         </TransitionLink>
 
-
         {/* CENTER LINKS */}
 
         <div
@@ -1499,7 +1001,6 @@ export default function HomePage() {
           )}
         </div>
 
-
         {/* RIGHT SIDE */}
 
         <div
@@ -1544,7 +1045,6 @@ export default function HomePage() {
               Log in
             </AccentLink>
           )}
-
 
           {authChecked &&
           loggedIn ? (
@@ -1614,7 +1114,6 @@ export default function HomePage() {
         </div>
       </nav>
 
-
       {/* =====================================================
           HERO
       ===================================================== */}
@@ -1675,7 +1174,6 @@ export default function HomePage() {
           right here.
         </h1>
 
-
         <p
           className="hero-subtitle"
           style={{
@@ -1700,7 +1198,6 @@ export default function HomePage() {
           custom bio pages and fast,
           secure file hosting
         </p>
-
 
         <div
           style={{
@@ -1757,7 +1254,6 @@ export default function HomePage() {
             Sign Up for Free
           </AccentLink>
 
-
           <AccentLink
             href="/pricing"
             className="hero-button"
@@ -1801,9 +1297,11 @@ export default function HomePage() {
         </div>
       </section>
 
-
       {/* =====================================================
           SHOWCASE
+          
+          dashboard.png is now the LEFT image.
+          The right side is a placeholder card.
       ===================================================== */}
 
       <section
@@ -1815,7 +1313,7 @@ export default function HomePage() {
 
           width: 1500,
 
-          height: 500,
+          height: 520,
 
           margin:
             '-160px auto 0',
@@ -1827,73 +1325,225 @@ export default function HomePage() {
         }}
       >
 
-        {/* DASHBOARD */}
-
-        <DashboardPlaceholder />
-
-
-        {/* PROFILE STACK */}
+        {/* =================================================
+            REAL DASHBOARD IMAGE — LEFT
+        ================================================= */}
 
         <div
           style={{
             position: 'absolute',
 
-            right: 45,
+            left: 35,
+            top: 0,
 
+            width: 800,
+
+            height: 470,
+
+            zIndex: 2,
+
+            perspective: 1200,
+          }}
+        >
+          <img
+            src="/dashboard.png"
+            alt="illness.lol dashboard"
+            style={{
+              display: 'block',
+
+              width: 790,
+              height: 'auto',
+
+              borderRadius: 26,
+
+              border:
+                '2px solid rgba(255,106,26,.5)',
+
+              boxShadow:
+                '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
+
+              transform:
+                'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+
+              transformOrigin:
+                'center center',
+
+              objectFit: 'cover',
+
+              background: '#050505',
+            }}
+          />
+        </div>
+
+        {/* =================================================
+            RIGHT PLACEHOLDER IMAGE
+        ================================================= */}
+
+        <div
+          style={{
+            position: 'absolute',
+
+            right: 35,
             top: 70,
 
-            width: 700,
+            width: 410,
+            height: 430,
 
-            height: 450,
+            zIndex: 3,
+
+            borderRadius: 26,
+
+            overflow: 'hidden',
+
+            border:
+              '2px solid rgba(255,106,26,.45)',
+
+            background: `
+              radial-gradient(
+                circle at 50% 35%,
+                rgba(255,106,26,.16),
+                transparent 42%
+              ),
+              linear-gradient(
+                145deg,
+                #17100b 0%,
+                #0b0b0b 55%,
+                #050505 100%
+              )
+            `,
+
+            boxShadow:
+              '0 25px 80px rgba(0,0,0,.8), 0 0 35px rgba(255,106,26,.1)',
+
+            transform:
+              'perspective(1000px) rotateY(-5deg) rotateZ(-2deg)',
+
+            transformOrigin:
+              'center center',
           }}
         >
 
-          <ProfilePlaceholder
-            username="Azure"
-            image={1}
+          {/* PLACEHOLDER IMAGE AREA */}
+
+          <div
             style={{
-              left: 0,
-              top: 0,
+              position: 'absolute',
 
-              transform:
-                'perspective(1000px) rotateY(-9deg) rotateZ(3deg)',
+              inset: 0,
 
-              opacity: 0.65,
+              background:
+                'linear-gradient(to bottom, rgba(0,0,0,.05) 20%, rgba(0,0,0,.92) 90%)',
             }}
           />
 
-          <ProfilePlaceholder
-            username="vue"
-            image={2}
+          {/* PLACEHOLDER CONTENT */}
+
+          <div
             style={{
-              left: 140,
-              top: 35,
+              position: 'absolute',
 
-              transform:
-                'perspective(1000px) rotateY(-5deg) rotateZ(2deg)',
-
-              zIndex: 2,
+              left: 25,
+              right: 25,
+              bottom: 25,
             }}
-          />
+          >
 
-          <ProfilePlaceholder
-            username="yourname"
-            image={3}
-            style={{
-              left: 305,
-              top: 75,
+            <div
+              style={{
+                width: 52,
+                height: 52,
 
-              transform:
-                'perspective(1000px) rotateY(-2deg) rotateZ(-1deg)',
+                borderRadius: '50%',
 
-              zIndex: 3,
-            }}
-          />
+                background:
+                  'linear-gradient(135deg, #ff6a1a, #ffa561)',
 
+                boxShadow:
+                  '0 0 25px rgba(255,106,26,.3)',
+
+                marginBottom: 15,
+              }}
+            />
+
+            <div
+              style={{
+                fontFamily:
+                  "'Space Grotesk', sans-serif",
+
+                fontSize: 22,
+
+                fontWeight: 700,
+
+                color: '#fff',
+
+                marginBottom: 7,
+              }}
+            >
+              yourname
+            </div>
+
+            <div
+              style={{
+                color:
+                  'rgba(255,255,255,.4)',
+
+                fontSize: 11,
+
+                marginBottom: 16,
+              }}
+            >
+              Welcome to my profile!
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                gap: 8,
+
+                marginBottom: 14,
+              }}
+            >
+              {[1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  style={{
+                    width: 34,
+                    height: 34,
+
+                    borderRadius: 9,
+
+                    background:
+                      'rgba(255,255,255,.07)',
+
+                    border:
+                      '1px solid rgba(255,255,255,.1)',
+                  }}
+                />
+              ))}
+            </div>
+
+            <div
+              style={{
+                width: '100%',
+                height: 45,
+
+                borderRadius: 11,
+
+                background:
+                  'rgba(255,255,255,.065)',
+
+                border:
+                  '1px solid rgba(255,255,255,.08)',
+              }}
+            />
+
+          </div>
         </div>
 
-
-        {/* BOTTOM FADE */}
+        {/* =================================================
+            BOTTOM FADE
+        ================================================= */}
 
         <div
           style={{
@@ -1918,7 +1568,6 @@ export default function HomePage() {
 
       </section>
 
-
       {/* =====================================================
           SMALL BOTTOM FADE
       ===================================================== */}
@@ -1937,7 +1586,6 @@ export default function HomePage() {
             'linear-gradient(to bottom, transparent, #050505)',
         }}
       />
-
 
       {/* =====================================================
           LOWER CONTENT
@@ -1989,8 +1637,6 @@ export default function HomePage() {
           }}
         >
 
-          {/* CTA GLOW */}
-
           <div
             aria-hidden="true"
             style={{
@@ -2012,7 +1658,6 @@ export default function HomePage() {
                 'none',
             }}
           />
-
 
           <div
             style={{
@@ -2051,7 +1696,6 @@ export default function HomePage() {
               illness.lol
             </div>
 
-
             <h2
               style={{
                 margin: 0,
@@ -2069,7 +1713,6 @@ export default function HomePage() {
             >
               Your corner of the internet.
             </h2>
-
 
             <p
               style={{
@@ -2091,7 +1734,6 @@ export default function HomePage() {
               files, and make your presence
               yours.
             </p>
-
 
             <div
               style={{
@@ -2139,7 +1781,6 @@ export default function HomePage() {
                 Get Started
               </AccentLink>
 
-
               <AccentLink
                 href="/pricing"
                 style={{
@@ -2175,10 +1816,8 @@ export default function HomePage() {
               </AccentLink>
 
             </div>
-
           </div>
         </div>
-
 
         {/* =================================================
             FOOTER
@@ -2256,7 +1895,6 @@ export default function HomePage() {
 
               </TransitionLink>
 
-
               <p
                 style={{
                   maxWidth: 290,
@@ -2277,7 +1915,6 @@ export default function HomePage() {
               </p>
 
             </div>
-
 
             {/* PRODUCT */}
 
@@ -2304,7 +1941,6 @@ export default function HomePage() {
               </FooterLink>
 
             </div>
-
 
             {/* RESOURCES */}
 
@@ -2336,7 +1972,6 @@ export default function HomePage() {
 
             </div>
 
-
             {/* LEGAL */}
 
             <div>
@@ -2360,7 +1995,6 @@ export default function HomePage() {
             </div>
 
           </div>
-
 
           {/* FOOTER BOTTOM */}
 
@@ -2398,7 +2032,6 @@ export default function HomePage() {
               © {new Date().getFullYear()} illness.lol.
               All rights reserved.
             </span>
-
 
             <span
               style={{
