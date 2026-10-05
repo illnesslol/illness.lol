@@ -17,6 +17,7 @@ const COLORS = {
   line: 'rgba(255,255,255,.08)',
 }
 
+
 /* =========================================================
    ACCENT LINK
 ========================================================= */
@@ -41,6 +42,7 @@ function AccentLink({
       onMouseLeave={() => setHovered(false)}
       style={{
         ...style,
+
         transition:
           'color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease',
 
@@ -70,6 +72,7 @@ function AccentLink({
   )
 }
 
+
 /* =========================================================
    FOOTER COMPONENTS
 ========================================================= */
@@ -88,6 +91,7 @@ function FooterTitle({ children }) {
     </div>
   )
 }
+
 
 function FooterLink({
   href,
@@ -129,26 +133,6 @@ function FooterLink({
   )
 }
 
-/* =========================================================
-   PLACEHOLDER AVATAR
-========================================================= */
-
-function PlaceholderAvatar({ small = false }) {
-  return (
-    <div
-      style={{
-        width: small ? 32 : 48,
-        height: small ? 32 : 48,
-        borderRadius: '50%',
-        background:
-          'linear-gradient(135deg, #ff6a1a, #ffa561)',
-        boxShadow:
-          '0 0 20px rgba(255,106,26,.3)',
-        flexShrink: 0,
-      }}
-    />
-  )
-}
 
 /* =========================================================
    FALLING LEAVES
@@ -187,7 +171,9 @@ function drawLeaf(
 
   ctx.fill()
 
-  ctx.globalAlpha = opacity * 0.9
+  ctx.globalAlpha =
+    opacity * 0.9
+
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
 
@@ -208,6 +194,7 @@ function drawLeaf(
   ctx.globalAlpha = 1
 }
 
+
 /* =========================================================
    HOME PAGE
 ========================================================= */
@@ -223,6 +210,11 @@ export default function HomePage() {
 
   const [loggedIn, setLoggedIn] =
     useState(false)
+
+
+  /* =======================================================
+     ANIMATION + AUTH
+  ======================================================= */
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -242,6 +234,7 @@ export default function HomePage() {
         setAuthChecked(true)
       })
 
+
     const canvas = canvasRef.current
 
     if (!canvas) {
@@ -256,6 +249,7 @@ export default function HomePage() {
       window.matchMedia(
         '(prefers-reduced-motion: reduce)'
       ).matches
+
 
     const resize = () => {
       canvas.width =
@@ -272,12 +266,14 @@ export default function HomePage() {
       resize
     )
 
+
     const leafColors = [
       '#ff6a1a',
       '#ff8a3d',
       '#e85a0c',
       '#ffffff',
     ]
+
 
     const makeLeaf = (
       spreadY = false
@@ -336,18 +332,22 @@ export default function HomePage() {
       baseX: 0,
     })
 
+
     const leaves =
       Array.from(
         { length: 7 },
         () => makeLeaf(true)
       )
 
+
     leaves.forEach(l => {
       l.baseX = l.x
     })
 
+
     let animationFrame
     let tick = 0
+
 
     const draw = () => {
       ctx.clearRect(
@@ -359,11 +359,13 @@ export default function HomePage() {
 
       tick += 1
 
+
       leaves.forEach(l => {
         if (!reduceMotion) {
           l.y += l.speed
           l.rotation += l.spin
         }
+
 
         const sway =
           reduceMotion
@@ -375,8 +377,10 @@ export default function HomePage() {
               ) *
               l.swayAmp
 
+
         const x =
           l.baseX + sway
+
 
         if (
           l.y >
@@ -389,12 +393,15 @@ export default function HomePage() {
             canvas.width
         }
 
+
         ctx.save()
+
 
         ctx.translate(
           x,
           l.y
         )
+
 
         ctx.rotate(
           l.rotation +
@@ -406,6 +413,7 @@ export default function HomePage() {
               0.5
         )
 
+
         drawLeaf(
           ctx,
           l.size,
@@ -413,14 +421,18 @@ export default function HomePage() {
           l.opacity
         )
 
+
         ctx.restore()
       })
+
 
       animationFrame =
         requestAnimationFrame(draw)
     }
 
+
     draw()
+
 
     return () => {
       clearTimeout(timer)
@@ -436,15 +448,22 @@ export default function HomePage() {
     }
   }, [])
 
+
   return (
     <main
       style={{
         minHeight: '100vh',
-        background: '#050505',
+
+        background:
+          '#050505',
+
         color: '#fff',
+
         fontFamily:
           "'Inter', system-ui, sans-serif",
+
         position: 'relative',
+
         overflow: 'hidden',
       }}
     >
@@ -496,6 +515,7 @@ export default function HomePage() {
         }}
       />
 
+
       {/* =====================================================
           LARGE SOFT CENTER LIGHT
       ===================================================== */}
@@ -519,13 +539,15 @@ export default function HomePage() {
           background:
             'radial-gradient(circle, rgba(255,106,26,.065), rgba(255,106,26,.018) 38%, transparent 70%)',
 
-          filter: 'blur(25px)',
+          filter:
+            'blur(25px)',
 
           pointerEvents: 'none',
 
           zIndex: 0,
         }}
       />
+
 
       {/* =====================================================
           TOP ORANGE LIGHT
@@ -550,13 +572,15 @@ export default function HomePage() {
           background:
             'radial-gradient(circle, rgba(255,106,26,.16), rgba(255,106,26,.04) 42%, transparent 70%)',
 
-          filter: 'blur(12px)',
+          filter:
+            'blur(12px)',
 
           pointerEvents: 'none',
 
           zIndex: 0,
         }}
       />
+
 
       {/* =====================================================
           SIDE AMBIENT GLOW — LEFT
@@ -578,13 +602,15 @@ export default function HomePage() {
           background:
             'radial-gradient(circle, rgba(255,106,26,.055), transparent 68%)',
 
-          filter: 'blur(20px)',
+          filter:
+            'blur(20px)',
 
           pointerEvents: 'none',
 
           zIndex: 0,
         }}
       />
+
 
       {/* =====================================================
           SIDE AMBIENT GLOW — RIGHT
@@ -606,13 +632,15 @@ export default function HomePage() {
           background:
             'radial-gradient(circle, rgba(255,80,10,.045), transparent 68%)',
 
-          filter: 'blur(20px)',
+          filter:
+            'blur(20px)',
 
           pointerEvents: 'none',
 
           zIndex: 0,
         }}
       />
+
 
       {/* =====================================================
           DOT GRID
@@ -622,8 +650,11 @@ export default function HomePage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           inset: 0,
+
           zIndex: 0,
+
           pointerEvents: 'none',
 
           backgroundImage:
@@ -640,6 +671,7 @@ export default function HomePage() {
         }}
       />
 
+
       {/* =====================================================
           SUBTLE VIGNETTE
       ===================================================== */}
@@ -648,14 +680,18 @@ export default function HomePage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           inset: 0,
+
           zIndex: 0,
+
           pointerEvents: 'none',
 
           background:
             'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%)',
         }}
       />
+
 
       {/* =====================================================
           FALLING LEAVES
@@ -666,13 +702,18 @@ export default function HomePage() {
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           inset: 0,
+
           width: '100%',
           height: '100%',
+
           pointerEvents: 'none',
+
           zIndex: 1,
         }}
       />
+
 
       {/* =====================================================
           GLOBAL STYLES
@@ -740,7 +781,8 @@ export default function HomePage() {
               translateX(-50%)
               scale(.82) !important;
 
-            transform-origin: top center;
+            transform-origin:
+              top center;
           }
         }
 
@@ -767,6 +809,7 @@ export default function HomePage() {
               scale(.58) !important;
 
             height: 300px !important;
+
             margin-top: 10px !important;
           }
 
@@ -809,6 +852,7 @@ export default function HomePage() {
           .footer-grid {
             grid-template-columns:
               1fr !important;
+
             gap: 32px !important;
           }
 
@@ -818,11 +862,15 @@ export default function HomePage() {
           }
 
           .footer-bottom {
-            align-items: flex-start !important;
-            flex-direction: column !important;
+            align-items:
+              flex-start !important;
+
+            flex-direction:
+              column !important;
           }
         }
       `}</style>
+
 
       {/* =====================================================
           NAVIGATION
@@ -832,8 +880,11 @@ export default function HomePage() {
         className="nav"
         style={{
           position: 'absolute',
+
           top: 21,
+
           left: '50%',
+
           transform:
             'translateX(-50%)',
 
@@ -860,6 +911,7 @@ export default function HomePage() {
             '0 15px 50px rgba(0,0,0,.4), 0 0 35px rgba(255,106,26,.025)',
 
           display: 'flex',
+
           alignItems: 'center',
 
           padding:
@@ -875,7 +927,9 @@ export default function HomePage() {
           href="/"
           style={{
             display: 'flex',
+
             alignItems: 'center',
+
             gap: 12,
 
             color: '#fff',
@@ -915,17 +969,21 @@ export default function HomePage() {
           </span>
         </TransitionLink>
 
+
         {/* CENTER LINKS */}
 
         <div
           className="desktop-links"
           style={{
             position: 'absolute',
+
             left: '50%',
+
             transform:
               'translateX(-50%)',
 
             display: 'flex',
+
             alignItems: 'center',
 
             gap: 5,
@@ -933,18 +991,22 @@ export default function HomePage() {
         >
           {[
             ['Help Center', '/help'],
+
             [
               'Discord',
               'https://discord.gg/R4tyQ4h3K5',
             ],
+
             [
               'Leaderboard',
               '/leaderboard',
             ],
+
             [
               'Pricing',
               '/pricing',
             ],
+
             [
               'Questions',
               '/questions',
@@ -1001,6 +1063,7 @@ export default function HomePage() {
           )}
         </div>
 
+
         {/* RIGHT SIDE */}
 
         <div
@@ -1008,6 +1071,7 @@ export default function HomePage() {
             marginLeft: 'auto',
 
             display: 'flex',
+
             alignItems: 'center',
 
             gap: 8,
@@ -1045,6 +1109,7 @@ export default function HomePage() {
               Log in
             </AccentLink>
           )}
+
 
           {authChecked &&
           loggedIn ? (
@@ -1114,6 +1179,7 @@ export default function HomePage() {
         </div>
       </nav>
 
+
       {/* =====================================================
           HERO
       ===================================================== */}
@@ -1122,6 +1188,7 @@ export default function HomePage() {
         className="hero"
         style={{
           position: 'relative',
+
           zIndex: 2,
 
           minHeight: 650,
@@ -1131,7 +1198,9 @@ export default function HomePage() {
           textAlign: 'center',
 
           display: 'flex',
+
           flexDirection: 'column',
+
           alignItems: 'center',
 
           opacity:
@@ -1174,6 +1243,7 @@ export default function HomePage() {
           right here.
         </h1>
 
+
         <p
           className="hero-subtitle"
           style={{
@@ -1198,6 +1268,7 @@ export default function HomePage() {
           custom bio pages and fast,
           secure file hosting
         </p>
+
 
         <div
           style={{
@@ -1254,6 +1325,7 @@ export default function HomePage() {
             Sign Up for Free
           </AccentLink>
 
+
           <AccentLink
             href="/pricing"
             className="hero-button"
@@ -1297,11 +1369,9 @@ export default function HomePage() {
         </div>
       </section>
 
+
       {/* =====================================================
           SHOWCASE
-          
-          dashboard.png is now the LEFT image.
-          The right side is a placeholder card.
       ===================================================== */}
 
       <section
@@ -1313,7 +1383,7 @@ export default function HomePage() {
 
           width: 1500,
 
-          height: 520,
+          height: 500,
 
           margin:
             '-160px auto 0',
@@ -1333,213 +1403,146 @@ export default function HomePage() {
           style={{
             position: 'absolute',
 
-            left: 35,
-            top: 0,
+            /*
+             * Move the dashboard farther left.
+             * Change this to -150, -200, etc.
+             * if you want it even farther out.
+             */
+            left: -100,
 
-            width: 800,
+            top: 20,
 
-            height: 470,
+            width: 820,
+
+            height: 480,
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+
+            perspective: 1400,
 
             zIndex: 2,
-
-            perspective: 1200,
           }}
         >
           <img
             src="/dashboard.png"
-            alt="illness.lol dashboard"
+            alt="Dashboard preview"
             style={{
               display: 'block',
 
               width: 790,
+
               height: 'auto',
 
               borderRadius: 26,
 
               border:
-                '2px solid rgba(255,106,26,.5)',
+                `2px solid ${COLORS.orangeBorder}`,
 
               boxShadow:
                 '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
 
+              objectFit: 'cover',
+
+              /*
+               * Positive Y rotation makes the
+               * dashboard face inward toward the right.
+               */
               transform:
-                'perspective(1200px) rotateY(8deg) rotateZ(4deg)',
+                'perspective(1400px) rotateY(8deg) rotateZ(4deg)',
 
               transformOrigin:
                 'center center',
-
-              objectFit: 'cover',
-
-              background: '#050505',
             }}
           />
         </div>
 
+
         {/* =================================================
-            RIGHT PLACEHOLDER IMAGE
+            RIGHT PLACEHOLDER
         ================================================= */}
 
         <div
           style={{
             position: 'absolute',
 
-            right: 35,
-            top: 70,
+            right: 20,
 
-            width: 410,
-            height: 430,
+            top: 85,
 
-            zIndex: 3,
+            width: 500,
+
+            height: 330,
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+
+            border:
+              '1px solid rgba(255,106,26,.16)',
 
             borderRadius: 26,
 
-            overflow: 'hidden',
-
-            border:
-              '2px solid rgba(255,106,26,.45)',
-
-            background: `
-              radial-gradient(
-                circle at 50% 35%,
-                rgba(255,106,26,.16),
-                transparent 42%
-              ),
-              linear-gradient(
-                145deg,
-                #17100b 0%,
-                #0b0b0b 55%,
-                #050505 100%
-              )
-            `,
+            background:
+              'linear-gradient(135deg, rgba(255,106,26,.035), rgba(255,255,255,.012))',
 
             boxShadow:
-              '0 25px 80px rgba(0,0,0,.8), 0 0 35px rgba(255,106,26,.1)',
+              '0 25px 80px rgba(0,0,0,.5)',
 
             transform:
-              'perspective(1000px) rotateY(-5deg) rotateZ(-2deg)',
+              'perspective(1200px) rotateY(-5deg) rotateZ(-2deg)',
 
-            transformOrigin:
-              'center center',
+            overflow: 'hidden',
+
+            zIndex: 1,
           }}
         >
 
-          {/* PLACEHOLDER IMAGE AREA */}
-
           <div
             style={{
-              position: 'absolute',
+              textAlign: 'center',
 
-              inset: 0,
+              color:
+                'rgba(255,255,255,.28)',
 
-              background:
-                'linear-gradient(to bottom, rgba(0,0,0,.05) 20%, rgba(0,0,0,.92) 90%)',
-            }}
-          />
-
-          {/* PLACEHOLDER CONTENT */}
-
-          <div
-            style={{
-              position: 'absolute',
-
-              left: 25,
-              right: 25,
-              bottom: 25,
+              fontFamily:
+                "'Space Grotesk', sans-serif",
             }}
           >
 
             <div
               style={{
-                width: 52,
-                height: 52,
+                fontSize: 28,
 
-                borderRadius: '50%',
+                fontWeight: 600,
 
-                background:
-                  'linear-gradient(135deg, #ff6a1a, #ffa561)',
-
-                boxShadow:
-                  '0 0 25px rgba(255,106,26,.3)',
-
-                marginBottom: 15,
-              }}
-            />
-
-            <div
-              style={{
-                fontFamily:
-                  "'Space Grotesk', sans-serif",
-
-                fontSize: 22,
-
-                fontWeight: 700,
-
-                color: '#fff',
-
-                marginBottom: 7,
+                marginBottom: 8,
               }}
             >
-              yourname
+              Placeholder
             </div>
+
 
             <div
               style={{
+                fontSize: 13,
+
                 color:
-                  'rgba(255,255,255,.4)',
-
-                fontSize: 11,
-
-                marginBottom: 16,
+                  'rgba(255,255,255,.18)',
               }}
             >
-              Welcome to my profile!
+              Your profile preview goes here
             </div>
-
-            <div
-              style={{
-                display: 'flex',
-
-                gap: 8,
-
-                marginBottom: 14,
-              }}
-            >
-              {[1, 2, 3, 4].map(i => (
-                <div
-                  key={i}
-                  style={{
-                    width: 34,
-                    height: 34,
-
-                    borderRadius: 9,
-
-                    background:
-                      'rgba(255,255,255,.07)',
-
-                    border:
-                      '1px solid rgba(255,255,255,.1)',
-                  }}
-                />
-              ))}
-            </div>
-
-            <div
-              style={{
-                width: '100%',
-                height: 45,
-
-                borderRadius: 11,
-
-                background:
-                  'rgba(255,255,255,.065)',
-
-                border:
-                  '1px solid rgba(255,255,255,.08)',
-              }}
-            />
 
           </div>
+
         </div>
+
 
         {/* =================================================
             BOTTOM FADE
@@ -1549,8 +1552,9 @@ export default function HomePage() {
           style={{
             position: 'absolute',
 
-            left: -100,
-            right: -100,
+            left: -150,
+
+            right: -150,
 
             bottom: -80,
 
@@ -1567,6 +1571,7 @@ export default function HomePage() {
         />
 
       </section>
+
 
       {/* =====================================================
           SMALL BOTTOM FADE
@@ -1587,6 +1592,7 @@ export default function HomePage() {
         }}
       />
 
+
       {/* =====================================================
           LOWER CONTENT
       ===================================================== */}
@@ -1594,6 +1600,7 @@ export default function HomePage() {
       <section
         style={{
           position: 'relative',
+
           zIndex: 6,
 
           maxWidth: 1180,
@@ -1637,15 +1644,19 @@ export default function HomePage() {
           }}
         >
 
+          {/* CTA GLOW */}
+
           <div
             aria-hidden="true"
             style={{
               position: 'absolute',
 
               width: 450,
+
               height: 450,
 
               left: '50%',
+
               top: '50%',
 
               transform:
@@ -1659,9 +1670,11 @@ export default function HomePage() {
             }}
           />
 
+
           <div
             style={{
               position: 'relative',
+
               zIndex: 1,
             }}
           >
@@ -1696,6 +1709,7 @@ export default function HomePage() {
               illness.lol
             </div>
 
+
             <h2
               style={{
                 margin: 0,
@@ -1713,6 +1727,7 @@ export default function HomePage() {
             >
               Your corner of the internet.
             </h2>
+
 
             <p
               style={{
@@ -1734,6 +1749,7 @@ export default function HomePage() {
               files, and make your presence
               yours.
             </p>
+
 
             <div
               style={{
@@ -1781,6 +1797,7 @@ export default function HomePage() {
                 Get Started
               </AccentLink>
 
+
               <AccentLink
                 href="/pricing"
                 style={{
@@ -1816,8 +1833,11 @@ export default function HomePage() {
               </AccentLink>
 
             </div>
+
           </div>
+
         </div>
+
 
         {/* =================================================
             FOOTER
@@ -1895,6 +1915,7 @@ export default function HomePage() {
 
               </TransitionLink>
 
+
               <p
                 style={{
                   maxWidth: 290,
@@ -1915,6 +1936,7 @@ export default function HomePage() {
               </p>
 
             </div>
+
 
             {/* PRODUCT */}
 
@@ -1941,6 +1963,7 @@ export default function HomePage() {
               </FooterLink>
 
             </div>
+
 
             {/* RESOURCES */}
 
@@ -1972,6 +1995,7 @@ export default function HomePage() {
 
             </div>
 
+
             {/* LEGAL */}
 
             <div>
@@ -1995,6 +2019,7 @@ export default function HomePage() {
             </div>
 
           </div>
+
 
           {/* FOOTER BOTTOM */}
 
@@ -2032,6 +2057,7 @@ export default function HomePage() {
               © {new Date().getFullYear()} illness.lol.
               All rights reserved.
             </span>
+
 
             <span
               style={{
