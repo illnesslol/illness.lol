@@ -135,6 +135,28 @@ function FooterLink({
 
 
 /* =========================================================
+   PLACEHOLDER AVATAR
+========================================================= */
+
+function PlaceholderAvatar({ small = false }) {
+  return (
+    <div
+      style={{
+        width: small ? 32 : 48,
+        height: small ? 32 : 48,
+        borderRadius: '50%',
+        background:
+          'linear-gradient(135deg, #ff6a1a, #ffa561)',
+        boxShadow:
+          '0 0 20px rgba(255,106,26,.3)',
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
+
+/* =========================================================
    FALLING LEAVES
 ========================================================= */
 
@@ -201,9 +223,14 @@ function drawLeaf(
 export default function HomePage() {
   const canvasRef = useRef(null)
 
-  const [visible, setVisible] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [visible, setVisible] =
+    useState(false)
+
+  const [authChecked, setAuthChecked] =
+    useState(false)
+
+  const [loggedIn, setLoggedIn] =
+    useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -213,7 +240,10 @@ export default function HomePage() {
     fetch('/api/me')
       .then(res => res.json())
       .then(data => {
-        setLoggedIn(Boolean(data.loggedIn))
+        setLoggedIn(
+          Boolean(data.loggedIn)
+        )
+
         setAuthChecked(true)
       })
       .catch(() => {
@@ -223,23 +253,32 @@ export default function HomePage() {
     const canvas = canvasRef.current
 
     if (!canvas) {
-      return () => clearTimeout(timer)
+      return () =>
+        clearTimeout(timer)
     }
 
-    const ctx = canvas.getContext('2d')
+    const ctx =
+      canvas.getContext('2d')
 
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
+    const reduceMotion =
+      window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches
 
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      canvas.width =
+        window.innerWidth
+
+      canvas.height =
+        window.innerHeight
     }
 
     resize()
 
-    window.addEventListener('resize', resize)
+    window.addEventListener(
+      'resize',
+      resize
+    )
 
     const leafColors = [
       '#ff6a1a',
@@ -248,26 +287,33 @@ export default function HomePage() {
       '#ffffff',
     ]
 
-    const makeLeaf = (spreadY = false) => ({
+    const makeLeaf = (
+      spreadY = false
+    ) => ({
       x:
         Math.random() *
         window.innerWidth,
 
       y: spreadY
-        ? Math.random() * window.innerHeight
-        : -30 - Math.random() * 120,
+        ? Math.random() *
+          window.innerHeight
+        : -30 -
+          Math.random() * 120,
 
       size:
         Math.random() * 6 + 9,
 
       speed:
-        Math.random() * 0.35 + 0.35,
+        Math.random() * 0.35 +
+        0.35,
 
       swayAmp:
-        Math.random() * 30 + 20,
+        Math.random() * 30 +
+        20,
 
       swaySpeed:
-        Math.random() * 0.012 + 0.006,
+        Math.random() * 0.012 +
+        0.006,
 
       phase:
         Math.random() *
@@ -280,10 +326,12 @@ export default function HomePage() {
         2,
 
       spin:
-        (Math.random() - 0.5) * 0.012,
+        (Math.random() - 0.5) *
+        0.012,
 
       opacity:
-        Math.random() * 0.2 + 0.22,
+        Math.random() * 0.2 +
+        0.22,
 
       color:
         leafColors[
@@ -296,10 +344,11 @@ export default function HomePage() {
       baseX: 0,
     })
 
-    const leaves = Array.from(
-      { length: 7 },
-      () => makeLeaf(true)
-    )
+    const leaves =
+      Array.from(
+        { length: 7 },
+        () => makeLeaf(true)
+      )
 
     leaves.forEach(l => {
       l.baseX = l.x
@@ -324,15 +373,18 @@ export default function HomePage() {
           l.rotation += l.spin
         }
 
-        const sway = reduceMotion
-          ? 0
-          : Math.sin(
-              tick *
-                l.swaySpeed +
-                l.phase
-            ) * l.swayAmp
+        const sway =
+          reduceMotion
+            ? 0
+            : Math.sin(
+                tick *
+                  l.swaySpeed +
+                  l.phase
+              ) *
+              l.swayAmp
 
-        const x = l.baseX + sway
+        const x =
+          l.baseX + sway
 
         if (
           l.y >
@@ -347,7 +399,10 @@ export default function HomePage() {
 
         ctx.save()
 
-        ctx.translate(x, l.y)
+        ctx.translate(
+          x,
+          l.y
+        )
 
         ctx.rotate(
           l.rotation +
@@ -355,7 +410,8 @@ export default function HomePage() {
               tick *
                 l.swaySpeed +
                 l.phase
-            ) * 0.5
+            ) *
+              0.5
         )
 
         drawLeaf(
@@ -402,7 +458,7 @@ export default function HomePage() {
     >
 
       {/* =====================================================
-          BACKGROUND
+          ATMOSPHERIC BACKGROUND
       ===================================================== */}
 
       <div
@@ -448,77 +504,127 @@ export default function HomePage() {
         }}
       />
 
+      {/* =====================================================
+          LARGE SOFT CENTER LIGHT
+      ===================================================== */}
+
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           width: 1000,
           height: 1000,
+
           left: '50%',
           top: '28%',
+
           transform:
             'translate(-50%, -50%)',
+
           borderRadius: '50%',
+
           background:
             'radial-gradient(circle, rgba(255,106,26,.065), rgba(255,106,26,.018) 38%, transparent 70%)',
+
           filter: 'blur(25px)',
+
           pointerEvents: 'none',
+
           zIndex: 0,
         }}
       />
+
+      {/* =====================================================
+          TOP ORANGE LIGHT
+      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           top: -500,
           left: '50%',
+
           transform:
             'translateX(-50%)',
+
           width: 1200,
           height: 850,
+
           borderRadius: '50%',
+
           background:
             'radial-gradient(circle, rgba(255,106,26,.16), rgba(255,106,26,.04) 42%, transparent 70%)',
+
           filter: 'blur(12px)',
+
           pointerEvents: 'none',
+
           zIndex: 0,
         }}
       />
+
+      {/* =====================================================
+          SIDE AMBIENT GLOW — LEFT
+      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           left: -350,
           top: '38%',
+
           width: 700,
           height: 700,
+
           borderRadius: '50%',
+
           background:
             'radial-gradient(circle, rgba(255,106,26,.055), transparent 68%)',
+
           filter: 'blur(20px)',
+
           pointerEvents: 'none',
+
           zIndex: 0,
         }}
       />
+
+      {/* =====================================================
+          SIDE AMBIENT GLOW — RIGHT
+      ===================================================== */}
 
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
+
           right: -350,
           top: '48%',
+
           width: 700,
           height: 700,
+
           borderRadius: '50%',
+
           background:
             'radial-gradient(circle, rgba(255,80,10,.045), transparent 68%)',
+
           filter: 'blur(20px)',
+
           pointerEvents: 'none',
+
           zIndex: 0,
         }}
       />
+
+      {/* =====================================================
+          DOT GRID
+      ===================================================== */}
 
       <div
         aria-hidden="true"
@@ -542,6 +648,10 @@ export default function HomePage() {
         }}
       />
 
+      {/* =====================================================
+          SUBTLE VIGNETTE
+      ===================================================== */}
+
       <div
         aria-hidden="true"
         style={{
@@ -554,6 +664,7 @@ export default function HomePage() {
             'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%)',
         }}
       />
+
 
       {/* =====================================================
           FALLING LEAVES
@@ -571,6 +682,7 @@ export default function HomePage() {
           zIndex: 1,
         }}
       />
+
 
       {/* =====================================================
           GLOBAL STYLES
@@ -632,11 +744,127 @@ export default function HomePage() {
             transform .2s ease;
         }
 
-        @media (max-width: 1100px) {
+        /*
+          THE SHOWCASE IS NOW A NORMAL CENTERED FLEX GROUP.
+          Nothing is positioned with "right" or a giant fixed
+          1500px canvas anymore.
+        */
+
+        .showcase {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 70px;
+          width: 100%;
+          max-width: 1280px;
+          margin: -150px auto 0;
+          padding: 0 40px;
+        }
+
+        .dashboard-image {
+          width: 790px;
+          height: auto;
+          display: block;
+          flex-shrink: 0;
+
+          border-radius: 26px;
+
+          border: 2px solid rgba(255,106,26,.5);
+
+          box-shadow:
+            0 0 35px rgba(255,106,26,.14),
+            0 30px 100px rgba(0,0,0,.85);
+
+          transform:
+            perspective(1200px)
+            rotateY(-8deg)
+            rotateZ(3deg);
+
+          transform-origin: center center;
+        }
+
+        .placeholder-card {
+          width: 390px;
+          height: 410px;
+          flex-shrink: 0;
+
+          border-radius: 24px;
+
+          border: 2px solid rgba(255,106,26,.5);
+
+          background:
+            linear-gradient(
+              135deg,
+              #0d0d0d,
+              #241508
+            );
+
+          box-shadow:
+            0 20px 70px rgba(0,0,0,.8),
+            0 0 30px rgba(255,106,26,.1);
+
+          transform:
+            perspective(1000px)
+            rotateY(5deg)
+            rotateZ(-2deg);
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          position: relative;
+          overflow: hidden;
+        }
+
+        .placeholder-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+
+          background:
+            linear-gradient(
+              to bottom,
+              rgba(0,0,0,.05),
+              rgba(0,0,0,.8)
+            );
+
+          pointer-events: none;
+        }
+
+        .placeholder-content {
+          position: relative;
+          z-index: 2;
+          text-align: center;
+        }
+
+        @media (max-width: 1250px) {
           .showcase {
-            transform:
-              translateX(-50%)
-              scale(.82) !important;
+            gap: 45px;
+            padding: 0 25px;
+          }
+
+          .dashboard-image {
+            width: 680px;
+          }
+
+          .placeholder-card {
+            width: 330px;
+            height: 350px;
+          }
+        }
+
+        @media (max-width: 1000px) {
+          .showcase {
+            gap: 25px;
+          }
+
+          .dashboard-image {
+            width: 560px;
+          }
+
+          .placeholder-card {
+            width: 280px;
+            height: 310px;
           }
         }
 
@@ -658,12 +886,24 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform:
-              translateX(-50%)
-              scale(.58) !important;
+            flex-direction: column;
+            gap: 35px;
+            margin-top: -100px;
+            height: auto;
+            padding: 0 20px;
+          }
 
-            height: 300px !important;
-            margin-top: 10px !important;
+          .dashboard-image {
+            width: min(790px, 92vw);
+            transform:
+              perspective(1200px)
+              rotateY(-4deg)
+              rotateZ(2deg);
+          }
+
+          .placeholder-card {
+            width: min(390px, 80vw);
+            height: 350px;
           }
 
           .footer-grid {
@@ -695,11 +935,16 @@ export default function HomePage() {
           }
 
           .showcase {
-            transform:
-              translateX(-50%)
-              scale(.42) !important;
+            margin-top: -70px;
+          }
 
-            height: 220px !important;
+          .dashboard-image {
+            width: 95vw;
+          }
+
+          .placeholder-card {
+            width: 85vw;
+            height: 300px;
           }
 
           .footer-grid {
@@ -766,14 +1011,19 @@ export default function HomePage() {
         }}
       >
 
+        {/* BRAND */}
+
         <TransitionLink
           href="/"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 12,
+
             color: '#fff',
+
             textDecoration: 'none',
+
             minWidth: 200,
           }}
         >
@@ -784,6 +1034,7 @@ export default function HomePage() {
             height={30}
             style={{
               display: 'block',
+
               filter:
                 'drop-shadow(0 0 10px rgba(255,106,26,.35))',
             }}
@@ -794,8 +1045,11 @@ export default function HomePage() {
             style={{
               fontFamily:
                 "'Space Grotesk', sans-serif",
+
               fontSize: 21,
+
               fontWeight: 600,
+
               letterSpacing: '-.7px',
             }}
           >
@@ -803,6 +1057,8 @@ export default function HomePage() {
           </span>
         </TransitionLink>
 
+
+        {/* CENTER LINKS */}
 
         <div
           className="desktop-links"
@@ -814,6 +1070,7 @@ export default function HomePage() {
 
             display: 'flex',
             alignItems: 'center',
+
             gap: 5,
           }}
         >
@@ -841,31 +1098,42 @@ export default function HomePage() {
                 key={label}
                 href={href}
                 className="nav-link"
+
                 target={
                   label === 'Discord'
                     ? '_blank'
                     : undefined
                 }
+
                 rel={
                   label === 'Discord'
                     ? 'noopener noreferrer'
                     : undefined
                 }
+
                 style={{
                   color:
                     COLORS.muted,
+
                   textDecoration:
                     'none',
+
                   fontSize: 14,
+
                   padding:
                     '9px 13px',
+
                   whiteSpace:
                     'nowrap',
+
                   border:
                     '1px solid transparent',
+
                   borderRadius: 12,
+
                   background:
                     'transparent',
+
                   boxShadow:
                     'none',
                 }}
@@ -877,11 +1145,15 @@ export default function HomePage() {
         </div>
 
 
+        {/* RIGHT SIDE */}
+
         <div
           style={{
             marginLeft: 'auto',
+
             display: 'flex',
             alignItems: 'center',
+
             gap: 8,
           }}
         >
@@ -893,16 +1165,23 @@ export default function HomePage() {
               style={{
                 color:
                   COLORS.muted,
+
                 textDecoration:
                   'none',
+
                 fontSize: 14,
+
                 padding:
                   '9px 13px',
+
                 border:
                   '1px solid transparent',
+
                 borderRadius: 12,
+
                 background:
                   'transparent',
+
                 boxShadow:
                   'none',
               }}
@@ -911,6 +1190,7 @@ export default function HomePage() {
             </AccentLink>
           )}
 
+
           {authChecked &&
           loggedIn ? (
             <AccentLink
@@ -918,17 +1198,25 @@ export default function HomePage() {
               className="hero-button"
               style={{
                 color: '#fff',
+
                 background:
                   'rgba(255,106,26,.16)',
+
                 border:
                   '1px solid rgba(255,106,26,.55)',
+
                 textDecoration:
                   'none',
+
                 fontSize: 14,
+
                 fontWeight: 500,
+
                 padding:
                   '11px 17px',
+
                 borderRadius: 25,
+
                 boxShadow:
                   '0 0 12px rgba(255,106,26,.08)',
               }}
@@ -941,17 +1229,25 @@ export default function HomePage() {
               className="hero-button"
               style={{
                 color: '#000',
+
                 background:
                   COLORS.orange,
+
                 textDecoration:
                   'none',
+
                 fontSize: 14,
+
                 fontWeight: 600,
+
                 padding:
                   '12px 19px',
+
                 borderRadius: 25,
+
                 border:
                   '1px solid transparent',
+
                 boxShadow:
                   '0 0 18px rgba(255,106,26,.25)',
               }}
@@ -1054,9 +1350,14 @@ export default function HomePage() {
         <div
           style={{
             display: 'flex',
+
             gap: 10,
+
             alignItems: 'center',
-            justifyContent: 'center',
+
+            justifyContent:
+              'center',
+
             flexWrap: 'wrap',
           }}
         >
@@ -1147,196 +1448,49 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          SHOWCASE
-          
-          Dashboard is now on the LEFT.
-          Placeholder is on the RIGHT.
-          The entire group is centered.
+          CENTERED SHOWCASE
       ===================================================== */}
 
       <section
         className="showcase"
         style={{
           position: 'relative',
-
           zIndex: 3,
-
-          /*
-           * This width keeps the entire composition centered
-           * instead of pushing the dashboard too far right.
-           */
-          width: 1180,
-
-          height: 500,
-
-          margin:
-            '-160px auto 0',
-
-          left: '50%',
-
-          transform:
-            'translateX(-50%)',
-
-          display: 'flex',
-
-          alignItems: 'center',
-
-          justifyContent:
-            'center',
-
-          gap: 35,
         }}
       >
 
         {/* =================================================
-            DASHBOARD IMAGE — LEFT
+            LEFT — REAL DASHBOARD IMAGE
         ================================================= */}
 
-        <div
-          style={{
-            width: 720,
-            flexShrink: 0,
-
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-
-            position: 'relative',
-          }}
-        >
-          <img
-            src="/dashboard.png"
-            alt="Dashboard preview"
-            style={{
-              display: 'block',
-
-              width: 720,
-              height: 'auto',
-
-              maxWidth: 'none',
-
-              borderRadius: 25,
-
-              border:
-                '2px solid rgba(255,106,26,.5)',
-
-              boxShadow:
-                '0 0 35px rgba(255,106,26,.14), 0 30px 100px rgba(0,0,0,.85)',
-
-              transform:
-                'perspective(1200px) rotateY(8deg) rotateZ(3deg)',
-
-              transformOrigin:
-                'center center',
-            }}
-          />
-        </div>
+        <img
+          src="/dashboard.png"
+          alt="illness.lol dashboard"
+          className="dashboard-image"
+        />
 
 
         {/* =================================================
-            PLACEHOLDER — RIGHT
+            RIGHT — PLACEHOLDER
         ================================================= */}
 
-        <div
-          style={{
-            width: 360,
-            height: 400,
+        <div className="placeholder-card">
+          <div className="placeholder-content">
 
-            flexShrink: 0,
-
-            borderRadius: 24,
-
-            border:
-              '2px solid rgba(255,106,26,.42)',
-
-            background:
-              'linear-gradient(145deg, rgba(255,106,26,.08), rgba(10,10,10,.96))',
-
-            boxShadow:
-              '0 20px 70px rgba(0,0,0,.8), 0 0 30px rgba(255,106,26,.08)',
-
-            display: 'flex',
-
-            alignItems: 'center',
-
-            justifyContent: 'center',
-
-            textAlign: 'center',
-
-            position: 'relative',
-
-            overflow: 'hidden',
-
-            transform:
-              'perspective(1000px) rotateY(-4deg) rotateZ(-1deg)',
-          }}
-        >
-
-          {/* subtle glow */}
-
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-
-              width: 300,
-              height: 300,
-
-              left: '50%',
-              top: '50%',
-
-              transform:
-                'translate(-50%, -50%)',
-
-              borderRadius: '50%',
-
-              background:
-                'radial-gradient(circle, rgba(255,106,26,.12), transparent 70%)',
-
-              pointerEvents: 'none',
-            }}
-          />
-
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-            }}
-          >
-            <div
-              style={{
-                color:
-                  'rgba(255,106,26,.55)',
-
-                fontSize: 12,
-
-                fontWeight: 600,
-
-                letterSpacing:
-                  '2px',
-
-                textTransform:
-                  'uppercase',
-
-                marginBottom: 12,
-              }}
-            >
-              Coming Soon
-            </div>
+            <PlaceholderAvatar />
 
             <div
               style={{
-                color: '#fff',
+                marginTop: 16,
 
                 fontFamily:
                   "'Space Grotesk', sans-serif",
 
-                fontSize: 28,
+                fontSize: 24,
 
-                fontWeight: 600,
+                fontWeight: 700,
 
-                letterSpacing:
-                  '-.8px',
+                color: '#fff',
               }}
             >
               Placeholder
@@ -1344,19 +1498,69 @@ export default function HomePage() {
 
             <div
               style={{
+                marginTop: 7,
+
                 color:
-                  'rgba(255,255,255,.38)',
+                  COLORS.faint,
 
-                fontSize: 13,
-
-                marginTop: 8,
+                fontSize: 12,
               }}
             >
-              More features
+              Your profile preview goes here
             </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                justifyContent:
+                  'center',
+
+                gap: 8,
+
+                marginTop: 18,
+              }}
+            >
+              {[1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+
+                    background:
+                      'rgba(255,255,255,.07)',
+
+                    border:
+                      '1px solid rgba(255,255,255,.1)',
+                  }}
+                />
+              ))}
+            </div>
+
+            <div
+              style={{
+                width: 250,
+                maxWidth: '80%',
+
+                height: 42,
+
+                margin:
+                  '18px auto 0',
+
+                borderRadius: 10,
+
+                background:
+                  'rgba(255,255,255,.06)',
+
+                border:
+                  '1px solid rgba(255,255,255,.08)',
+              }}
+            />
+
           </div>
         </div>
-
 
         {/* =================================================
             BOTTOM FADE
@@ -1366,10 +1570,10 @@ export default function HomePage() {
           style={{
             position: 'absolute',
 
-            left: -100,
-            right: -100,
+            left: 0,
+            right: 0,
 
-            bottom: -80,
+            bottom: -100,
 
             height: 180,
 
@@ -1394,7 +1598,7 @@ export default function HomePage() {
         style={{
           height: 160,
 
-          marginTop: -100,
+          marginTop: -30,
 
           position: 'relative',
 
@@ -1673,6 +1877,8 @@ export default function HomePage() {
             }}
           >
 
+            {/* BRAND */}
+
             <div>
 
               <TransitionLink
@@ -1742,6 +1948,8 @@ export default function HomePage() {
             </div>
 
 
+            {/* PRODUCT */}
+
             <div>
 
               <FooterTitle>
@@ -1766,6 +1974,8 @@ export default function HomePage() {
 
             </div>
 
+
+            {/* RESOURCES */}
 
             <div>
 
@@ -1795,6 +2005,8 @@ export default function HomePage() {
 
             </div>
 
+
+            {/* LEGAL */}
 
             <div>
 
